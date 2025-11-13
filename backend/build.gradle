@@ -1,0 +1,79 @@
+// 플러그인 선언
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.7'
+    id 'io.spring.dependency-management' version '1.1.7'    // 의존성 버전 일관성 유지
+}
+
+// 프로젝트 기본 정보
+group = 'com.bada'                                    // 패키지 이름용 group ID
+version = '0.0.1-SNAPSHOT'                            // 프로젝트 버전(개발 중인 스냅샷)
+description = 'Side project for Spring Boot'        // 프로젝트 설명
+
+java {
+    // java 17 toolchain 사용 명시 (JDK가 여러 개 있을 경우를 대비한 설정)
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        // 컴파일 전용 설정 (annotationProcessor도 포함되도록 확장)
+        extendsFrom annotationProcessor
+    }
+}
+
+// 자바 컴파일 시 문자 인코딩을 UTF-8로 고정 → 한글 주석 깨짐 방지
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+// === 의존성 다운로드 경로 설정 ===
+repositories {
+    mavenCentral()  // Maven 중앙 저장소
+}
+
+// 의존성 설정
+dependencies {
+    // --- Spring Boot Starters ---
+    implementation 'org.springframework.boot:spring-boot-starter-web'         // 웹 서버(Tomcat), REST 컨트롤러 등
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'   // Thymeleaf 템플릿 엔진
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'    // JPA + Hibernate ORM
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    // 스프링부트 3.x 부터는 starter-web에 Bean Validation이 자동으로 포함되지 않기 때문에 별도로 주입
+
+    // DB
+    implementation 'mysql:mysql-connector-java:8.0.33'  // 버전은 필요 시 조정
+
+    // 개발 편의 기능
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'           // 핫리로딩 및 자동 재시작
+
+    // Lombok (코드 간결화: @Getter, @Builder 등)
+    compileOnly 'org.projectlombok:lombok'                                    // 컴파일 시에만 적용됨
+    annotationProcessor 'org.projectlombok:lombok'                            // 롬복 어노테이션 처리기
+
+    // Spring Security 기본 스타터
+    // NOTE: 스프링시큐리티의 경우, 코드를 통한 설정 조정 많음. => 별도의 클래스 활용 (CustomSecurityConfig.class)
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // Thymeleaf에서 Spring Security 태그 사용 시 필요
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+
+    // 타임리프 레이아웃 설정
+    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.2.1'
+
+    // 로그 메시지를 출력하기 위한 API. (런타임 이슈로 인해 추가)
+    implementation 'org.jboss.logging:jboss-logging:3.4.1.Final'
+
+    // 테스트 의존성
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'   // JUnit, Mockito 등 포함
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'             // 테스트 런타임 실행기
+    testCompileOnly 'org.projectlombok:lombok'                                // 롬복 어노테이션 처리기
+    testAnnotationProcessor 'org.projectlombok:lombok'                       // 롬복 어노테이션 처리기
+}
+
+// 테스트 설정
+tasks.named('test') {
+    useJUnitPlatform()      // JUnit 5 플랫폼 사용
+}
