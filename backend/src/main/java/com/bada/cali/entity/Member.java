@@ -1,0 +1,181 @@
+package com.bada.cali.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "member")
+@Getter
+@Setter
+@NoArgsConstructor               // 매개변수 없는 기본 생성자
+@AllArgsConstructor              // 모든 필드를 파라미터로 받는 생성자
+@Builder                        // 빌더패턴 자동 생성. (NOTATION 4번)
+public class Member {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer id; // member 고유번호
+	
+	@Column(name = "login_id", length = 20, nullable = false)
+	private String loginId;
+	
+	@Column(name = "pwd", length = 255, nullable = false)
+	private String pwd;
+	
+	@Column(name = "agent_id", nullable = false)
+	private Integer agentId = 0;
+	
+	@Column(name = "name", length = 100, nullable = false)
+	private String name;
+	
+	@Column(name = "name_eng", length = 100, nullable = false)
+	private String nameEng;
+	
+	@Column(name = "birth", length = 10)
+	private String birth;
+	
+	// 사번
+	@Column(name = "company_no", length = 30)
+	private String companyNo;
+	
+	// 휴대폰
+	@Column(name = "hp", length = 20)
+	private String hp;
+	
+	@Column(name = "email", length = 125)
+	private String email;
+	
+	// 전화번호
+	@Column(name = "tel", length = 20)
+	private String tel;
+	
+	// 주소
+	@Column(name = "addr1", length = 100)
+	private String addr1;
+	
+	@Column(name = "addr2", length = 100)
+	private String addr2;
+	
+	// 비고
+	@Lob
+	@Column(name = "remark")
+	private String remark;
+	
+	// 직무
+	@Column(name = "task_id", nullable = false)
+	private Integer taskId = 0;
+	
+	// 부서
+	@Column(name = "department_id", nullable = false)
+	private Integer departmentId = 0;
+	
+	// 직급
+	@Column(name = "level_id", nullable = false)
+	private Integer levelId = 0;
+	
+	// 입사일
+	@Column(name = "join_date", length = 20)
+	private String joinDate;
+	
+	// 퇴사일
+	@Column(name = "leave_date", length = 20)
+	private String leaveDate;
+	
+	// 재직유형
+	@Column(name = "work_type", nullable = false)
+	private Byte workType = 0;
+	
+	// 급여타입
+	@Column(name = "salary_type", nullable = false)
+	private Byte salaryType = 0;
+	
+	// 실무자 & 기술책임자
+	@Column(name = "calbr_manager_type", nullable = false)
+	private Byte calbrManagerType = 0;
+	
+	// 서명이미지(파일명)
+	@Column(name = "img", length = 255)
+	private String img;
+	
+	// 품질문서 권한
+	@Column(name = "doc_permisson", length = 255)
+	private String docPermisson;
+	
+	// 유저 권한
+	@Enumerated(EnumType.STRING)
+	@Column(name = "auth", columnDefinition = "ENUM('admin','user') default 'user'")
+	private AuthType auth = AuthType.user;
+	
+	// 로그인 횟수
+	@Column(name = "login_count", nullable = false)
+	private Integer loginCount = 0;
+	
+	// 모바일 접근가능여부
+	@Column(name = "mobile_access", nullable = false)
+	private Byte mobileAccess = 1;
+	
+	// ip 접근차단여부
+	@Column(name = "ip_access", nullable = false)
+	private Byte ipAccess = 1;
+	
+	// 남은 연차
+	@Column(name = "day_off_total", nullable = false, precision = 5, scale = 1)
+	private BigDecimal dayOffTotal = BigDecimal.ZERO;
+	
+	// 삭제여부
+	@Enumerated(EnumType.STRING)
+	@Column(name = "is_visible", nullable = false, columnDefinition = "ENUM('Y','N') default 'Y'")
+	private YnType isVisible = YnType.y;
+	
+	// 아이디 활성화 여부
+	@Column(name = "is_active", nullable = false)
+	private Byte isActive = 1;    // 로그인 가능여부 (기본값이 1)
+	
+	// 도래알람여부
+	@Enumerated(EnumType.STRING)
+	@Column(name = "dorae_alarm", nullable = false, columnDefinition = "ENUM('Y','N') default 'Y'")
+	private YnType doraeAlarm = YnType.y;
+	
+	// 표준장비 도래알림여부
+	@Enumerated(EnumType.STRING)
+	@Column(name = "equipage_dorae_alarm", nullable = false, columnDefinition = "ENUM('Y','N') default 'Y'")
+	private YnType equipageDoraeAlarm = YnType.y;
+	
+	// 마지막 비밀번호 변경일시
+	@Column(name = "last_pwd_updated", nullable = true)
+	private LocalDateTime lastPwdUpdated;
+	
+	// 마지막 로그인 일시
+	@Column(name = "last_login_datetime", nullable = true)
+	private LocalDateTime lastLoginDatetime;
+	
+	@Column(name = "create_datetime", nullable = false)
+	private LocalDateTime createDatetime;
+	
+	@Column(name = "create_member_id", nullable = false)
+	private Integer createMemberId = 0;
+	
+	@Column(name = "update_datetime", nullable = true)
+	private LocalDateTime updateDatetime;
+	
+	@Column(name = "update_member_id", nullable = false)
+	private Integer updateMemberId = 0;
+	
+	@Column(name = "delete_datetime", nullable = true)
+	private LocalDateTime deleteDatetime;
+	
+	@Column(name = "delete_member_id", nullable = false)
+	private Integer deleteMemberId = 0;
+	
+	public enum AuthType {
+		admin, user
+	}
+	
+	public enum YnType {
+		y, n
+	}
+	
+}
