@@ -100,5 +100,35 @@ Member member = Member.builder()
 ```
 ---
 
+# 📌5번. loadUserByUsername() 동작 요약
+
+## 핵심 내용
+- `loadUserByUsername()`는 **비밀번호 비교를 하지 않고**,  
+  username으로 **사용자 정보를 조회하여 UserDetails로 반환**하는 역할만 수행한다.
+- 비밀번호 검증은 `AuthenticationProvider`(= `DaoAuthenticationProvider`)가  
+  `PasswordEncoder.matches()`를 통해 **자동으로 처리**한다.
+- 따라서 이 메서드에서는 **DB에 저장된 비밀번호 해시를 그대로 UserDetails에 넣어야 한다.**
+
+## 예시 코드 요약
+```java
+@Override
+public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+    Member member = memberRepository.findByLoginId(username)
+            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+
+    return User.withUsername(member.getLoginId())
+            .password(member.getPwd())                      // DB의 해시 그대로
+            .accountLocked(member.getIsActive() != 1)       // is_active = 0 → 로그인 불가
+            .authorities("ROLE_USER")                       // 기본 권한 설정
+            .build();
+}
+```
+
+## 정리
+- loadUserByUsername() → 유저 조회 + UserDetails 생성
+- 비밀번호 비교 → 시큐리티 내부에서 자동 처리
+- PasswordEncoder는 SecurityConfig에서 빈으로 등록해 두면 자동 사용됨
+
 
 ---

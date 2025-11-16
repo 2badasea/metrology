@@ -17,12 +17,10 @@ public interface MemberRepository extends JpaRepository<Member, Integer> {
 	Optional<Member> findByLoginId(String username);
 	
 	// 로그인 시도 횟수 초기화
+	// 트랜잭션 애너테이션의 경우, 서비스 계층에서 선언 권장.(서비스 계층이 '비즈니스 로직의 단위')
 	@Modifying
-	@Query("UPDATE Member m " +
-			"SET m.loginCount = :setCount, m.isActive = case when m.loginCount = 5 then 0 ELSE m.isActive END " +    // else문을 사용하지 않으면 null이 들어갈 수 있음.
-			"WHERE m.id = :id")
+	@Query("UPDATE Member m SET m.loginCount = :setCount, m.lastLoginFailDatetime = CASE WHEN :setCount >= 1 AND :setCount <= 5 THEN CURRENT_TIMESTAMP ELSE m.lastLoginFailDatetime END  WHERE m.id = :id")
 	@Transactional
-	// 서비스 계층에서 선언하는 것을 권장.(서비스 계층이 '비즈니스 로직의 단위'이기 때문)
 	int updateMemberLoginCount(@Param("id") Integer id, @Param("setCount") Integer setCount);
 	
 	// 마지막 로그인일시 업데이트

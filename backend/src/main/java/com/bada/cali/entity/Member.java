@@ -114,12 +114,14 @@ public class Member {
 	private Integer loginCount = 0;
 	
 	// 모바일 접근가능여부
-	@Column(name = "mobile_access", nullable = false)
-	private Byte mobileAccess = 1;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "mobile_access", nullable = false, columnDefinition = "ENUM('y','n') default 'y'")
+	private YnType mobileAccess = YnType.y;
 	
 	// ip 접근차단여부
-	@Column(name = "ip_access", nullable = false)
-	private Byte ipAccess = 1;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "ip_access", nullable = false, columnDefinition = "ENUM('y','n') default 'y'")
+	private YnType ipAccess = YnType.y;
 	
 	// 남은 연차
 	@Column(name = "day_off_total", nullable = false, precision = 5, scale = 1)
@@ -127,21 +129,22 @@ public class Member {
 	
 	// 삭제여부
 	@Enumerated(EnumType.STRING)
-	@Column(name = "is_visible", nullable = false, columnDefinition = "ENUM('Y','N') default 'Y'")
+	@Column(name = "is_visible", nullable = false, columnDefinition = "ENUM('y','n') default 'y'")
 	private YnType isVisible = YnType.y;
 	
 	// 아이디 활성화 여부
-	@Column(name = "is_active", nullable = false)
-	private Byte isActive = 1;    // 로그인 가능여부 (기본값이 1)
+	@Enumerated(EnumType.STRING)
+	@Column(name = "is_active", nullable = false, columnDefinition = "ENUM('y','n') default 'y'")
+	private YnType isActive = YnType.y;    // 로그인 가능여부 (기본값이 y)
 	
 	// 도래알람여부
 	@Enumerated(EnumType.STRING)
-	@Column(name = "dorae_alarm", nullable = false, columnDefinition = "ENUM('Y','N') default 'Y'")
+	@Column(name = "dorae_alarm", nullable = false, columnDefinition = "ENUM('y','n') default 'y'")
 	private YnType doraeAlarm = YnType.y;
 	
 	// 표준장비 도래알림여부
 	@Enumerated(EnumType.STRING)
-	@Column(name = "equipage_dorae_alarm", nullable = false, columnDefinition = "ENUM('Y','N') default 'Y'")
+	@Column(name = "equipage_dorae_alarm", nullable = false, columnDefinition = "ENUM('y','n') default 'y'")
 	private YnType equipageDoraeAlarm = YnType.y;
 	
 	// 마지막 비밀번호 변경일시
@@ -151,6 +154,10 @@ public class Member {
 	// 마지막 로그인 일시
 	@Column(name = "last_login_datetime", nullable = true)
 	private LocalDateTime lastLoginDatetime;
+	
+	// 마지막 로그인 실패일시
+	@Column(name = "last_login_fail_datetime", nullable = true)
+	private LocalDateTime lastLoginFailDatetime;
 	
 	@Column(name = "create_datetime", nullable = false)
 	private LocalDateTime createDatetime;
