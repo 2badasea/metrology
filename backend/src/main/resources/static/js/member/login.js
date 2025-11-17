@@ -52,16 +52,19 @@ $(function () {
 					Swal.fire(res.msg ?? '로그인 성공', '', 'success').then(() => {
 						// 로그인 성공에 대한 URL 리턴 구분
 						let return_url = '';
-						// admin
+						// 일반 user
 						if (res.code == 1) {
 							return_url = '/basic/home';
-						} else {
+						}
+						// admin 권한을 가진 유저 (admin페이지 개발 이후 경로 변경할 것)
+						else {
 							return_url = '/basic/home';
 						}
 						location.href = return_url;
 					});
 				} else {
-					g_toast(res.msg, 'warning');
+					Swal.fire(res.msg ?? '로그인 실패', '', 'warning');
+					// g_toast(res.msg, 'warning');
 				}
 			} catch (err) {
 				console.log('catch!!');
@@ -73,7 +76,6 @@ $(function () {
 		})
 		// 로그인 이벤트 키업
 		.on('keyup', 'input[name=password]', (e) => {
-			console.log('login keyup!!');
 			if (e.keyCode == 13) {
 				$('.login_btn', $modal).trigger('click');
 			}

@@ -11,6 +11,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -49,21 +52,18 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 		
 		String loginId = request.getParameter("username");
 		
-		// 입력한 아이디가 존재하지 않을 때
-		if (exception instanceof UsernameNotFoundException) {
-			log.info("입력한 계정 '" + loginId + "'이 존재하지 않았음");
+		// 계정이 차단되어 있거나 로그인 시도 10분 제한이 걸린 경우
+		if (exception instanceof InternalAuthenticationServiceException && exception.getCause() instanceof LockedException lockedException) {
+			resMsg = lockedException.getMessage();
 		} else {
-			// 계정이 차단되어 있거나 로그인 시도 10분 제한이 걸린 경우
-			if (exception instanceof LockedException) {
-				resMsg = exception.getMessage();
-			}
-			
-			Optional<Member> optLoginMember = memberRepository.findByLoginId(loginId);
+			Optional<Member> optLoginMember = memberRepository.findByLoginId(loginId, Member.YnType.y);
 			if (optLoginMember.isPresent()) {
+				log.info("==== 확인");
 				Member tryLoginMember = optLoginMember.get();
 				// 입력 아이디 존재 시, 로그인 시도 횟수 카운트 (현재 값이 4이하 일때만 업데이트)
-				if (tryLoginMember.getLoginCount() <= 4) {
-					int resUpdateLoginCnt = memberRepository.updateMemberLoginCount(tryLoginMember.getId(), tryLoginMember.getLoginCount() + 1);
+				if (tryLoginMember.getLoginCount() <= 5) {
+					int updateCountValue = (tryLoginMember.getLoginCount() <= 4) ? (tryLoginMember.getLoginCount() + 1) : 1;
+					int resUpdateLoginCnt = memberRepository.updateMemberLoginCount(tryLoginMember.getId(), updateCountValue);
 				}
 				
 				// 로그인 실패 이력 남기기
@@ -85,7 +85,7 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 		
 		// 응답 메시지 생성
 		ResMessage<Object> resMessage = new ResMessage<>(resCode, resMsg, null);
-		response.setStatus(401);
+		response.setStatus(HttpStatus.OK.value());        // 500에러를 제외하고 잡을 수 있는 에러들에 대해선 정상흐름으로 상태값 리턴하기
 		response.setContentType("application/json;charset=utf-8");
 		response.getWriter().write(objectMapper.writeValueAsString(resMessage));
 	}

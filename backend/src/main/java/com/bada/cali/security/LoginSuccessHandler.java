@@ -43,7 +43,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 		
 		String loginId = authentication.getName();
 		// loginId를 바탕으로 유저 정보를 가져온다.
-		Member loginMember = memberRepository.findByLoginId(loginId).orElseThrow(() -> new IllegalStateException("Successful authentication but user not found"));
+		Member loginMember = memberRepository.findByLoginId(loginId, Member.YnType.y).orElseThrow(() -> new IllegalStateException("Successful authentication but user not found"));
 		
 		LocalDateTime now = LocalDateTime.now();
 		

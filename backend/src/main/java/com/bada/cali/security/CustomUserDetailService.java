@@ -25,7 +25,7 @@ public class CustomUserDetailService implements UserDetailsService {
 		log.info("loadUserByUsername username={}", username);
 		
 		// orElseThrow의 경우, 값이 있으면 Optional<T>에 명시한 T타입의 값(get)으로 반환하도록 동작
-		Member loginMember = memberRepository.findByLoginId(username).orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+		Member loginMember = memberRepository.findByLoginId(username, Member.YnType.y).orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
 		
 		// 로그인 시도 5회 이상 && 마지막 로그인 시도 일시가 10분도 안 된 상태라면 실패로 던지기
 		LocalDateTime now = LocalDateTime.now();
@@ -34,7 +34,7 @@ public class CustomUserDetailService implements UserDetailsService {
 		}
 		// 계정의 가입 승인이 이루어지지 않은 경우 y: 가능(승인완료), n: 불가(미승인/차단)
 		if (loginMember.getIsActive() != Member.YnType.valueOf("y")) {
-			throw new LockedException("10분 뒤에 로그인이 가능합니다.");
+			throw new LockedException("관리자의 승인이 필요합니다.\n관리자에게 문의해주세요.");
 		}
 		
 		UserDetails userDetails = User.withUsername(loginMember.getLoginId())
