@@ -1,10 +1,10 @@
 $(function () {
 	console.log('++ common.js');
-	
+
 	if ($('.modal-dialog').length > 0) {
 		modal_draggable();
 	}
-	
+
 	$('input[type=text]').attr('autocomplete', 'off'); // input창 자동완성 제거
 	$('input[type=password]').attr('autocomplete', 'new-password'); // 비밀번호 항목 자동완성 제거
 })
@@ -12,7 +12,7 @@ $(function () {
 	.on('input', 'input.number_integer', function () {
 		let this_value = this.value.replace(/\D+/g, ''); // 숫자 외 제거
 		this.value = this_value;
-		
+
 		// NOTE 'keyup' 대신 'input'을 사용하는 이유
 		// 1. keyup의 경우, '키를 뗐을 때'만 발생. 즉, 키보드 입력에만 의존.
 		// 2. input의 경우, 값이 바뀌면 무조건 발생.
@@ -21,7 +21,7 @@ $(function () {
 	.on('keyup', 'input.agent_num', (e) => {
 		let agent_num = e.target.value; // 화살표함수가 아닌 'this.value' 형태로도 값을 얻을 수 있음.
 		agent_num = agent_num.replace(/\D/g, '').slice(0, 10);
-		
+
 		let out = '';
 		if (agent_num.length <= 3) {
 			out = agent_num;
@@ -33,33 +33,32 @@ $(function () {
 		e.target.value = out;
 	})
 	// 로그아웃 이벤트 정의
-	.on("click", ".logoutBtn", async function (e) {
+	.on('click', '.logoutBtn', async function (e) {
 		e.preventDefault();
-		console.log("로그아웃 호출!");
-		
+		console.log('로그아웃 호출!');
+
 		// await문에 then메서드등을 달지 않기
 		const confirm_check = await Swal.fire({
-			title: "로그아웃 하시겠습니까?",
+			title: '로그아웃 하시겠습니까?',
 			showDenyButton: true,
 			showCancelButton: false,
-			confirmButtonText: "네",
+			confirmButtonText: '네',
 			denyButtonText: `아니오`,
 		});
-		
+
 		if (!confirm_check.isConfirmed) {
 			return false;
 		}
-		
+
 		try {
 			// POST 호출 (g_ajax 내부가 POST 기본이면 데이터는 빈 객체여도 OK)
-			const res = await g_ajax("/logout", {}); // 서버에서 200/204/302 상관없음
+			const res = await g_ajax('/logout', {}); // 서버에서 200/204/302 상관없음
 			if (res?.ok != undefined && res.ok === true) {
 				location.href = res.redirect;
 			}
-			
 		} catch (err) {
 			console.error(err);
-			g_toast("로그아웃에 실패했습니다.", "error");
+			g_toast('로그아웃에 실패했습니다.', 'error');
 		}
 	});
 
@@ -75,10 +74,8 @@ function init_page($modal, param = {}) {
 	//부트스트랩 모달의 FocusTrap 무력화(모달 밖의 요소로 포커스가 이동하면 포커스를 탈취)
 	$.fn.modal.Constructor.prototype._initializeFocusTrap = function () {
 		return {
-			activate: function () {
-			},
-			deactivate: function () {
-			},
+			activate: function () {},
+			deactivate: function () {},
 		};
 	};
 	let modal_script = undefined != $modal ? $modal.data('modal-data') : undefined;
@@ -121,7 +118,6 @@ function init_page($modal, param = {}) {
  * @returns primise
  */
 function g_ajax(url, data = {}, options = {}) {
-	
 	// 기본적으로 post요청과 응답형식은 json으로 고정한다.
 	let settings = $.extend(
 		{
@@ -137,8 +133,7 @@ function g_ajax(url, data = {}, options = {}) {
 		settings.processData = false;
 		settings.contentType = false;
 	}
-	
-	
+
 	let error = function (request, status, error) {
 		console.log(request, status, error);
 		if ('undefined' != typeof options.error) {
@@ -160,7 +155,7 @@ function g_toast(text = '알림', type = 'info', options = {}) {
 		//허용되지 않은 타입일경우 info로 강제로 설정한다.
 		type = 'info';
 	}
-	
+
 	let settings = $.extend(
 		{
 			closeButton: false,
@@ -235,25 +230,25 @@ function custom_ajax_handler(err) {
 	const status = xhr?.status;
 	const respJSON = xhr?.responseJSON;
 	const respText = xhr?.responseText;
-	
+
 	// 옵셔널체이닝 문법(null/undefined이면 에러를 발생시키지 않고, undefined를 반환.)
 	if (respJSON?.code != undefined && respJSON?.msg != undefined) {
 		g_toast(respJSON.msg, 'error');
 		return false;
 	}
-	
+
 	// 서버가 JSON으로 { message: "..."} 내려주는 경우
 	const msgFromJson = respJSON?.message || respJSON?.error || respJSON?.detail;
-	
+
 	// 텍스트 응답에서 메시지 추출
 	const msgText = typeof respText === 'string' && respText.length < 300 ? respText : null;
-	
+
 	const message = msgFromJson || msgText || xhr?.statusText || err?.message || '요청 처리 중 오류가 발생했습니다.';
 	console.log('🚀 ~ custom_ajax_handler ~ message:', message);
-	
+
 	// 상태코드가 있으면 붙여주면 디버깅 편함
 	const label = status ? `[${status}] ${message}` : message;
-	
+
 	g_toast(label, 'error');
 }
 
@@ -320,8 +315,7 @@ async function g_modal(url, param = {}, options = {}) {
 							url,
 							$.extend(
 								{
-									render_mode: 'modal',
-									render_version: 'new',
+									renderMode: 'modal',
 								},
 								param
 							),
@@ -370,7 +364,7 @@ async function g_modal(url, param = {}, options = {}) {
 			for (let i = 0; i < settings.custom_btn_html_arr.length; i++) {
 				settings.button_area_html += settings.custom_btn_html_arr[i];
 			}
-			
+
 			settings.button_area_html +=
 				settings.show_guide_button == true
 					? settings.guide_button_html
@@ -409,14 +403,14 @@ async function g_modal(url, param = {}, options = {}) {
 				modal_body_style += 'max-height: ' + settings.height + ';';
 			}
 		}
-		
+
 		// let modal_scrollable = "";
 		// if (settings.modal_scrollable != undefined) {
 		// 	if (settings.modal_scrollable == true) {
 		// 		modal_scrollable = "modal-dialog-scrollable";
 		// 	}
 		// }
-		
+
 		let keyboard = settings.close_with_esc ? ' data-keyboard="true"' : ' data-keyboard="false"';
 		settings.icon =
 			settings.type == 'help_doc' && '' == settings.icon ? '<i class="bi bi-question-circle modal_icon help_doc_icon"></i>' : settings.icon;
@@ -455,7 +449,7 @@ async function g_modal(url, param = {}, options = {}) {
 					$.extend(
 						{
 							uuid: uuid,
-							render_mode: 'modal',
+							renderMode: 'modal',
 						},
 						param
 					),
@@ -476,7 +470,6 @@ async function g_modal(url, param = {}, options = {}) {
 						// init_tagify($(`#${uuid}`));
 						// g_timepicker() 함수는 개별로 따로 처리하라
 						// init_scrollbar(`#${uuid} .modal-body`);
-						
 						if (typeof settings.on_load_complete == 'function') {
 							settings.on_load_complete($(`#${uuid}`));
 						}
@@ -524,8 +517,7 @@ function modal_draggable() {
 	var modal_dialog = $('.modal-dialog');
 	modal_dialog.draggable({
 		handle: '.modal-header',
-		drag: function (event, ui) {
-		},
+		drag: function (event, ui) {},
 	});
 }
 

@@ -69,7 +69,7 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 				// 로그인 실패 이력 남기기
 				Log failLog = Log.builder()
 						.workerName("")
-						.logContent("[로그인 실패] - 로그인 시도 횟수: " + (tryLoginMember.getLoginCount() + 1))
+						.logContent("[로그인 실패]")
 						.logType("l")
 						.refTable("member")
 						.refTableId(tryLoginMember.getId())

@@ -1,5 +1,6 @@
 package com.bada.cali.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,6 +37,5 @@ public class MemberController {
 		log.info("memberJoin get................");
 		return "member/memberJoin";
 	}
-	
 	
 }
