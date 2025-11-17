@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org" th:with="title='로그인', viewName='member/login'">
+
+<body>
+    <!-- 여기서 title, viewName을 세팅해서 header(config)로 전달 -->
+    <div layout:fragment="content">
+        <div class="wrapper">
+            <form class="login_form">
+                <h2 class="login_form-heading text-center">로그인</h2>
+                <input type="text" class="form-control mb-1" name="username" placeholder="아이디를 입력해주세요." required
+                    autofocus="" autocomplete="off" />
+                <input type="password" class="form-control mb-1" name="password" placeholder="비밀번호를 입력해주세요." required
+                    autocomplete="off" />
+                <div class="mb-2">
+                    <input type="checkbox" class="cursor_pointer" id="auto_login" name="remember-me">
+                    <label class="form-check-label cursor_pointer" for="auto_login">자동 로그인</label>
+                </div>
+                <div class="">
+                    <button class="btn btn-lg btn-primary btn-block login_btn" type="button">로그인</button>
+                    <button class="btn btn-lg btn-info btn-block mt-1 join_btn" type="button">회원가입</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,7 @@
+<head th:fragment="header(title, viewName)">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- config가 title, css/js 로딩 담당 -->
+  <th:block th:replace="layout/fragments/config :: config(${title}, ${viewName})"></th:block>
+</head>

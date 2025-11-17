@@ -1,0 +1,13 @@
+<!-- templates/layout/simple-layout.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head th:replace="layout/header :: header(${title}, ${viewName})"></head>
+
+<body>
+	<!-- class 속성을 명시해주어야 inti_page로 페이지 제어 가능 -->
+	<main layout:fragment="content" class="content page_container modal-view"></main>
+	<div th:replace="layout/footer :: footer"></div>
+</body>
+
+</html>

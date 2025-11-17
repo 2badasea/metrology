@@ -1,0 +1,8 @@
+.loginHistory_tbl {
+    width: 100%;
+}
+
+.loginHistory_tbl th, td {
+    text-align: center;
+    border: 1px solid darkgrey;
+}

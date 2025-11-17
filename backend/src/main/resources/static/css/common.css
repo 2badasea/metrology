@@ -1,0 +1,149 @@
+/** 레이아웃 관련 스타일 설정 **/
+
+/* 부모를 flex 컨테이너로 */
+.layout {
+	display: flex;
+	min-height: 100vh; /* 전체 높이 채움 */
+}
+
+/* ==============================  sidebar ===================================== */
+/* 사이드바: 화면의 15% 고정 + 너무 좁아지는 것 방지 */
+.sidebar {
+	width: 12%;
+	min-width: 220px; /* 필요시 조절 */
+	background: #2c3e50;
+	color: #fff;
+}
+
+/* ★ 핵심: .sidebar의 '직계 자식'인 nav를 flex column으로 */
+.sidebar > nav {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+/* 중간 영역을 늘려 차지 */
+.sidebar > nav .menu_wrapper {
+	flex: 1;
+	overflow: auto;
+}
+
+.sidebar > nav .top_info {
+	/* max-height: 143px; */
+}
+
+/* 보조 스타일들 */
+.sidebar > nav .top_info img {
+	max-width: 100%;
+	max-height: 100%;
+	display: block;
+}
+.sidebar > nav .menu_wrapper a {
+	color: #fff;
+	font-size: x-large;
+}
+.sidebar > nav .menu_wrapper li {
+	margin-bottom: 10px;
+}
+.sidebar > nav .bottom_info {
+	height: 80px;
+	background-color: #323e50;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	/* 대안: margin-top:auto; 만 줘도 하단 고정 효과 */
+}
+
+/* ==============================  End sidebar ===================================== */
+/* 우측 컬럼: 상단툴바 + 본문 */
+.main-column {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-width: 0; /* 내용 폭이 커도 줄바꿈/스크롤 가능 */
+	background: #f8f9fa;
+}
+
+/* 상단툴바(88px 고정) */
+.topbar {
+	height: 88px;
+	background: #ffffff;
+	border-bottom: 1px solid #e5e7eb;
+	position: sticky; /* 본문 스크롤 시 상단 고정 */
+	top: 0;
+	z-index: 10;
+}
+
+/* 본문: 나머지 영역 꽉 채움 */
+.content {
+	flex: 1;
+	min-width: 0; /* 긴 콘텐츠 줄바꿈/스크롤을 위해 */
+	background: #f8f9fa;
+	padding: 0.5rem;
+	height: 100%;
+}
+
+/* 반응형: 좁은 화면에서는 사이드바 접거나 축소 */
+@media (max-width: 1024px) {
+	.sidebar {
+		width: 18%;
+		min-width: 180px;
+	}
+}
+@media (max-width: 768px) {
+	.layout {
+		display: block;
+	}
+	.sidebar {
+		width: 100%;
+		min-width: auto;
+	}
+}
+
+/* End 레이아웃 설정 */
+
+.form-control {
+	font-size: 14px;
+	height: 38px;
+	padding: 0px 4px;
+}
+
+div {
+	/* sweet alert창이 좁게 표시되어 아래 부분 주석처리 */
+	/* position: relative; */
+	box-sizing: border-box;
+}
+
+.text_left {
+	text-align: left !important;
+}
+
+/* 이미지 초기화 */
+img {
+	vertical-align: middle;
+	border: 0;
+}
+
+/* 커서 활성호 */
+.cursor_pointer {
+	cursor: pointer;
+}
+
+.list-group li {
+	list-style: none;
+}
+
+label.required::after,
+th.required::after {
+	content: ' *';
+	color: var(--bs-danger, #dc3545); /* Bootstrap 변수 + 폴백 */
+	margin-left: 0.25rem;
+	font-weight: bold;
+}
+
+/* 모달 스타일 조정 */
+.modal-body {
+	padding: unset;
+}
+
+/* END 모달 스타일 조정 */

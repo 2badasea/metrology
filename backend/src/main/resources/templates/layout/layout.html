@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head th:replace="layout/header :: header(${title}, ${viewName})">
+</head>
+
+<body>
+	<div class="layout">
+		<!-- replace속성은 통째로 교체하기 때문에 sidebar 클래스 속성값도 사라짐. -->
+		<!-- insert를 하면 감싸는 div를 유지 -->
+		<div th:insert="layout/sidebar :: sidebar" class="sidebar"></div>
+		<!-- <div th:replace="layout/sidebar :: sidebar" class="sidebar"></div> -->
+
+		<!-- 우측: 상단툴바 + 본문 -->
+		<div class="main-column">
+			<!-- 상단툴바(100px) : 필요하면 fragment로 분리해도 됨 -->
+			<div class="topbar" th:insert="layout/topbar :: topbar"></div>
+
+			<!-- class 속성을 명시해주어야 inti_page로 페이지 제어 가능 -->
+			<main layout:fragment="content" class="content page_container modal-view"></main>
+		</div>
+	</div>
+
+	<div th:replace="layout/footer :: footer"></div>
+</body>
+
+</html>

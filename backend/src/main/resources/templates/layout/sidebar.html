@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+  <nav th:fragment="sidebar">
+    <!-- 메뉴들 -->
+    <div class="top_info">
+      <img src="/images/springboot.jpg" alt="springboot.jpg">
+    </div>
+    <div class="menu_wrapper mt-5">
+      <ul>
+        <li><a href="/basic/loginHistory">로그인 이력관리</a></li>
+        <li><a href="/member/memberList">회원 관리</a></li>
+        <li><a href="#">게시판</a></li>
+        <li><a href="#">설정</a></li>
+      </ul>
+    </div>
+    <div class="bottom_info">
+      <button class="btn btn-warning w-100 h-100 logoutBtn">로그아웃</button>
+    </div>
+
+  </nav>
+</body>
+
+</html>

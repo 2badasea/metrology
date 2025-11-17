@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/layout}"
+    xmlns:th="http://www.thymeleaf.org" th:with="title='로그인 이력관리', viewName='basic/loginHistory'">
+
+<body>
+    <!-- 여기서 title, viewName을 세팅해서 header(config)로 전달 -->
+    <div layout:fragment="content">
+        <!-- 상단 기능 버튼 -->
+        <div class="top_fuctinon d-flex">
+            <ul class="list-group list-group-horizontal font-weight-bold mr-auto pt-1 pb-1">
+                <li class="pr-1">
+                    <button class="btn btn-info btnGetList">api로 뿌리기</button>
+                </li>
+            </ul>
+        </div>
+        <!-- 리스트를 보여줄 테이블  -->
+        <div class="loginHistoryWrapper">
+            <table class="loginHistory_tbl">
+                <colgroup>
+                    <col style="width: 100px;">
+                    <col style="width: 700px;">
+                    <col style="width: 150px;">
+                    <col style="width: 150px;">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>내용</th>
+                        <th>로그인 일시</th>
+                        <th>로그인 유저</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <th:block th:each="row, stat : ${list}">
+                        <tr>
+                            <!-- EL 표현식으로 사용하면 => 주석처리 되어 있어도, 스프링은 읽는다. [[${row.id}]] -->
+                            <td th:text="${(currentPage - 1) * size + stat.count}"></td>
+                            <td th:text="${row.logContent}" class="text-left"></td>
+                            <td th:text="${#temporals.format(row.createDatetime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                            <td th:text="${row.workerName}"></td>
+                        </tr>
+                        <!-- 빈 목록 메시지 -->
+                        <tr th:if="${#lists.isEmpty(list)}">
+                            <td colspan="4" class="text-center">로그인이력이 없습니다.</td>
+                        </tr>
+                    </th:block>
+                </tbody>
+            </table>
+        </div>
+        <!-- 페이징 UI -->
+        <nav th:if="${totalPages > 1}" aria-label="pagination" class="mt-3">
+            <ul class="pagination justify-content-center">
+                <!-- 처음 -->
+                <li class="page-item" th:classappend="${currentPage == 1} ? ' disabled'">
+                    <a class="page-link" th:href="@{/basic/loginHistory(page=${1}, size=${size})}">&laquo;</a>
+                </li>
+
+                <!-- 이전 블록 -->
+                <li class="page-item" th:classappend="${hasPrevBlock} ? '' : ' disabled'">
+                    <a class="page-link" th:href="@{/basic/loginHistory(page=${prevBlockPage}, size=${size})}">이전</a>
+                </li>
+
+                <!-- 페이지 번호 -->
+                <li class="page-item" th:each="p : ${#numbers.sequence(startPage, endPage)}" th:classappend="${p == currentPage} ? ' active'">
+                    <a class="page-link" th:text="${p}" th:href="@{/basic/loginHistory(page=${p}, size=${size})}">1</a>
+                </li>
+
+                <!-- 다음 블록 -->
+                <li class="page-item" th:classappend="${hasNextBlock} ? '' : ' disabled'">
+                    <a class="page-link" th:href="@{/basic/loginHistory(page=${nextBlockPage}, size=${size})}">다음</a>
+                </li>
+
+                <!-- 마지막 -->
+                <li class="page-item" th:classappend="${currentPage == totalPages} ? ' disabled'">
+                    <a class="page-link" th:href="@{/basic/loginHistory(page=${totalPages}, size=${size})}">&raquo;</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</body>
+
+</html>
