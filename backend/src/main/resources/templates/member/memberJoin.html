@@ -18,6 +18,15 @@
             <input type="text" class="form-control" id="companyName" name="name" placeholder="업체명을 입력하세요">
         </div>
 
+        <!-- 주소 -->
+        <div class="mb-3">
+            <label for="address" class="form-label">주소</label>
+            <input type="text" class="form-control cursor_pointer" name="agent_zip_code" placeholder="우편번호 조회 시, 클릭하세요"
+                readonly onclick="sample4_execDaumPostcode()">
+            <input type="text" class="form-control d-inline-block addr1" placeholder="주소를 조회하세요." readonly>
+            <input type="text" class="form-control addr2" placeholder="상세주소를 입력하세요.">
+        </div>
+
         <!-- 비밀번호 입력란 -->
         <div class="mb-3">
             <label for="password" class="form-label required">비밀번호</label>
@@ -37,15 +46,6 @@
         <div class="mb-3">
             <label for="name" class="form-label required">이름</label>
             <input type="text" class="form-control" id="name" name="name" placeholder="이름을 입력하세요">
-        </div>
-
-        <!-- 주소 -->
-        <div class="mb-3">
-            <label for="address" class="form-label">주소</label>
-            <input type="text" class="form-control cursor_pointer" name="agent_zip_code" placeholder="우편번호 조회 시, 클릭하세요"
-                readonly onclick="sample4_execDaumPostcode()">
-            <input type="text" class="form-control d-inline-block addr1" placeholder="주소를 조회하세요." readonly>
-            <input type="text" class="form-control addr2" placeholder="상세주소를 입력하세요.">
         </div>
 
         <!-- 이메일 주소 -->
