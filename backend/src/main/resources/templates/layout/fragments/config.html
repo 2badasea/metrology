@@ -1,30 +1,32 @@
-<th:block th:fragment="config(title, viewName)">
+<th:block th:fragment="config">
     <title th:text="${title} ?: 'App'">App</title>
 
-    <!-- FIX  추후에 cdn 방식이 아닌, 파일을 직접 가지고 있는 방식으로 변경할 것 -->
-    <!-- jquery 3.7.1 -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
+    <!-- 모달 페이지가 아닐 때에만 로드 -->
+    <th:block th:if="${renderMode != 'modal'}">
+        <!-- FIX  추후에 cdn 방식이 아닌, 파일을 직접 가지고 있는 방식으로 변경할 것 -->
+        <!-- jquery 3.7.1 -->
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
 
-    <!-- 부트스트랩 4버전-->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- 부트스트랩 4버전-->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- SweetAlert2 (최신) -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <!-- SweetAlert2 (최신) -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- toastr -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+        <!-- toastr -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
-    <!-- 카카오 주소검색 API  -->
-    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+        <!-- 카카오 주소검색 API  -->
+        <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
-
-    <!-- 공통 CSS -->
-    <link rel="stylesheet" th:href="@{/css/common.css}" />
-    <!-- 공통 JS -->
-    <script th:src="@{/js/common.js}"></script>
+        <!-- 공통 CSS -->
+        <link rel="stylesheet" th:href="@{/css/common.css}" />
+        <!-- 공통 JS -->
+        <script th:src="@{/js/common.js}"></script>
+    </th:block>
 
     <!-- 개별 페이지에 해당하는 script와 css 파일 연동 -->
     <!-- onerror 이벤트를 통해 해당 경로의 리소스가 없는 경우 404에러를 방지하기 위해 해당 태그 자체를 삭제처리 -->

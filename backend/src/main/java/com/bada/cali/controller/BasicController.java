@@ -19,7 +19,7 @@ public class BasicController {
 	// TODO 추후 관리자와 일반 사용자의 로그인 성공 시, 경로 구분할 것
 	@GetMapping("/home")
 	public String home(Model model) {
-		log.info("home 경로 요청!!");
+		model.addAttribute("title", "홈");
 		// NOTE 기본 설정(스프링부트)의 탐색경로: classpath:/templates/ + viewname + .html => /basic/home 을 명시할 경우, //basic/home이 된다.
 		return "basic/home";
 	}

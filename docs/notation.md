@@ -132,3 +132,229 @@ public UserDetails loadUserByUsername(String username) throws UsernameNotFoundEx
 
 
 ---
+
+# 📌6번. 시큐리티 내 예외(UsernameNotFoundException, LockedException) 처리 방식
+
+### 1. `UsernameNotFoundException` → `BadCredentialsException`
+
+- `UserDetailsService#loadUserByUsername()` 안에서  
+  `UsernameNotFoundException` 을 던져도, **실패 핸들러(훅)에서는 그대로 받을 수 없다.**
+- Spring Security 내부에서 이 예외를 **`BadCredentialsException`으로 변환**해서 다룬다.
+  - 실패 훅 내부에서 **`exception of UsernameNotFoundException`** 의 값이 비어있음
+
+#### 왜 이렇게 할까?
+
+- 보안상, 클라이언트에게  
+  > “아이디가 없습니다” vs “비밀번호가 틀렸습니다”  
+  를 구분해서 알려주면 안 되기 때문.
+- 내부적으로는  
+  - *존재하지 않는 계정* 이든 *비밀번호가 틀린 계정* 이든  
+  모두 **동일한 자격 증명 실패(`BadCredentialsException`)** 로 취급해서  
+  공격자가 계정 존재 여부를 추측하지 못하게 한다.
+
+> 결과적으로, 실패 핸들러(훅)에서는 `UsernameNotFoundException`이 아니라  
+> `BadCredentialsException` 기준으로 분기하는 것이 자연스럽다.
+
+
+### 2. `LockedException` → `InternalAuthenticationServiceException(원인 예외)` 
+
+- `loadUserByUsername()` 같은 내부에서 `LockedException`을 직접 던져도 실패 핸들러까지 **그대로 전달되지 않는다.**
+- Spring Security는 이 예외를 보통 **`InternalAuthenticationServiceException`으로 감싸서(래핑해서)** 전달한다.
+
+```java
+if (exception instanceof InternalAuthenticationServiceException
+    && exception.getCause() instanceof LockedException lockedException) {
+    // lockedException.getMessage() 사용
+}
+```
+
+#### 왜 이렇게 할까?
+- 인증 내부 구현을 캡슐화하기 위해서다.
+  - 구체적인 예외 타입을 외부에 그대로 노출하지 않고,
+  - 시큐리티 필터 체인 입장에서는 “인증 서비스 내부에서 난 문제”로 묶어서 처리.
+- 대신, 실제 원인 예외는 exception.getCause()에 보관해 두기 때문에, 커스텀 AuthenticationFailureHandler에서는 cause를 보고 잠금(계정 차단/승인 필요 등)에 대한 맞춤 메시지를 꺼내 쓸 수 있다.
+
+### 참고) 스프링 시큐리티 예외 상속 관계
+#### AuthenticationException 계층 구조 (계정 상태 관련)
+
+- `AuthenticationException`  
+  - `AccountStatusException`  
+    - `LockedException` : 계정 잠금 상태  
+    - `DisabledException` : 비활성 계정(사용 중지)  
+    - `AccountExpiredException` : 계정 유효기간 만료  
+    - `CredentialsExpiredException` : 비밀번호(자격 증명) 유효기간 만료  
+
+---
+
+# 📌7번. 서버와 브라우저 간 http 통신에서 contentType, dataType 설정이 미치는 영향
+
+### 1. 결론 한 줄 요약
+
+- **요청(Request) 쪽**  
+  - `contentType` 옵션 → 최종적으로 **요청 헤더의 `Content-Type`** 으로 서버에 전송되는 **진짜 값**
+- **응답(Response) 쪽**  
+  - 서버의 `setContentType(...)` 또는 `@PostMapping(produces = ...)` → **응답 헤더의 `Content-Type`** 을 결정하는 **진짜 값**
+- **`dataType` (jQuery Ajax)**  
+  - 서버로 **전송되지 않는다.**  
+  - 오직 **클라이언트가 응답을 어떻게 파싱할지(해석할지)에 대한 힌트/설정**일 뿐이다.
+
+
+### 2. HTTP 기본 구조 정리
+
+- 요청(Request)
+  - 헤더: `Content-Type`, `Accept`, ...
+  - 바디: JSON, 폼데이터 등 실제 데이터
+- 응답(Response)
+  - 헤더: `Content-Type`, ...
+  - 바디: JSON, HTML, 텍스트 등 실제 응답 데이터
+
+Spring Security의 필터(`filterChain`)가 로그인 요청을 가로채더라도,  
+**“하나의 HTTP 요청/응답” 구조 자체는 변하지 않는다.**  
+단지 그 요청·응답을 중간에서 가공/검사할 뿐이다.
+
+
+## 3. 서버(Spring) 입장 – `setContentType`, `produces`, 그리고 `@RestController`
+
+서버는 **응답(Response)의 타입을 `Content-Type` 헤더로 결정**한다.  
+이 헤더를 어떻게 세팅하느냐에 따라, 클라이언트가 응답을 무엇으로 인식할지가 달라진다.
+
+### 4-1. 서블릿 스타일 (`HttpServletResponse` 직접 사용)
+
+```java
+@GetMapping("/sample")
+public void sample(HttpServletResponse response) throws IOException {
+    response.setContentType("application/json;charset=UTF-8");
+    response.getWriter().write("{\"result\":\"ok\"}");
+}
+```
+- response.setContentType(...)
+  - 응답 헤더의 Content-Type을 직접 설정.
+- 스프링 MVC의 메시지 컨버터를 거치지 않고,
+  - 내가 직접 문자열/바이너리 데이터를 써 넣을 때 주로 사용하는 방식.
+- 최종 Content-Type 은 항상 서버가 여기서 설정한 값이 기준이 된다.
+
+### 4-2. 스프링 MVC 스타일 – @Controller + @ResponseBody / ResponseEntity
+
+```java
+@Controller
+public class LoginController {
+
+    @PostMapping(value = "/login", produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public LoginResponse login(...) {
+        return new LoginResponse("ok");
+    }
+
+    @PostMapping("/login2")
+    public ResponseEntity<LoginResponse> login2(...) {
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new LoginResponse("ok"));
+    }
+}
+```
+- produces = "application/json;charset=UTF-8"
+  - 이 핸들러 메서드가 어떤 Content-Type으로 응답할지를 선언.
+  - 메시지 컨버터(예: MappingJackson2HttpMessageConverter)가 해당 타입에 맞게 객체를 JSON으로 변환.
+- ResponseEntity를 사용하면:
+  - HTTP status, header, body 를 코드에서 더 세밀하게 제어할 수 있다.
+  - contentType(...) 으로 Content-Type 을 명시할 수도 있고, 생략하면 타입 추론 + 메시지 컨버터의 기본 동작을 따른다.
+- 이 경우에도 최종 응답 헤더의 Content-Type은 스프링이 설정한 값이 진짜다. 
+  클라이언트는 이 헤더를 보고 응답을 해석한다.
+
+### 4-3. 스프링 Web 스타일 – @RestController 인 경우
+
+```java
+@RestController
+public class LoginRestController {
+
+    @PostMapping(value = "/login", produces = "application/json;charset=UTF-8")
+    public LoginResponse login(...) {
+        return new LoginResponse("ok");
+    }
+
+    @GetMapping("/text")
+    public String text() {
+        return "hello";
+    }
+}
+```
+- @RestController = @Controller + @ResponseBody
+  - 즉, 모든 메서드 반환값이 곧 HTTP 응답 바디가 된다.
+  - 별도로 @ResponseBody 를 붙이지 않아도 됨.
+- produces 동작은 @Controller + @ResponseBody 와 완전히 동일:
+  - produces = "application/json" 이면 → JSON 응답으로 처리
+  - produces = "text/plain" 이면 → 텍스트 응답으로 처리
+
+- 반환 타입에 따라 메시지 컨버터가 자동으로 선택된다:
+  - String → 보통 text/plain (또는 상황에 따라 text/html)
+  - 객체(LoginResponse) → Jackson이 있다면 application/json 으로 JSON 직렬화
+
+
+## 5. 자주 헷갈리는 케이스 요약
+
+### 5-1. 서버 JSON, 클라이언트 `dataType: 'json'`
+```js
+$.ajax({
+  url: '/login',
+  method: 'POST',
+  contentType: 'application/json; charset=utf-8',
+  dataType: 'json'
+});
+```
+```java
+response.setContentType("application/json;charset=UTF-8");
+```
+- 가장 이상적인 매칭, 문제 없음.
+
+### 5-2. 서버 JSON, 클라이언트 dataType: 'text' 또는 dataType 생략
+```js
+// case 1: dataType 명시 - text
+$.ajax({
+  url: '/login',
+  method: 'POST',
+  dataType: 'text'
+});
+
+// case 2: dataType 생략
+$.ajax({
+  url: '/login',
+  method: 'POST'
+});
+```
+```java
+response.setContentType("application/json;charset=UTF-8");
+```
+- 서버: 헤더 상으로 JSON (Content-Type: application/json)
+- 클라이언트:
+  - dataType: 'text'
+    - 응답을 “그냥 문자열”로 취급
+    - JSON 자동 파싱 안 함 (필요하면 JSON.parse()를 직접 호출)
+  - dataType 생략
+    - jQuery가 서버의 Content-Type을 보고
+    - application/json 이면 자동으로 JSON으로 파싱
+
+- 서버는 동일하게 JSON을 보내지만,
+“어떻게 해석할지”는 오로지 클라이언트(dataType/자동판단)에 달려 있다.
+
+### 5-3. 서버 텍스트, 클라이언트 dataType: 'json'
+```js
+$.ajax({
+  url: '/login',
+  method: 'POST',
+  dataType: 'json'
+});
+```
+```java
+response.setContentType("text/plain;charset=UTF-8");
+response.getWriter().write("hello world");
+```
+결과
+- jQuery가 "hello world" 를 JSON으로 파싱하려다가 실패
+➜ success가 아니라 error 콜백으로 떨어짐
+- 서버 입장에서는 응답 자체는 문제 없음
+➜ 에러의 원인은 전적으로 클라이언트의 파싱 전략(dataType) 설정
+
+
+---

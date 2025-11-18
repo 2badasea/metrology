@@ -19,22 +19,17 @@ public class MemberController {
 	
 	// 커스텀 로그인 페이지
 	@GetMapping("/login")
-	public String login(String error, String logout) {
+	public String login(Model model) {
 		log.info("login get................");
+		model.addAttribute("title", "로그인");
 		return "member/login";
 	}
 	
-	// 테스트 페이지 (애너테이션을 이용한 권한체크를 위함)
-	@PreAuthorize("hasRole('USER')")    // 경로를 리턴하기 전에 권한체크 -> false 리턴 시 로그인 페이지로 리다이렉트된다.
-	@GetMapping("/logintest")
-	public String logintest(Model model) {
-		return "member/logintest";
-	}
-	
-	// 회원가입 페이지 이동
+	// 회원가입 [모달]
 	@PostMapping("/memberJoin")
 	public String memberJoin(Model model) {
 		log.info("memberJoin get................");
+		model.addAttribute("title", "회원가입");	// title 의미없음.
 		return "member/memberJoin";
 	}
 	
