@@ -2,6 +2,7 @@ package com.bada.cali.security;
 
 import com.bada.cali.common.ResMessage;
 import com.bada.cali.entity.Log;
+import com.bada.cali.common.YnType;
 import com.bada.cali.entity.Member;
 import com.bada.cali.repository.LogRepository;
 import com.bada.cali.repository.MemberRepository;
@@ -56,7 +57,7 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 		if (exception instanceof InternalAuthenticationServiceException && exception.getCause() instanceof LockedException lockedException) {
 			resMsg = lockedException.getMessage();
 		} else {
-			Optional<Member> optLoginMember = memberRepository.findByLoginId(loginId, Member.YnType.y);
+			Optional<Member> optLoginMember = memberRepository.findByLoginId(loginId, YnType.y);
 			if (optLoginMember.isPresent()) {
 				log.info("==== 확인");
 				Member tryLoginMember = optLoginMember.get();

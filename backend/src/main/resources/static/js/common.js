@@ -79,29 +79,6 @@ function init_page($modal, param = {}) {
 		};
 	};
 	let modal_script = undefined != $modal ? $modal.data('modal-data') : undefined;
-	// help_doc 관련 설정
-	// if (undefined != modal_script && modal_script.help_doc != undefined && modal_script.help_doc.src != "") {
-	// 	let help_doc_btn = $(".main-body").find(".card-header .help_doc_btn");
-	// 	help_doc_btn.removeClass("d-none");
-	// 	help_doc_btn.click(function (e) {
-	// 		e.preventDefault();
-	// 		let help_title = modal_script.help_doc.help_title;
-	// 		let src = modal_script.help_doc.src;
-	// 		let size = modal_script.help_doc.size ?? "xl";
-	// 		if (src) {
-	// 			g_modal(
-	// 				`/help_doc/${src}`,
-	// 				{},
-	// 				{
-	// 					size: size,
-	// 					title: help_title,
-	// 					show_close_button: true,
-	// 					type: "help_doc",
-	// 				}
-	// 			);
-	// 		}
-	// 	});
-	// }
 	if (typeof modal_script == 'object' && typeof modal_script.title == 'string') {
 		$('.main-body').find('.card-header .card-title .card-title-text').text(modal_script.title);
 	}
@@ -458,13 +435,11 @@ async function g_modal(url, param = {}, options = {}) {
 							// $(`#${uuid}`).trigger("modal_ready", param);
 							let $modal = $(`#${uuid} .modal-body`);
 							$modal.data('modal-data');
-							console.log('modal_ready');
 						}
 						$(`#${uuid} .modal-btn-close, #${uuid} .close`).on('click', settings.click_close_button);
 						$(`#${uuid} .modal-btn-confirm`).on('click', settings.click_confirm_button);
 						$(`#${uuid} .modal-btn-reset`).on('click', settings.click_reset_button);
 						$(`#${uuid} .modal-btn-select`).on('click', settings.click_select_button);
-						$(`#${uuid} .modal-btn-guide`).on('click', settings.click_guide_button);
 						$(`#${uuid}`).data('modal-url', url).data('modal-data', settings);
 						// g_datepicker($(`#${uuid} .hub_input_group .datepicker`));
 						// init_tagify($(`#${uuid}`));
@@ -524,15 +499,18 @@ function modal_draggable() {
 /**
  * 카카오 도로명주소 API
  *
- * @return  {[type]}  [return description]
+ * @param   {[type]}  zipCodeColName  우편번호
+ * @param   {[type]}  addrColname     주소 DB컬럼명
+ *
+ * @return  {[type]}                  [return description]
  */
-function sample4_execDaumPostcode() {
+function sample4_execDaumPostcode(zipCodeColName, addrColname) {
 	new daum.Postcode({
 		oncomplete: function (data) {
 			// 우편번호
-			$('input[name=agent_zip_code]').val(data.zonecode);
+			$(`input[name=${zipCodeColName}]`).val(data.zonecode);
 			// 도로명 및 지번주소
-			$('.addr1').val(data.roadAddress);
+			$(`.${addrColname}`).val(data.roadAddress);
 		},
 	}).open();
 }

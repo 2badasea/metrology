@@ -43,7 +43,11 @@ public class CustomSecurityConfig {
 				.csrf(AbstractHttpConfigurer::disable)
 				// 접근 허용 경로 설정
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/login", "/error", "/member/memberJoin").permitAll()    // 해당 경로 접근 허용
+						.requestMatchers(
+								"/login"
+								, "/error"
+								, "/member/memberJoin"
+								, "/apiMember/**").permitAll()    // 해당 경로 접근 허용
 						.anyRequest().authenticated()    // 그외 요청에 대해선 인증된 사용자만 허용
 				)
 				// 로그인폼 처리

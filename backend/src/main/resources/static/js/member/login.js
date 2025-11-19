@@ -1,7 +1,16 @@
 $(function () {
 	console.log('++ member/login.js');
 
-	let $modal = $('.modal-view:not(.modal-view-applied)');
+	const $candidates = $('.modal-view:not(.modal-view-applied)');
+	let $modal;
+	const $bodyCandidate = $candidates.filter('.modal-body');
+	if ($bodyCandidate.length) {
+		// 이번 memberJoin 모달의 body
+		$modal = $bodyCandidate.first();
+	} else {
+		// 페이지로 직접 열렸을 수도 있으니, 그때는 그냥 첫 번째 modal-view 사용
+		$modal = $candidates.first();
+	}
 	let $modal_root = $modal.closest('.modal');
 
 	$modal.init_modal = (param) => {
@@ -84,7 +93,9 @@ $(function () {
 		.on('click', '.join_btn', async function () {
 			await g_modal(
 				'/member/memberJoin',
-				{},
+				{
+					test: 'bada',
+				},
 				{
 					size: 'lg',
 					title: '회원가입',

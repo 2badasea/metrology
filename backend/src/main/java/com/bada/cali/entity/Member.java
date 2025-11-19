@@ -1,5 +1,6 @@
 package com.bada.cali.entity;
 
+import com.bada.cali.common.YnType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,6 +27,7 @@ public class Member {
 	private String pwd;
 	
 	@Column(name = "agent_id", nullable = false)
+	@Builder.Default
 	private Integer agentId = 0;
 	
 	@Column(name = "name", length = 100, nullable = false)
@@ -66,14 +68,17 @@ public class Member {
 	
 	// 직무
 	@Column(name = "task_id", nullable = false)
+	@Builder.Default
 	private Integer taskId = 0;
 	
 	// 부서
 	@Column(name = "department_id", nullable = false)
+	@Builder.Default
 	private Integer departmentId = 0;
 	
 	// 직급
 	@Column(name = "level_id", nullable = false)
+	@Builder.Default
 	private Integer levelId = 0;
 	
 	// 입사일
@@ -86,14 +91,17 @@ public class Member {
 	
 	// 재직유형
 	@Column(name = "work_type", nullable = false)
+	@Builder.Default
 	private Byte workType = 0;
 	
 	// 급여타입
 	@Column(name = "salary_type", nullable = false)
+	@Builder.Default
 	private Byte salaryType = 0;
 	
 	// 실무자 & 기술책임자
 	@Column(name = "calbr_manager_type", nullable = false)
+	@Builder.Default
 	private Byte calbrManagerType = 0;
 	
 	// 서명이미지(파일명)
@@ -107,44 +115,53 @@ public class Member {
 	// 유저 권한
 	@Enumerated(EnumType.STRING)
 	@Column(name = "auth", columnDefinition = "ENUM('admin','user') default 'user'")
+	@Builder.Default
 	private AuthType auth = AuthType.user;
 	
 	// 로그인 횟수
 	@Column(name = "login_count", nullable = false)
+	@Builder.Default
 	private Integer loginCount = 0;
 	
 	// 모바일 접근가능여부
 	@Enumerated(EnumType.STRING)
 	@Column(name = "mobile_access", nullable = false, columnDefinition = "ENUM('y','n') default 'y'")
+	@Builder.Default
 	private YnType mobileAccess = YnType.y;
 	
 	// ip 접근차단여부
 	@Enumerated(EnumType.STRING)
 	@Column(name = "ip_access", nullable = false, columnDefinition = "ENUM('y','n') default 'y'")
+	@Builder.Default
 	private YnType ipAccess = YnType.y;
 	
 	// 남은 연차
 	@Column(name = "day_off_total", nullable = false, precision = 5, scale = 1)
+	@Builder.Default
 	private BigDecimal dayOffTotal = BigDecimal.ZERO;
 	
 	// 삭제여부
 	@Enumerated(EnumType.STRING)
 	@Column(name = "is_visible", nullable = false, columnDefinition = "ENUM('y','n') default 'y'")
+	@Builder.Default
 	private YnType isVisible = YnType.y;
 	
 	// 아이디 활성화 여부
 	@Enumerated(EnumType.STRING)
 	@Column(name = "is_active", nullable = false, columnDefinition = "ENUM('y','n') default 'y'")
+	@Builder.Default
 	private YnType isActive = YnType.y;    // 로그인 가능여부 (기본값이 y)
 	
 	// 도래알람여부
 	@Enumerated(EnumType.STRING)
 	@Column(name = "dorae_alarm", nullable = false, columnDefinition = "ENUM('y','n') default 'y'")
+	@Builder.Default
 	private YnType doraeAlarm = YnType.y;
 	
 	// 표준장비 도래알림여부
 	@Enumerated(EnumType.STRING)
 	@Column(name = "equipage_dorae_alarm", nullable = false, columnDefinition = "ENUM('y','n') default 'y'")
+	@Builder.Default
 	private YnType equipageDoraeAlarm = YnType.y;
 	
 	// 마지막 비밀번호 변경일시
@@ -163,26 +180,24 @@ public class Member {
 	private LocalDateTime createDatetime;
 	
 	@Column(name = "create_member_id", nullable = false)
+	@Builder.Default
 	private Integer createMemberId = 0;
 	
 	@Column(name = "update_datetime", nullable = true)
 	private LocalDateTime updateDatetime;
 	
 	@Column(name = "update_member_id", nullable = false)
+	@Builder.Default
 	private Integer updateMemberId = 0;
 	
 	@Column(name = "delete_datetime", nullable = true)
 	private LocalDateTime deleteDatetime;
 	
 	@Column(name = "delete_member_id", nullable = false)
+	@Builder.Default
 	private Integer deleteMemberId = 0;
 	
 	public enum AuthType {
 		admin, user
 	}
-	
-	public enum YnType {
-		y, n
-	}
-	
 }

@@ -1,6 +1,7 @@
 package com.bada.cali.repository;
 
 import com.bada.cali.entity.Member;
+import com.bada.cali.common.YnType;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -14,7 +15,7 @@ public interface MemberRepository extends JpaRepository<Member, Integer> {
 	
 	// loginId(username)으로 유저 정보 조회
 	@Query("SELECT m FROM Member m WHERE m.loginId = :username AND m.isVisible = :isVisible ")
-	Optional<Member> findByLoginId(String username, Member.YnType isVisible);
+	Optional<Member> findByLoginId(String username, YnType isVisible);
 	
 	// 로그인 시도 횟수 초기화
 	// 트랜잭션 애너테이션의 경우, 서비스 계층에서 선언 권장.(서비스 계층이 '비즈니스 로직의 단위')

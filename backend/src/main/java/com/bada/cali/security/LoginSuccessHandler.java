@@ -2,6 +2,7 @@ package com.bada.cali.security;
 
 import com.bada.cali.common.ResMessage;
 import com.bada.cali.entity.Log;
+import com.bada.cali.common.YnType;
 import com.bada.cali.entity.Member;
 import com.bada.cali.repository.LogRepository;
 import com.bada.cali.repository.MemberRepository;
@@ -43,7 +44,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 		
 		String loginId = authentication.getName();
 		// loginId를 바탕으로 유저 정보를 가져온다.
-		Member loginMember = memberRepository.findByLoginId(loginId, Member.YnType.y).orElseThrow(() -> new IllegalStateException("Successful authentication but user not found"));
+		Member loginMember = memberRepository.findByLoginId(loginId, YnType.y).orElseThrow(() -> new IllegalStateException("Successful authentication but user not found"));
 		
 		LocalDateTime now = LocalDateTime.now();
 		

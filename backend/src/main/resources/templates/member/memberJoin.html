@@ -7,7 +7,7 @@
         <!-- 사업자번호(아이디) -->
         <label for="bizNum" class="form-label required">사업자번호(아이디)</label>
         <div class="input-group mb-3">
-            <input type="text" class="form-control agent_num" name="login_id" placeholder="사업자번호(하이픈 '-' 제외)를 입력하세요"
+            <input type="text" class="form-control agent_num" name="loginId" placeholder="사업자번호(하이픈 '-' 제외)를 입력하세요"
                 maxlength="12">
             <button type="button" class="btn btn-secondary input-group-append check_agent_num" value="n">중복체크</button>
         </div>
@@ -21,8 +21,9 @@
         <!-- 주소 -->
         <div class="mb-3">
             <label for="address" class="form-label">주소</label>
-            <input type="text" class="form-control cursor_pointer" name="agent_zip_code" placeholder="우편번호 조회 시, 클릭하세요"
-                readonly onclick="sample4_execDaumPostcode()">
+            <input type="text" class="form-control cursor_pointer" name="agentZipCode" placeholder="우편번호 조회 시, 클릭하세요"
+                readonly onclick="sample4_execDaumPostcode(zipCode = 'agentZipCode', addr = 'addr1')">
+            <!-- 주소정보(addr)은  주소+상세조합(addr)로 담아서 서버로 보낸다. -->
             <input type="text" class="form-control d-inline-block addr1" placeholder="주소를 조회하세요." readonly>
             <input type="text" class="form-control addr2" placeholder="상세주소를 입력하세요.">
         </div>
@@ -44,19 +45,37 @@
 
         <!-- 이름 -->
         <div class="mb-3">
-            <label for="name" class="form-label required">이름</label>
-            <input type="text" class="form-control" id="name" name="name" placeholder="이름을 입력하세요">
+            <label for="manager" class="form-label required">이름(담당자)</label>
+            <input type="text" class="form-control" id="manager" name="manager" placeholder="업체 담당자명을 입력하세요">
+        </div>
+
+        <!-- 대표자(명) -->
+        <div class="mb-3">
+            <label for="ceo" class="form-label">대표자(명)</label>
+            <input type="text" class="form-control" id="ceo" name="ceo" placeholder="업체 대표명을 입력하세요">
+            <input type="checkbox" id="checkIsSameManager" class="check_privacy cursor_pointer">
+            <label class="form-check-label cursor_pointer" for="checkIsSameManager">
+                위 이름(담당자)명과 동일
+            </label>
         </div>
 
         <!-- 이메일 주소 -->
         <div class="mb-3">
             <label for="email" class="form-label required">이메일 주소</label>
             <div class="input-group">
+                <!-- 이메일 주소도 주소와 마찬가지로 스크립트에서 정규식 체크 후 서버에 전달 -->
                 <input type="text" class="form-control mail_id" id="email" placeholder="이메일 아이디를 입력하세요"
                     aria-label="Username">
                 <span class="input-group-text py-1">@</span>
-                <input type="text" class="form-control mail_domain" placeholder="도메인주소 ex) gmail.com"
-                    aria-label="Server">
+                <select class="form-select mailSelect">
+                    <option value="">이메일 선택</option>
+                    <option value="gmail.com">gmail.com</option>
+                    <option value="naver.com">naver.com</option>
+                    <option value="daum.net">daum.net</option>
+                    <option value="custom">직접입력</option>
+                </select>
+                <input type="text" class="form-control emailInput"
+                    placeholder="'직접입력' 선택 후 입력하세요." aria-label="Email domain manual" readonly>
             </div>
         </div>
 
@@ -69,7 +88,7 @@
         <!-- 전화번호 -->
         <div class="mb-3">
             <label for="tel" class="form-label">전화번호</label>
-            <input type="tel" class="form-control" id="tel" name="agent_tel" placeholder="02-000-0000">
+            <input type="tel" class="form-control" id="tel" name="agentTel" placeholder="02-000-0000">
         </div>
 
         <!-- 개인정보 약관 동의 -->
