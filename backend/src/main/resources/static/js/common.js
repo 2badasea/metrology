@@ -32,6 +32,92 @@ $(function () {
 		}
 		e.target.value = out;
 	})
+	// 휴대전화 번호 입력 필드
+	.on('keyup', 'input.hp', (e) => {
+		let contactNum = e.target.value; // 화살표함수가 아닌 'this.value' 형태로도 값을 얻을 수 있음.
+		contactNum = contactNum.replace(/\D/g, '').slice(0, 11);
+
+		let out = '';
+		if (contactNum.length <= 3) {
+			out = contactNum;
+		} else if (contactNum.length <= 7) {
+			out = contactNum.slice(0, 3) + '-' + contactNum.slice(3);
+		} else {
+			out = contactNum.slice(0, 3) + '-' + contactNum.slice(3, 7) + '-' + contactNum.slice(7);
+		}
+		e.target.value = out;
+	})
+	// 전화번호 입력 필드
+	.on('keyup', 'input.tel', (e) => {
+		let contactNum = e.target.value; // 화살표함수가 아닌 'this.value' 형태로도 값을 얻을 수 있음.
+		contactNum = contactNum.replace(/\D/g, '').slice(0, 11);
+
+		let out = '';
+		if (contactNum.length <= 3) {
+			out = contactNum;
+		} else if (contactNum.length <= 7) {
+			out = contactNum.slice(0, 3) + '-' + contactNum.slice(3);
+		} else {
+			out = contactNum.slice(0, 3) + '-' + contactNum.slice(3, 7) + '-' + contactNum.slice(7);
+		}
+		e.target.value = out;
+	})
+	.on('keyup', 'input.tel', (e) => {
+		// 1) 숫자만 남기고, 최대 11자리까지 자르기
+		let digits = e.target.value.replace(/\D/g, '');
+
+		let out = '';
+
+		// 2) 02 로 시작하는 경우 (서울 지역번호)
+		if (digits.startsWith('02')) {
+			// 02 + 8자리까지 → 최대 10자리 (02-1234-5678)
+			digits = digits.slice(0, 10);
+			const len = digits.length;
+
+			if (len <= 2) {
+				// 0, 02 입력 중
+				out = digits;
+			} else if (len <= 5) {
+				// 02-123 / 02-1234 입력 중
+				out = digits.slice(0, 2) + '-' + digits.slice(2);
+			} else {
+				// 02-123-4567 (9자리) / 02-1234-5678 (10자리)
+				// -> 2 - (len-6) - 4 패턴
+				out =
+					digits.slice(0, 2) + // 02
+					'-' +
+					digits.slice(2, len - 4) + // 가운데 3~4자리
+					'-' +
+					digits.slice(len - 4); // 마지막 4자리
+			}
+
+			// 3) 그 외(010, 053, 031, 070 등 3자리 시작 번호)
+		} else {
+			// 휴대폰까지 고려해서 최대 11자리
+			digits = digits.slice(0, 11);
+			const len = digits.length;
+
+			if (len <= 3) {
+				// 0, 010, 053 입력 중
+				out = digits;
+			} else if (len <= 7) {
+				// 010-123 / 053-1234 입력 중
+				out = digits.slice(0, 3) + '-' + digits.slice(3);
+			} else {
+				// 010-1234-5678 (11자리)
+				// 053-123-4567 / 053-1234-5678 (10~11자리)
+				// -> 3 - (len-7) - 4 패턴
+				out =
+					digits.slice(0, 3) + // 앞 3자리
+					'-' +
+					digits.slice(3, len - 4) + // 가운데 3~4자리
+					'-' +
+					digits.slice(len - 4); // 마지막 4자리
+			}
+		}
+
+		e.target.value = out;
+	})
 	// 로그아웃 이벤트 정의
 	.on('click', '.logoutBtn', async function (e) {
 		e.preventDefault();
@@ -513,4 +599,27 @@ function sample4_execDaumPostcode(zipCodeColName, addrColname) {
 			$(`.${addrColname}`).val(data.roadAddress);
 		},
 	}).open();
+}
+
+// 입력값 체크
+/**
+ * [check_input description]
+ *
+ * @param   {[string]}  value
+ *
+ * @return  {[boolean]}
+ */
+function check_input(value) {
+	return value != null && String(value).replace(/\s+/g, '') !== '';
+}
+
+/**
+ * 이메일 정규식 체크
+ *
+ * @param   {[string]}  value  [value description]
+ *
+ * @return  {[boolean]}         [return description]
+ */
+function check_email_reg(value) {
+	return value != null && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
 }

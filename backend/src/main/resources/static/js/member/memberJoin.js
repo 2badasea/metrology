@@ -27,21 +27,14 @@ $(function () {
 		// 사업자번호 중복체크
 		.on('click', '.check_agent_num', async function (e) {
 			e.preventDefault();
+			const $btn = $(this);
 			const loginId = $('input[name=loginId]', $modal).val();
-			if (!loginId || loginId.trim().length === 0) {
+			if (!loginId || loginId.trim().length === 0 || loginId.length != 12) {
 				g_toast('사업자번호를 입력하세요', 'warning');
 				return false;
 			}
-			$(this).prop('disabled', true);
-
-			// Swal.fire({
-			// 	title: '중복체크 진행 중...',
-			// 	html: '',
-			// 	allowOutsideClick: false,
-			// 	didOpen: () => {
-			// 		Swal.showLoading(); // 로딩창 표시
-			// 	},
-			// });
+			// 버튼 활성화
+			$btn.prop('disabled', true);
 
 			try {
 				// 사업자번호지만, 로그인ID로 사용되기 때문에 loginId 키값으로 보낸다.
@@ -54,28 +47,37 @@ $(function () {
 				if (!res || res?.code == undefined) {
 					throw new Error('응답 형식이 올바르지 않습니다.');
 				}
-				// code, msg, data
-				let msg = res.msg;
-				let code = res.code;
-				let data = res.data;
 
-				if (data.agentName || data.agentAddr) {
+				let code = res.code;
+				let msg = res.msg;
+				let data = res.data;
+				if (code != 1 && (data.agentName || data.agentAddr)) {
 					msg += `\n업체명: ${data.agentName}, 업체주소: ${data.agentAddr}`;
 				}
-				g_toast(msg, code == 1 ? "success" : "warning");
-				// TODO 중복이 없다면, 내부적으로 중복체크를 완료했다는 flag 심기
-
+				if (code == 1) {
+					$btn.val('y').removeClass('btn-secondary').addClass('btn-success');
+				} else {
+					$btn.val('n').removeClass('btn-success').addClass('btn-secondary');
+				}
+				g_toast(msg, code == 1 ? 'success' : 'warning');
 			} catch (err) {
-				console.log('🚀 ~ err:', err);
+				console.log('catch문 에러 내용 확인 err:', err);
 				custom_ajax_handler(err);
 			} finally {
 				// 중복체크 버튼 disable 풀기
-				$(this).prop('disabled', false);
+				$btn.prop('disabled', false);
 			}
-
-			// 중복통과 시, 버튼색상변경 및 값 설정
 		})
 		// 사업자번호 항목에 keyup 이벤트 시, 중복체크 해제
+		.on('keyup', 'input[name=loginId]', function (e) {
+			// 엔터키 입력 시, 중복체크 트리거
+			if (e.keyCode === 13) {
+				$('button.check_agent_num', $modal).trigger('click');
+			} else {
+				// 값 비활성화
+				$('button.check_agent_num', $modal).val('n').removeClass('btn-success').addClass('btn-secondary');
+			}
+		})
 		// 메일주소 선택 이벤트
 		.on('change', 'select.mailSelect', function () {
 			const emailInput = $('.emailInput', $modal);
@@ -85,11 +87,184 @@ $(function () {
 			} else {
 				emailInput.val('').prop('readonly', false);
 			}
+		})
+		// 비밀번호 확인 입력 이벤트 (실시간 검증)
+		.on('keyup', '.confirmPassword', function () {
+			const pwdValue = $('input[name=pwd]', $modal).val();
+			const chkValue = $(this).val();
+			// 일치하지 않을 경우, 메시지 노출
+			if (chkValue !== pwdValue) {
+				$('.chkPwdMsg', $modal).removeClass('d-none');
+			} else {
+				$('.chkPwdMsg', $modal).addClass('d-none');
+			}
+		})
+		// 대표자(명)과 이름(담당자)명과 동일한 경우
+		.on('change', '.checkIsSameManager', function () {
+			const isChecked = $(this).is(':checked'); // prop('checked')로 체크 가능
+			// 체크된 상태라면
+			if (isChecked) {
+				const managerName = $('input[name=manager]', $modal).val();
+				$('input[name=ceo]', $modal).val(managerName);
+			}
 		});
 
-	$modal.confirm_modal = async (e) => {
+	// 가입신청
+	$modal.confirm_modal = async function (e) {
+		e.preventDefault();
 		console.log('가입신청!!');
-		// 1. 필수입력값 요소 체크, 2. 비밀번호 확인이 되었는지. 3. 사업자번호 중복체크 진행했는지 확인 4. 개인정보 약관 동의 체크
+
+		const $btn = $('.btn_save', $modal);
+		$btn.prop('disabled', true);
+		const $form = $('.memberJoinForm', $modal);
+		const formData = new FormData($form[0]);
+
+		// 필수입력값 체크
+		const $chkInputs = $('input[name!=""]', $form);
+
+		let flagForm = true;
+		let chkMsg = '';
+		$.each($chkInputs, function (index, ele) {
+			const name = $(ele).attr('name');
+			const value = $(ele).val();
+
+			// [필수]사업자번호 체크
+			if (name === 'loginId') {
+				const btnVal = $('.check_agent_num', $form).val();
+				if (btnVal !== 'y') {
+					chkMsg = '사업자번호 중복체크를 해주세요.';
+					flagForm = false;
+				}
+			}
+
+			// [필수]업체명 확인
+			if (name === 'name') {
+				if (!check_input(value)) {
+					chkMsg = '업체명을 입력해주세요.';
+					flagForm = false;
+				}
+			}
+
+			// 주소(값 구성 필요)
+			if (name === 'addr') {
+				const detailAddr = $('.addr2', $form).val();
+				// append의 경우, key에 해당 값을 추가하게 됨
+				formData.set('addr', `${value} ${detailAddr}`);
+			}
+
+			// [필수]비밀번호
+			if (name === 'pwd') {
+				if (!check_input(value)) {
+					chkMsg = '비밀번호를 입력해주세요.';
+					flagForm = false;
+				} else {
+					const chkPwd = $('.confirmPassword', $form).val();
+					if (value !== chkPwd || !check_input(chkPwd)) {
+						chkMsg = '비밀번호 확인을 해주세요.';
+						flagForm = false;
+					}
+				}
+			}
+
+			// 이름
+			if (name === 'manager') {
+				if (!check_input(value)) {
+					chkMsg = '이름(담당자)를 입력해주세요.';
+					flagForm = false;
+				}
+			}
+
+			// 이메일
+			if (name === 'email') {
+				const optVal = $('.mailSelect', $form).val();
+				let mailDomain = '';
+				if (!optVal) {
+					chkMsg = '이메일 도메인주소를 선택/입력해주세요.';
+					flagForm = false;
+				} else {
+					mailDomain = optVal === 'custom' ? $('.emailInput', $form).val() : optVal;
+				}
+
+				const email = `${value}@${optVal}`;
+				// 정규식 체크
+				if (!check_email_reg(email)) {
+					chkMsg = '이메일 형식이 올바르지 않습니다.';
+					flagForm = false;
+				} else {
+					formData.set('email', email);
+				}
+			}
+
+			// 휴대폰번호
+			if (name === 'phone') {
+				if (!check_input(value)) {
+					chkMsg = '휴대폰번호를 입력해주세요.';
+					flagForm = false;
+				}
+			}
+
+			if (!flagForm) {
+				return false;
+			}
+		});
+
+		// 개인정보 처리방침 확인
+		const isChecked = $('.check_privacy').is(':checked');
+		if (!isChecked) {
+			flagForm = false;
+			chkMsg = '개인정보 처리방침에 체크해주세요.';
+		}
+
+		// 값 검증에 실패한 경우 멈춤
+		if (!flagForm) {
+			g_toast(chkMsg, 'warning');
+			$btn.prop('disabled', false);
+			$modal_root.modal('hide');
+			return false;
+		}
+
+		for (const [key, value] of formData.entries()) {
+			console.log(key, value);
+		}
+
+		// test
+		console.log('ss');
+
+		if (confirm('회원가입을 하시겠습니까?')) {
+			// api 호출
+			try {
+
+				Swal.fire({
+					title: '회원가입 신청중...',
+					allowOutsideClick: false,
+					didOpen: () => {
+						Swal.showLoading();
+					},
+				}).then((result) => {
+				});				
+
+
+				const res = await g_ajax('/apiMember/memberJoin', formData);
+				console.log(res);
+
+			} catch (err) {
+				console.error(err);
+				custom_ajax_handler(err);
+
+			} finally {
+				Swal.close();
+				$btn.prop('disabled', false);
+			}
+
+		} else {
+			$btn.prop('disabled', false);
+			return false;
+		}
+
+		// $modal_root.modal('hide');		// 이렇게 모달창을 닫는 경우 resData 자체를 못 받음
+		// $(".modal-btn-close", $modal).trigger('click');	// 그냥 닫힘(리턴 데이터 없음)
+		// $modal_root.data("modal-data").click_close_button();
+
 	};
 
 	$modal.data('modal-data', $modal);

@@ -103,7 +103,10 @@ $(function () {
 					show_confirm_button: true,
 					confirm_button_text: '가입신청',
 				}
-			);
+			).then(resData => {
+				console.log("🚀 ~ resData:", resData);
+				
+			});
 		});
 
 	$modal.data('modal-data', $modal);

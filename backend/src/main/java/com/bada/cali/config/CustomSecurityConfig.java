@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -46,6 +47,7 @@ public class CustomSecurityConfig {
 						.requestMatchers(
 								"/login"
 								, "/error"
+								, "/member/login**"
 								, "/member/memberJoin"
 								, "/apiMember/**").permitAll()    // 해당 경로 접근 허용
 						.anyRequest().authenticated()    // 그외 요청에 대해선 인증된 사용자만 허용
@@ -83,6 +85,9 @@ public class CustomSecurityConfig {
 						.clearAuthentication(true)                                        // SecurityContext 비우기
 						.deleteCookies("JSESSIONID", "remember-me")    // 쿠키 삭제(안전하게 한번 더)
 				);
+		// 예외처리 (아래 @Bean 등록)
+		http
+				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthenticatedEntryPoint()));
 		
 		return http.build();
 	}
@@ -107,6 +112,16 @@ public class CustomSecurityConfig {
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
+	}
+	
+	// 허용되지 않은 URL 접근 시에 대한 예외처리
+	@Bean
+	public AuthenticationEntryPoint unauthenticatedEntryPoint() {
+		return (request, response, authException) -> {
+			// 여기서 “로그인이 필요한 상황”이라고 판단된 경우 login 페이지로 보냄
+			String redirectUrl = "/member/login?required=-1";
+			response.sendRedirect(redirectUrl);
+		};
 	}
 	
 	

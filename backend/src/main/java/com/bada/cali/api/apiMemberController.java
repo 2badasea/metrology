@@ -1,6 +1,7 @@
 package com.bada.cali.api;
 
 import com.bada.cali.common.ResMessage;
+import com.bada.cali.dto.RegMemberJoinDTO;
 import com.bada.cali.dto.ResDuplicateLoginIdDTO;
 import com.bada.cali.entity.Agent;
 import com.bada.cali.repository.MemberRepository;
@@ -9,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Api 요청을 처리하기 위한 RestController
@@ -59,4 +57,10 @@ public class apiMemberController {
 		return ResponseEntity.ok(resMessage);
 	}
 	
+	@PostMapping(value = "/memberJoin")
+	public ResponseEntity<ResMessage<Object>> memberJoin(@RequestBody RegMemberJoinDTO regMemberJoinDTO) {
+		// cf) dto의 값이 null일 때, dto.toString()은 NPE 일으킴. log.info를 활용하면 null이라도 "null" 형태로 반환
+		log.info("회원가입 요청: {}", regMemberJoinDTO);
+		return null;
+	}
 }
