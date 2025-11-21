@@ -1,10 +1,7 @@
 package com.bada.cali.api;
 
 import com.bada.cali.common.ResMessage;
-import com.bada.cali.dto.RegMemberJoinDTO;
-import com.bada.cali.dto.ResDuplicateLoginIdDTO;
-import com.bada.cali.entity.Agent;
-import com.bada.cali.repository.MemberRepository;
+import com.bada.cali.dto.MemberDTO;
 import com.bada.cali.service.MemberServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -42,25 +39,32 @@ public class apiMemberController {
 	 * @return
 	 */
 	@PostMapping(value = "/chkDuplicateLoginId")
-	public ResponseEntity<ResMessage<ResDuplicateLoginIdDTO>> chkDuplicateLoginId(@RequestParam String loginId, @RequestParam(required = false) String refPage) {
+	public ResponseEntity<ResMessage<MemberDTO.DuplicateLoginIdRes>> chkDuplicateLoginId(@RequestParam String loginId, @RequestParam(required = false) String refPage) {
 		log.info("loginId= {}, refPage= {}", loginId, refPage);
 		
 		// loginId 중복여부 조회 (서비스 계층에선 중복여부 + 업체정보만 책임)
-		ResDuplicateLoginIdDTO resDuplicateLoginIdDTO = memberService.chkDuplicateLoginId(loginId, refPage);
+		MemberDTO.DuplicateLoginIdRes duplicateLoginIdRes = memberService.chkDuplicateLoginId(loginId, refPage);
 		
 		// DTO에서의 boolean 타입 필드를 꺼내려고 할 때는 메서드를 호출하는 형태로 가져온다.
-		int resCode = resDuplicateLoginIdDTO.isDuplicate() ? -1 : 1;
+		int resCode = duplicateLoginIdRes.isDuplicate() ? -1 : 1;
 		String resMsg = resCode > 0 ? "사용 가능한 아이디입니다." : "이미 가입되어 있는 정보입니다.";
-		ResMessage<ResDuplicateLoginIdDTO> resMessage = new ResMessage<>(resCode, resMsg, resDuplicateLoginIdDTO);
+		ResMessage<MemberDTO.DuplicateLoginIdRes> resMessage = new ResMessage<>(resCode, resMsg, duplicateLoginIdRes);
 		
 		// ok(...)은 "200 OK + body 설정"을 한 번에 해주는 축약형 return 'ReponseEntity.status(HttpStatus.OK).body(resMessage)'과 동일
 		return ResponseEntity.ok(resMessage);
 	}
 	
+	/**
+	 * 회원가입 처리
+	 * @param memberJoinReq
+	 * @return
+	 */
 	@PostMapping(value = "/memberJoin")
-	public ResponseEntity<ResMessage<Object>> memberJoin(@RequestBody RegMemberJoinDTO regMemberJoinDTO) {
+	public ResponseEntity<MemberDTO.MemberJoinRes> memberJoin(@RequestBody MemberDTO.MemberJoinReq memberJoinReq) {
 		// cf) dto의 값이 null일 때, dto.toString()은 NPE 일으킴. log.info를 활용하면 null이라도 "null" 형태로 반환
-		log.info("회원가입 요청: {}", regMemberJoinDTO);
-		return null;
+		log.info("회원가입 요청: {}", memberJoinReq);
+		
+		MemberDTO.MemberJoinRes memberJoinRes = memberService.memberJoin(memberJoinReq);
+		return ResponseEntity.ok(memberJoinRes);
 	}
 }

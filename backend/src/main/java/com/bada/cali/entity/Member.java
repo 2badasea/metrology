@@ -148,9 +148,9 @@ public class Member {
 	
 	// 아이디 활성화 여부
 	@Enumerated(EnumType.STRING)
-	@Column(name = "is_active", nullable = false, columnDefinition = "ENUM('y','n') default 'y'")
+	@Column(name = "is_active", nullable = false, columnDefinition = "ENUM('y','n') default 'n'")
 	@Builder.Default
-	private YnType isActive = YnType.y;    // 로그인 가능여부 (기본값이 y)
+	private YnType isActive = YnType.n;    // 로그인 가능여부 (기본값이 y)
 	
 	// 도래알람여부
 	@Enumerated(EnumType.STRING)

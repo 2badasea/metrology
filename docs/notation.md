@@ -420,3 +420,61 @@ public class Agent {
 
 ---
 
+# 📌9번. Entity 클래스 내 Enum 타입의 필드 위에 @Enumerated 애너테이션을 명시하는 이유
+
+```java
+@Enumerated(EnumType.STRING)
+@Column(name = "main_yn")
+@Builder.Default
+private YnType mainYn = YnType.n;
+```
+## 필드 기본값 vs @Enumerated 정리
+
+### 필드 기본값
+```java
+private YnType mainYn = YnType.n;
+```
+
+- 이 코드는 자바 객체 내부의 기본 상태를 정한다.
+  - 새로 생성된 엔티티 객체가 어떤 enum 상수를 가질지 결정.
+- new AgentManager() 또는
+  - JPA가 리플렉션으로 엔티티를 만들 때 적용되는 값이다.
+
+- 역할: “객체 안에서 어떤 값으로 시작할 것인가?”
+
+## @Enumerated(EnumType.STRING)
+```java
+@Enumerated(EnumType.STRING)
+@Column(name = "main_yn")
+private YnType mainYn;
+```
+- 이 애너테이션은 enum 필드를 DB에 어떤 방식으로 매핑할지를 정한다.
+  - ORDINAL → 순서값(0, 1, 2…)
+  - STRING → enum 이름 그대로("y", "n" 등)
+
+- mainYn에 어떤 enum 상수가 들어 있든,
+  - 그것을 DB에 숫자로 넣을지, 문자열로 넣을지는 이 설정에 따른다.
+
+- 역할: “enum을 DB 컬럼에 어떻게 저장·조회할 것인가?”
+
+## 요약
+1. mainYn = YnType.n;
+  - “엔티티의 기본 enum 값은 YnType.n이다”라는 뜻.
+2. @Enumerated를 생략하면:
+  - JPA 기본값은 EnumType.ORDINAL → 0, 1, 2 같은 숫자로 저장.
+3. @Enumerated(EnumType.STRING)을 쓰면:
+  - enum 이름 그대로 "y", "n" 같은 문자열로 저장.
+4. DB 컬럼이 ENUM('y','n')이면:
+  - EnumType.STRING이 가장 잘 맞는 매핑 방식이다.
+5. 필드 기본값 설정과 DB 저장 형태는 서로 다른 층위이므로,
+  - “기본값을 YnType.n으로 줬다” → enum 상수를 무엇으로 쓸지 결정.
+  - “EnumType.STRING을 쓴다” → 그 enum 상수를 DB에 문자열로 어떻게 표현할지 결정.
+
+---
+
+
+
+
+
+
+

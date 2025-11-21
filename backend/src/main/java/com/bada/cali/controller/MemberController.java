@@ -29,6 +29,7 @@ public class MemberController {
 	// NOTE 모달 페이지를 호출하는 경우 기본적으로 Post로 받는다. 모달, 일반페이지 모두 사용 시 RequestMapping을 이용하여 get과 post 모두 허용 가능
 	@PostMapping("/memberJoin")
 	public String memberJoin(Model model) {
+//		throw new RuntimeException();
 		log.info("memberJoin get................");
 		model.addAttribute("title", "회원가입");	// title 의미없음.
 		return "member/memberJoin";

@@ -243,9 +243,21 @@ $(function () {
 				}).then((result) => {
 				});				
 
-
 				const res = await g_ajax('/apiMember/memberJoin', formData);
 				console.log(res);
+				if (!res) {
+					g_toast('응답 형식이 올바르지 않습니다.', 'error');
+				}
+				// 가입 성공 시,
+				if (res.code > 0) {
+					// 가입신청이 완료되었다는 메시지와 함께 모달창이 닫히도록 한다.
+					Swal.fire(res.msg ?? '회원가입 신청 성공', '', 'success').then(() => {
+						// 모달을 닫는 이벤트를 수정해서 데이터를 리턴할 수 있도록 변경할 것
+					})
+				} else {
+					g_toast('응답 형식이 올바르지 않습니다.', 'error');
+				}
+
 
 			} catch (err) {
 				console.error(err);

@@ -119,7 +119,7 @@ public class CustomSecurityConfig {
 	public AuthenticationEntryPoint unauthenticatedEntryPoint() {
 		return (request, response, authException) -> {
 			// 여기서 “로그인이 필요한 상황”이라고 판단된 경우 login 페이지로 보냄
-			String redirectUrl = "/member/login?required=-1";
+			String redirectUrl = "/member/login" + ("/".equals(request.getRequestURI()) ? "" : "?required=-1");
 			response.sendRedirect(redirectUrl);
 		};
 	}

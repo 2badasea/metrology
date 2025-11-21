@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+	  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>서버 오류가 발생했습니다</title>
+	<style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+
+        .error-container {
+            max-width: 480px;
+            margin: 80px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 32px 28px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        .error-code {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .error-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .error-message {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 16px;
+        }
+
+        .error-sub {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 24px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+	</style>
+</head>
+<body>
+<div layout:fragment="content">
+	<div class="error-container">
+		<div class="error-code">500</div>
+		<div class="error-title">서버 오류가 발생했습니다</div>
+		
+		<!-- GlobalViewExceptionHandler 에서 내려준 메시지 -->
+		<p class="error-message" th:text="${errMsg}">
+			요청을 처리하는 중 알 수 없는 오류가 발생했습니다.
+		</p>
+		
+		<!-- 요청 경로 (디버깅용 / 필요 없으면 지워도 됨) -->
+		<p class="error-sub" th:if="${path}">
+			요청 경로:
+			<span th:text="${path}"></span>
+		</p>
+		
+		<div class="btn-group">
+			<button type="button" class="btn btn-secondary" onclick="history.back()">
+				이전 페이지로 돌아가기
+			</button>
+			<a class="btn btn-primary" th:href="@{/}">
+				홈으로 이동
+			</a>
+		</div>
+	</div>
+</div>
+</body>
+</html>

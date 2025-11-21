@@ -34,6 +34,11 @@ repositories {
     mavenCentral()  // Maven 중앙 저장소
 }
 
+// MapStruct 도입
+ext {
+    mapstructVersion = '1.6.3'
+}
+
 // 의존성 설정
 dependencies {
     // --- Spring Boot Starters ---
@@ -56,6 +61,10 @@ dependencies {
     // Spring Security 기본 스타터
     // NOTE: 스프링시큐리티의 경우, 코드를 통한 설정 조정 많음. => 별도의 클래스 활용 (CustomSecurityConfig.class)
     implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // ==== MapStruct ====
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
     // Thymeleaf에서 Spring Security 태그 사용 시 필요
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'

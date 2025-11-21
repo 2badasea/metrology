@@ -20,27 +20,20 @@ public class GlobalViewExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	public String handleException(
 			Exception exception,
+			Model model,
 			HttpServletRequest request,
-			RedirectAttributes redirectAttributes,
-			Authentication authentication
+			RedirectAttributes redirectAttributes
 	) {
-		// 로그인 여부 판단
-		boolean chkLoggedIn = authentication != null && authentication.isAuthenticated() && !(authentication instanceof AnonymousAuthenticationToken);
 		
-		// 로그 남기기
-		log.error("[GlobalViewExceptionHandler] url = {}", request.getRequestURI());
+		// 로그 (stack trace 포함)
+		log.error("[GlobalViewExceptionHandler] url = {}", request.getRequestURI(), exception);
 		
-		// TODO 존재하지 않는 페이지에 접근할 때도 구분할 것 => 이경우, 별도의 예외페이지 생성할 것 (single layout && Page Not Found, HOME으로 가기 기능 구현)
+		// 화면에서 쓸 정보 세팅
+		model.addAttribute("errMsg", "요청을 처리하는 중 오류가 발생했습니다.");
+		model.addAttribute("path", request.getRequestURI());
 		
-		// 로그인을 하지 않은 상황에서 접근하는 경우엔 security 에서 처리를 하기 때문에 addFlashAttribute로 처리해도 동작하지 X
-		if (!chkLoggedIn) {
-			// 리다이렉트하는 URL의 파라미터에 Model 객체가 명시되어 있지 않더라도, 자동으로 model에 실려서 리다이렉트된로 전달됨
-			redirectAttributes.addFlashAttribute("errorMsg", "로그인 후 이용해주세요.");
-			return "redirect:/member/login";
-		}
-		
-		redirectAttributes.addFlashAttribute("errorMsg", "처리 중 오류가 발생했습니다.");
-		return "redirect:/";
+		// 500 에러페이지는 일반 view를 리턴해도 무관. redirect를 하기 위해선 컨트롤러에 별도로 매핑을 시켜야 함.(오버스펙)
+		return "error/500";
 	}
 	
 	
