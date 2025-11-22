@@ -233,15 +233,13 @@ $(function () {
 		if (confirm('회원가입을 하시겠습니까?')) {
 			// api 호출
 			try {
-
 				Swal.fire({
 					title: '회원가입 신청중...',
 					allowOutsideClick: false,
 					didOpen: () => {
 						Swal.showLoading();
 					},
-				}).then((result) => {
-				});				
+				}).then((result) => {});
 
 				const res = await g_ajax('/apiMember/memberJoin', formData);
 				console.log(res);
@@ -253,21 +251,40 @@ $(function () {
 					// 가입신청이 완료되었다는 메시지와 함께 모달창이 닫히도록 한다.
 					Swal.fire(res.msg ?? '회원가입 신청 성공', '', 'success').then(() => {
 						// 모달을 닫는 이벤트를 수정해서 데이터를 리턴할 수 있도록 변경할 것
-					})
+					});
 				} else {
 					g_toast('응답 형식이 올바르지 않습니다.', 'error');
 				}
+
+				// TODO 아래 소스 참고해서, 모달창이 닫힐 때, return 값을 받을 수 있는지 확인해볼 것
+				// 선택한 접수 데이터 리턴
+				$modal.confirm_modal = async function (data) {
+					$modal.param.select_rsi_idx = [];
+					$modal.param.select_data = [];
+					let $selected_data = $(`#${modal_root_id} .selected_data`);
+					if ($selected_data.length === 0) {
+						g_toast('1개 이상의 접수를 선택하세요.', 'warning');
+						return false;
+					}
+
+					$.each($selected_data, function (index, ele) {
+						let rsi_data = JSON.parse($(ele).val());
+						$modal.param.select_rsi_idx.push(rsi_data.calbr_rsi_idx);
+						$modal.param.select_data.push(rsi_data);
+					});
+
+					$modal_root.modal('hide');
+					return $modal.param;
+				};
 
 
 			} catch (err) {
 				console.error(err);
 				custom_ajax_handler(err);
-
 			} finally {
 				Swal.close();
 				$btn.prop('disabled', false);
 			}
-
 		} else {
 			$btn.prop('disabled', false);
 			return false;
@@ -276,7 +293,6 @@ $(function () {
 		// $modal_root.modal('hide');		// 이렇게 모달창을 닫는 경우 resData 자체를 못 받음
 		// $(".modal-btn-close", $modal).trigger('click');	// 그냥 닫힘(리턴 데이터 없음)
 		// $modal_root.data("modal-data").click_close_button();
-
 	};
 
 	$modal.data('modal-data', $modal);
