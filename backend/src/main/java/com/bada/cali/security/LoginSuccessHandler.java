@@ -44,6 +44,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 		
 		String loginId = authentication.getName();
 		// loginId를 바탕으로 유저 정보를 가져온다.
+		// NOTE 예외를 명시적으로 던지게 될 경우 'RuntimeException'보다는 illegalStateException 등 가급적 구체적 명시
 		Member loginMember = memberRepository.findByLoginId(loginId, YnType.y).orElseThrow(() -> new IllegalStateException("Successful authentication but user not found"));
 		
 		LocalDateTime now = LocalDateTime.now();

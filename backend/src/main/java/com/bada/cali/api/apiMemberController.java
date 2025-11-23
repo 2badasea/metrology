@@ -56,6 +56,7 @@ public class apiMemberController {
 	
 	/**
 	 * 회원가입 처리
+	 * FIX 응답 DTO로써 특별히 데이터를 넘기는 게 아닌 경우, DTO 클래스를 양산하는 것보단 ResMessage 응답 클래스를 활용할 것 (무분별한 DTO 생성 방지)
 	 * @param memberJoinReq
 	 * @return
 	 */

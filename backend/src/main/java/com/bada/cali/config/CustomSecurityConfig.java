@@ -35,6 +35,8 @@ public class CustomSecurityConfig {
 	private final DataSource dataSource;
 	
 	// filterChain 메서드 호출 시, 전역에서 로그인 검증을 하지 않고, 원하는 URL의 자원을 반환
+	// NOTE 시큐리티 필터체인(filterChain) 내부에서 던지는 예외들에 대해선 로그인 성공/실패 훅 내부로 전달됨(훅 내부에서 체크 가능)
+	// 다만, 전
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http, UserDetailsService userDetailsService) throws Exception {
 		log.info("================= configure ===============");
