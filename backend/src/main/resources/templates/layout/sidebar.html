@@ -3,14 +3,16 @@
 
 <body>
   <nav th:fragment="sidebar">
+    <!-- TODO 직원별 권한에 따라 메뉴를 동적으로 표시할 수 있도록 변경 필요 -->
     <!-- 메뉴들 -->
     <div class="top_info">
       <img src="/images/springboot.jpg" alt="springboot.jpg">
     </div>
     <div class="menu_wrapper mt-5">
       <ul>
-        <li><a href="/basic/loginHistory">로그인 이력관리</a></li>
-        <li><a href="/member/memberList">회원 관리</a></li>
+        <!-- <li><a href="/basic/loginHistory">로그인 이력관리</a></li> -->
+        <!-- <li><a href="/member/memberList">회원 관리</a></li> -->
+        <li><a href="/basic/agentList">업체관리</a></li>
         <li><a href="#">게시판</a></li>
         <li><a href="#">설정</a></li>
       </ul>

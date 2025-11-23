@@ -16,6 +16,8 @@ $(function () {
 
 	$modal.init_modal = (param) => {
 		console.log('> ~ param:', param);
+		$modal.param = param;
+		console.log('🚀 ~ $modal.param:', $modal.param);
 	};
 
 	$modal
@@ -111,13 +113,14 @@ $(function () {
 
 	// 가입신청
 	$modal.confirm_modal = async function (e) {
-		e.preventDefault();
 		console.log('가입신청!!');
 
 		const $btn = $('.btn_save', $modal);
 		$btn.prop('disabled', true);
 		const $form = $('.memberJoinForm', $modal);
-		const formData = new FormData($form[0]);
+		// formdata 객체로 서버에 요청을 보내는 경우, 인식하지 못하여 JSON 형태로 변경
+		// const formData = new FormData($form[0]);
+		const memberJoinData = $form.serialize_object();
 
 		// 필수입력값 체크
 		const $chkInputs = $('input[name!=""]', $form);
@@ -149,7 +152,9 @@ $(function () {
 			if (name === 'addr') {
 				const detailAddr = $('.addr2', $form).val();
 				// append의 경우, key에 해당 값을 추가하게 됨
-				formData.set('addr', `${value} ${detailAddr}`);
+				// formData.set('addr', `${value} ${detailAddr}`);
+				// formData.set('addr', `${value} ${detailAddr}`);
+				memberJoinData.addr = `${value} ${detailAddr}`;
 			}
 
 			// [필수]비밀번호
@@ -182,16 +187,18 @@ $(function () {
 					chkMsg = '이메일 도메인주소를 선택/입력해주세요.';
 					flagForm = false;
 				} else {
-					mailDomain = optVal === 'custom' ? $('.emailInput', $form).val() : optVal;
+					mailDomain = (optVal === 'custom') ? $('.emailInput', $form).val() : optVal;
 				}
 
-				const email = `${value}@${optVal}`;
+				const email = `${value}@${mailDomain}`;
+				console.log("🚀 ~ email:", email);
 				// 정규식 체크
 				if (!check_email_reg(email)) {
 					chkMsg = '이메일 형식이 올바르지 않습니다.';
 					flagForm = false;
 				} else {
-					formData.set('email', email);
+					// formData.set('email', email);
+					memberJoinData.email = email;
 				}
 			}
 
@@ -219,16 +226,19 @@ $(function () {
 		if (!flagForm) {
 			g_toast(chkMsg, 'warning');
 			$btn.prop('disabled', false);
-			$modal_root.modal('hide');
 			return false;
 		}
 
-		for (const [key, value] of formData.entries()) {
+		// 최종 입력값 확인 formData.entires()는 formdata 전용
+		// for (const [key, value] of formData.entries()) {
+		// 	console.log(key, value);
+		// }
+
+		// 일반 JSON 요소 순회하기 Object.entries(obj) 형태로 사용
+		console.log('입력값확인');
+		for (const [key, value] of Object.entries(memberJoinData)) {
 			console.log(key, value);
 		}
-
-		// test
-		console.log('ss');
 
 		if (confirm('회원가입을 하시겠습니까?')) {
 			// api 호출
@@ -241,7 +251,9 @@ $(function () {
 					},
 				}).then((result) => {});
 
-				const res = await g_ajax('/apiMember/memberJoin', formData);
+				const res = await g_ajax('/apiMember/memberJoin', JSON.stringify(memberJoinData), {
+					contentType: 'application/json;charset=utf-8',
+				});
 				console.log(res);
 				if (!res) {
 					g_toast('응답 형식이 올바르지 않습니다.', 'error');
@@ -249,43 +261,28 @@ $(function () {
 				// 가입 성공 시,
 				if (res.code > 0) {
 					// 가입신청이 완료되었다는 메시지와 함께 모달창이 닫히도록 한다.
-					Swal.fire(res.msg ?? '회원가입 신청 성공', '', 'success').then(() => {
-						// 모달을 닫는 이벤트를 수정해서 데이터를 리턴할 수 있도록 변경할 것
+					Swal.fire(res.msg ?? '회원가입 신청 성공', '', 'success').then((result) => {
+						console.log(result);
+						if (result.isConfirmed) {
+							// NOTE confirm_modal을 통해서 값 세팅을 하는 경우, 응답이 오자마자 g_modal을 호출한 쪽의 resData가 조회
+							// NOTE 리턴값이 필요한 경우에는 select_modal이나 다른 커스텀 함수 사용 필요
+							// $modal.param.joinResult = 'success';		// 모달창 닫힐 때 데이터 확인
+							$modal_root.modal('hide');
+							// return $modal.param;
+						}
 					});
 				} else {
 					g_toast('응답 형식이 올바르지 않습니다.', 'error');
 				}
-
-				// TODO 아래 소스 참고해서, 모달창이 닫힐 때, return 값을 받을 수 있는지 확인해볼 것
-				// 선택한 접수 데이터 리턴
-				$modal.confirm_modal = async function (data) {
-					$modal.param.select_rsi_idx = [];
-					$modal.param.select_data = [];
-					let $selected_data = $(`#${modal_root_id} .selected_data`);
-					if ($selected_data.length === 0) {
-						g_toast('1개 이상의 접수를 선택하세요.', 'warning');
-						return false;
-					}
-
-					$.each($selected_data, function (index, ele) {
-						let rsi_data = JSON.parse($(ele).val());
-						$modal.param.select_rsi_idx.push(rsi_data.calbr_rsi_idx);
-						$modal.param.select_data.push(rsi_data);
-					});
-
-					$modal_root.modal('hide');
-					return $modal.param;
-				};
-
-
 			} catch (err) {
-				console.error(err);
 				custom_ajax_handler(err);
 			} finally {
-				Swal.close();
+				// Swal.close();
 				$btn.prop('disabled', false);
 			}
-		} else {
+		}
+		// confirm 메서드 취소처리
+		else {
 			$btn.prop('disabled', false);
 			return false;
 		}

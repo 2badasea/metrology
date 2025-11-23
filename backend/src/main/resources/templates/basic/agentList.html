@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <div layout:fragment="content">
+        <div class="wrapper">
+            <form class="search_form mb-1" name="search_form">
+                <div class="d-flex">
+                    <ul class="list-group list-group-horizontal font-weight-bold mr-auto">
+                        <li>
+                            <button type="button" class="btn btn-danger deleteAgentBtn">삭제</button>
+                            <button type="button" class="btn btn-primary addAgentBtn">등록</button>
+                            <button type="button" class="btn btn-info groupManageBtn"><i class="bi bi-diagram-3"></i>그룹관리</button>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+            <div class="grid agentList"></div>
+        </div>
+    </div>
+</body>
+</html>

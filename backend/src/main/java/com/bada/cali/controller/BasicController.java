@@ -24,4 +24,10 @@ public class BasicController {
 		return "basic/home";
 	}
 	
+	// 업체관리 페이지
+	@GetMapping(value = "/agentList")
+	public String agentList(Model model) {
+		log.info("업체관리 페이지 이동");
+		return "basic/agentList";
+	}
 }
