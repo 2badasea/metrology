@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
@@ -23,8 +24,9 @@ public class AgentServiceImpl {
 	
 	private final AgentRepository agentRepository;	// DAO 주입
 	private final AgentMapper agentMapper;		// dto <--> entity 간의 변환용 mapstruct
-	private final RestClient.Builder builder;
 	
+	// 업체관리 리스트 가져오기
+	@Transactional
 	public TuiGridDTO.Response<AgentDTO.AgentRowData> getAgentList(AgentDTO.GetListReq req) {
 		
 		int pageIndex = req.getPage() - 1;	 // JPA는 0-based
@@ -82,5 +84,14 @@ public class AgentServiceImpl {
 				.contents(rows)
 				.pagination(pagination)
 				.build();
+	}
+	
+	// 개별 업체 정보
+	@Transactional
+	public AgentDTO.AgentRowData getAgentInfo(Integer id) {
+		YnType isVisible = YnType.y;	// 삭제되지 않은 것만 표기
+		
+		// entity에서 가져오자마자 DTO로 변환 후 api contorller로 리턴
+		return agentMapper.toAgentRowDataFromEntity(agentRepository.findByIsVisibleAndId(isVisible, id));
 	}
 }

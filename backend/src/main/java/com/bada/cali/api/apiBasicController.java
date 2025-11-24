@@ -7,10 +7,7 @@ import com.bada.cali.service.AgentServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController        // @Controller + @ResponseBody의 조합으로, 자동으로 응답 데이터를 JSON 형태로 직렬화해서 리턴한다.
 @RequestMapping("/apiBasic")
@@ -32,6 +29,16 @@ public class apiBasicController {
 				new TuiGridDTO.ResTuiGrid<>(true, resGridData);
 		
 		return ResponseEntity.ok(body);
+	}
+	
+	// 업체 정보 가져오기(개별)
+	@PostMapping(value = "/getAgentInfo")
+	public ResponseEntity<AgentDTO.AgentRowData> getAgentInfo(@RequestParam Integer id) {
+		log.info("==========getAgentInfo");
+		log.info("==========id: {}", id);
+		
+		AgentDTO.AgentRowData resAgentData = agentService.getAgentInfo(id);
+		return ResponseEntity.ok(resAgentData);
 	}
 	
 	

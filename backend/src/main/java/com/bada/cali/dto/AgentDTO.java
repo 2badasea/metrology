@@ -1,5 +1,6 @@
 package com.bada.cali.dto;
 
+import com.bada.cali.common.YnType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,11 +21,14 @@ public class AgentDTO {
 		private String keyword;
 	}
 	
+	// 기본 개별 row 데이터. (유의미한 필드만 나열할 것)
 	@Getter
 	@Setter
 	public static class AgentRowData {
+		// 리스트에 데이터 출력할 때
 		private Integer id;
 		private String createType;
+		private String groupName;
 		private String name;
 		private String ceo;
 		private String agentNum;
@@ -34,6 +38,21 @@ public class AgentDTO {
 		private String manager;
 		private String managerTel;
 		private String remark;
+		
+		// 개별 업체정보(등록/수정)
+		private String nameEn;
+		private int agentFlag;
+		private String businessType;
+		private String businessKind;
+		private String addrEn;
+		private String phone;
+		private String managerEmail;
+		private String fax;
+		private String accountNumber;
+		private String calibrationCycle;
+		private int selfDiscount;
+		private int outDiscount;
+		private YnType isClose;
 	}
 	
 	

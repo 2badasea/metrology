@@ -14,20 +14,49 @@ $(function () {
 	// let $modal = $('.modal-view:not(.modal-view-applied)');
 	let $modal_root = $modal.closest('.modal');
 
+	let agentId = 0;
+
 	$modal.init_modal = (param) => {
 		$modal.param = param;
 		console.log('🚀 ~ $modal.param:', $modal.param);
 
-        // 업체id로 초기화 하기(수정)
-        if ($modal.param?.id > 0) {             // 옵셔널체이닝으로 체크
-            let agentId = $modal.param.id;
-            // g_ajax 호출하기
-            // TODO <form> 내부에 name속성의 값과 일치하는 데이터를 모두 채우기 setUpValues() 스크립트 공통함수 만들기
-        }
+		// 업체id로 초기화 하기(수정)
+		if ($modal.param?.id > 0) {
+			// 옵셔널체이닝으로 체크
+			agentId = Number($modal.param.id);
+
+			// g_ajax로 값 세팅
+            // NOTE async, await으로도 가능한지 확인
+			g_ajax(
+				'/apiBasic/getAgentInfo',
+				{
+					id: agentId,
+				},
+				{
+					success: function (data) {
+						if (data) {
+							$modal.find('form.agentModifyForm input[name], textarea[name]').setupValues(data);
+							// flag, type에 대해서도 세팅할 것
+							// 폐업구분
+							if (data.isClose == 'y') {
+								$('.isClose', $modal).prop('checked', true);
+							}
+						}
+					},
+					error: function (xhr) {
+						custom_ajax_handler(xhr);
+					},
+					complete: function () {
+						console.log('업체정보 데이터 세팅 complete');
+					},
+				}
+			);
+		}
+
+		// 담당자 리스트
 	};
 
-    // 담당자 그리드 초기화
-
+	// 담당자 그리드 초기화
 
 	$modal.data('modal-data', $modal);
 	$modal.addClass('modal-view-applied');

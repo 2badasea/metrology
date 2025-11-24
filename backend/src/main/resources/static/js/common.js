@@ -1091,3 +1091,92 @@ function g_append_pagenation_side_grid($grid_parent, text, font_size = 16, delay
 		}
 	}, delay);
 }
+
+/**
+ * 요소(this)안에 데이터를 세팅한다.
+ *
+ * @return  {[type]}  [return description]
+ */
+$.fn.setupValues = function (data = {}, excludes = [], isTrigger) {
+	excludes = undefined != excludes ? excludes : []; // 값세팅에 제외할 요소
+	isTrigger = undefined != isTrigger ? isTrigger : false;
+
+	$(this).each((index, ele) => {
+		let tag = $(ele).prop("nodeName");	// 요소이 nodeName은 태그이름 (INPUT, DIV 등)
+		let key = $(ele).attr('name');
+		let type = $(ele).attr('type');
+		let className = $(ele).attr('class') != undefined ? $(ele).attr('class') : [];
+
+		let value = $(ele).val();
+		for (let ele1 of excludes) {
+			// 제외할 요소가 나오면 다음 턴으로
+			if (ele1 == ele) {
+				return false;
+			}
+		}
+
+		let newValue = '';
+		if (key && !Object.keys(data).includes(key)) {
+			if ($(ele).is('[data-default_value]')) {
+				newValue = $(ele).data('default_value');
+			} else {
+				return;
+			}
+		}
+		// 데이터와 맞는 key요소가 존재할 경우
+		if (key && Object.keys(data).includes(key)) {
+			let changed = false;
+			if ($(ele).hasClass('selectize')) {
+				if ('undefined' !== typeof $(ele).attr('multiple') && false !== $(ele).attr('multiple')) {
+					var options = [];
+					var items = [];
+					if (data[key]) {
+						var arr = data[key].split('|');
+						arr.forEach((value) => {
+							options.push({
+								value: value,
+								text: value,
+							});
+							items.push(value);
+						});
+					}
+					ele.selectize.addOption(options);
+					ele.selectize.setValue(items);
+				} else {
+					ele.selectize.setValue(data[key]);
+				}
+			} else if ($(ele).hasClass('select2')) {
+				$(ele).val(data[key]).trigger('change.select2');
+			} else if ('INPUT' == tag && ('radio' == type || 'checkbox' == type) && value == data[key]) {
+				if ('radio' == type && $(ele).closest('label.radio_btn').length) {
+					$(ele).closest('label.radio_btn').addClass('active');
+				}
+				$(ele).prop('checked', true);
+			} else {
+				let oldValue = $(ele).val();
+				if (oldValue != data[key]) {
+					changed = true;
+					if ('INPUT' == tag && $(ele).hasClass('datepicker') && '0000-00-00' == data[key]) {
+						data[key] = '';
+					}
+					if ($(ele)[0].type != 'radio' && $(ele)[0].type != 'checkbox') {
+						if ('INPUT' == tag && $.isNumeric(data[key]) && (className.includes('to_number') || className.includes('comma'))) {
+							data[key] = comma(data[key]);
+						}
+						// if ($(ele).hasClass("datepicker")) $(ele).attr('data-sticky_date', data[key]);
+						// $(ele).val(data[key]);
+						if ($(ele).hasClass('datepicker')) {
+							$(ele).attr('data-sticky_date', data[key]);
+							$(ele).datepicker('setDate', data[key]);
+						} else {
+							$(ele).val(data[key]);
+						}
+					}
+				}
+			}
+			if (isTrigger && changed) {
+				$(ele).trigger('change');
+			}
+		}
+	});
+};

@@ -10,6 +10,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface AgentRepository extends JpaRepository<Agent, Integer> {
 	
+	Agent findByIsVisibleAndId(YnType isVisible, Integer id);
+	
 	// 기본: 삭제된 것을 제외하고 전체 가져오기
 	Page<Agent> findByIsVisible(YnType isVisible, Pageable pageable);
 	
