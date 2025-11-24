@@ -1,5 +1,6 @@
 package com.bada.cali.mapper;
 
+import com.bada.cali.dto.AgentDTO;
 import com.bada.cali.dto.MemberDTO;
 import com.bada.cali.entity.Agent;
 import org.mapstruct.Mapper;
@@ -19,5 +20,8 @@ public interface AgentMapper {
 	@Mapping(target = "managerEmail", source = "email")
 	@Mapping(target = "agentNum", source = "loginId")
 	Agent toAgentFromMemberJoinReq(MemberDTO.MemberJoinReq memberJoinReq);
+	
+	// 업체 리스트 데이터 반환
+	AgentDTO.AgentRowData toAgentRowDataFromEntity(Agent agent);
 	
 }

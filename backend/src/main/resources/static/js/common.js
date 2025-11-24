@@ -1,4 +1,19 @@
+// FIX 그리드 선언하는 것 공통함수로 만들기
 const Grid = tui.Grid;
+Grid.applyTheme('custom', {
+	grid: {
+		border: '#004082',
+	},
+	frozenBorder: {
+		border: '#DCE1E6',
+	},
+	row: {
+		hover: {
+			background: '#eeeeee',
+		},
+	},
+});
+
 $(function () {
 	console.log('++ common.js');
 
@@ -217,7 +232,7 @@ $.fn.serialize_object = function () {
 	try {
 		this.find('input[name], select[name], textarea[name]').each(function (index, ele) {
 			const name = $(ele).attr('name');
-			const type = $(ele).attr('type');		// text, password, radio, checkbox ...
+			const type = $(ele).attr('type'); // text, password, radio, checkbox ...
 			let value = $(ele).val();
 			if ('checkbox' == type) {
 				if ('undefined' == typeof obj[name]) {
@@ -233,17 +248,14 @@ $.fn.serialize_object = function () {
 			} else {
 				obj[name] = value;
 			}
-		})
-
+		});
 	} catch (e) {
 		console.log(e.message);
-	}
-	finally {
-
+	} finally {
 	}
 
 	return obj;
-}
+};
 
 /**
  * 토스트 메시지를 띄운다. (메시지, 타입(info, warning, success, error), 추가설정)
@@ -292,10 +304,6 @@ function g_toast(text = '알림', type = 'info', options = {}) {
 	g_set_data('message', message);
 }
 
-
-
-
-
 /**
  * 브라우저 스토리지에서 데이터를 가져온다.
  *
@@ -336,14 +344,14 @@ function custom_ajax_handler(err) {
 	const xhr = err?.xhr || err;
 	const status = xhr?.status;
 	const respJSON = xhr?.responseJSON;
-	
+
 	// 옵셔널체이닝 문법(null/undefined이면 에러를 발생시키지 않고, undefined를 반환.)
 	if (respJSON?.code != undefined && respJSON?.msg != undefined) {
 		g_toast(respJSON.msg, 'error');
-	} 
+	}
 	// 다른 형식으로 받는 경우
 	else {
-		g_toast("요청을 처리 중 서버에서 오류가 발생했습니다. 적절한 응답 형식을 찾지 못했습니다.", 'error');
+		g_toast('요청을 처리 중 서버에서 오류가 발생했습니다. 적절한 응답 형식을 찾지 못했습니다.', 'error');
 	}
 	return false;
 
@@ -681,7 +689,7 @@ function g_loading_message(title) {
 		showConfirmButton: false,
 		willOpen: () => {
 			Swal.showLoading();
-		}
+		},
 	});
 	return Swal;
 }
@@ -694,8 +702,8 @@ function g_loading_message(title) {
 function cloneObject(obj) {
 	var clone = {};
 	for (var key in obj) {
-		if (["rowKey", "rowSpanMap", "uniqueKey", "sortKey", "_attributes", "_disabledPriority", "_relationListItemMap"].indexOf(key) === -1) {
-			if (typeof obj[key] == "object" && obj[key] != null) {
+		if (['rowKey', 'rowSpanMap', 'uniqueKey', 'sortKey', '_attributes', '_disabledPriority', '_relationListItemMap'].indexOf(key) === -1) {
+			if (typeof obj[key] == 'object' && obj[key] != null) {
 				clone[key] = cloneObject(obj[key]);
 			} else {
 				clone[key] = obj[key];
@@ -721,8 +729,8 @@ function g_grid(selector, options) {
 	const Grid = tui.Grid;
 	let settings = $.extend(
 		{
-			el: typeof selector == "string" ? $(selector)[0] : selector[0],
-			language: "ko",
+			el: typeof selector == 'string' ? $(selector)[0] : selector[0],
+			language: 'ko',
 			scrollX: false,
 			scrollY: false,
 			header: {
@@ -743,30 +751,30 @@ function g_grid(selector, options) {
 		},
 		options
 	);
-	Grid.setLanguage("ko", {
+	Grid.setLanguage('ko', {
 		display: {
-			noData: options.noData ? options.noData : "데이터가 존재하지 않습니다.",
+			noData: options.noData ? options.noData : '데이터가 존재하지 않습니다.',
 		},
 	});
-	Grid.applyTheme("default", {
+	Grid.applyTheme('default', {
 		grid: {
-			border: "#004082",
+			border: '#004082',
 		},
 		frozenBorder: {
-			border: "#DCE1E6",
+			border: '#DCE1E6',
 		},
 		outline: {
 			border: custom_style.border,
 			showVerticalBorder: true,
 		},
 		selection: {
-			background: "#4daaf9",
-			border: "#004082",
+			background: '#4daaf9',
+			border: '#004082',
 		},
 		scrollbar: {
 			background: custom_style.scrollbar_bg,
-			thumb: "#d9d9d9",
-			active: "#c1c1c1",
+			thumb: '#d9d9d9',
+			active: '#c1c1c1',
 		},
 		area: {
 			header: {
@@ -778,7 +786,7 @@ function g_grid(selector, options) {
 				background: custom_style.cell_normal_bg_bg,
 				border: custom_style.border,
 				showVerticalBorder: true,
-				lineHeight: "normal",
+				lineHeight: 'normal',
 			},
 			header: {
 				background: custom_style.cell_hd_bg,
@@ -790,25 +798,25 @@ function g_grid(selector, options) {
 				showVerticalBorder: true,
 			},
 			editable: {
-				background: "white",
+				background: 'white',
 				// background: '#f5f5f5',
 			},
 			selectedHeader: {
-				background: "#d8d8d8",
+				background: '#d8d8d8',
 			},
 			focused: {
 				border: custom_style.cell_focus_border,
 			},
 			disabled: {
-				text: "#b0b0b0",
+				text: '#b0b0b0',
 			},
 			summary: {
-				background: "#f7f7f7",
-			}
+				background: '#f7f7f7',
+			},
 		},
 		row: {
 			hover: {
-				background: "#eeeeee",
+				background: '#eeeeee',
 			},
 		},
 	});
@@ -840,42 +848,44 @@ function g_grid(selector, options) {
 	grid.g_config_json = g_config_json;
 	grid.g_real_postfix = g_real_postfix;
 	grid.scroll_top = 0;
-	grid.on("beforeRequest", function (e) {
-		grid.scroll_top = $(".tui-grid-rside-area .tui-grid-body-area", grid.el)[0].scrollTop;
+	grid.on('beforeRequest', function (e) {
+		grid.scroll_top = $('.tui-grid-rside-area .tui-grid-body-area', grid.el)[0].scrollTop;
 	});
 
-	grid.on("response", function (e) {
+	grid.on('response', function (e) {
 		let json_row = JSON.parse(e.xhr.response);
 		if (undefined != json_row && undefined != json_row.data && undefined != json_row.data.pagination) {
 			let total_count = json_row.data.pagination.totalCount;
 			g_append_pagenation_side_grid($(selector), `총 ${number_format(total_count)} 건`);
 		}
-		if (typeof response === "function") {
+		if (typeof response === 'function') {
 			response(e);
 		}
 	});
 
-	grid.on("onGridUpdated", function (e) {
+	grid.on('onGridUpdated', function (e) {
 		// console.log('onGridUpdated');
 		// console.log(grid.scroll_top);
 
-		$(".tui-grid-rside-area .tui-grid-body-area", grid.el)[0].scrollTop = grid.scroll_top;
+		$('.tui-grid-rside-area .tui-grid-body-area', grid.el)[0].scrollTop = grid.scroll_top;
 	});
 
-	grid.on("onGridMounted", function (e) {
+	grid.on('onGridMounted', function (e) {
 		// console.log('onGridMounted');
 		setTimeout(function (d) {
 			grid.refreshLayout();
-			$(".tui-grid-header-area", grid.el).on("wheel", function (e) {
+			$('.tui-grid-header-area', grid.el).on('wheel', function (e) {
 				//헤더영역에서 스크롤시 좌우스크롤링 되도록 변경
-				$(".tui-grid-rside-area .tui-grid-body-area", grid.el).scrollLeft($(".tui-grid-rside-area .tui-grid-body-area", grid.el).scrollLeft() + e.originalEvent.deltaY);
+				$('.tui-grid-rside-area .tui-grid-body-area', grid.el).scrollLeft(
+					$('.tui-grid-rside-area .tui-grid-body-area', grid.el).scrollLeft() + e.originalEvent.deltaY
+				);
 			});
-			let body_el = $(".tui-grid-rside-area .tui-grid-body-area", grid.el)[0];
+			let body_el = $('.tui-grid-rside-area .tui-grid-body-area', grid.el)[0];
 			// console.log(body_el._listeners.wheel);
 			body_el._listeners.wheel = function (ev) {
 				ev.preventDefault();
 			};
-			body_el.addEventListener("wheel", function (e) {
+			body_el.addEventListener('wheel', function (e) {
 				e.preventDefault();
 				if (parseFloat($(body_el).offset().top) + parseFloat($(body_el).height()) - e.clientY <= 0) {
 					body_el.scrollLeft += e.deltaY;
@@ -886,33 +896,33 @@ function g_grid(selector, options) {
 		}, 200);
 	});
 
-	if (settings.showConfigButton && typeof settings.config_key != "undefined" && settings.config_key != "") {
-		const modal_body = (typeof selector == "object" ? selector : $(selector)).closest(".modal-view");
-		let config_btn = "";
-		if (typeof modal_body.data("config") == "undefined") {
-			modal_body.data("config", []);
-			if (modal_body.hasClass("modal-body")) {
-				config_btn = modal_body.prev(".modal-header").find(".config_btn").removeClass("d-none");
-			} else if (modal_body.hasClass("card-body")) {
-				config_btn = modal_body.prev(".card-header").find(".config_btn").removeClass("d-none");
+	if (settings.showConfigButton && typeof settings.config_key != 'undefined' && settings.config_key != '') {
+		const modal_body = (typeof selector == 'object' ? selector : $(selector)).closest('.modal-view');
+		let config_btn = '';
+		if (typeof modal_body.data('config') == 'undefined') {
+			modal_body.data('config', []);
+			if (modal_body.hasClass('modal-body')) {
+				config_btn = modal_body.prev('.modal-header').find('.config_btn').removeClass('d-none');
+			} else if (modal_body.hasClass('card-body')) {
+				config_btn = modal_body.prev('.card-header').find('.config_btn').removeClass('d-none');
 			}
 		}
-		let config = modal_body.data("config");
+		let config = modal_body.data('config');
 		config.push({
 			grid: grid,
 			config_key: settings.config_key,
 		});
-		modal_body.data("config", config);
-		config_btn.on("click", function () {
-			let dropdown = $(this).next(".dropdown-menu");
-			if ($(this).next(".dropdown-menu").find(".mCSB_container").length > 0) {
-				dropdown.mCustomScrollbar("destroy");
+		modal_body.data('config', config);
+		config_btn.on('click', function () {
+			let dropdown = $(this).next('.dropdown-menu');
+			if ($(this).next('.dropdown-menu').find('.mCSB_container').length > 0) {
+				dropdown.mCustomScrollbar('destroy');
 			}
-			dropdown.dropdown("toggle").html("");
-			const configs = modal_body.data("config");
+			dropdown.dropdown('toggle').html('');
+			const configs = modal_body.data('config');
 			for (var i in configs) {
 				const { config_key, grid } = configs[i];
-				let form = $("<form></form>");
+				let form = $('<form></form>');
 				let table = $('<table class="table table-sm table-responsive-sm"></table>');
 				$(`
 				<colgroup>
@@ -931,8 +941,10 @@ function g_grid(selector, options) {
 						<button class="btn btn-sm btn-danger bg-danger setting_reset">초기화</button>
 					</th>
 				</tr>`).appendTo(table);
-				$('<tr><th></th><th><input type="checkbox" class="form-check-input checkall" checked /></th><th class="text-center">원 항목명</th><th class="text-center">현재 항목명</th><th class="text-center">크기</th><th class="text-center">정렬</th></tr>').appendTo(table);
-				console.log("grid");
+				$(
+					'<tr><th></th><th><input type="checkbox" class="form-check-input checkall" checked /></th><th class="text-center">원 항목명</th><th class="text-center">현재 항목명</th><th class="text-center">크기</th><th class="text-center">정렬</th></tr>'
+				).appendTo(table);
+				console.log('grid');
 				console.log(grid);
 				console.log(grid.getColumns());
 				let columns = grid.getColumns();
@@ -941,42 +953,48 @@ function g_grid(selector, options) {
 				// for (var k in columns) {
 				columns.forEach((row) => {
 					// let row = columns[k];
-					let original_name = "";
+					let original_name = '';
 					for (var i in original_columns) {
 						if (original_columns[i].name == row.name) {
 							original_name = original_columns[i].header;
 						}
 					}
 					ij++;
-					let hidden = row.hidden ? "" : ' checked="checked"';
-					let width = row.baseWidth != 0 ? row.baseWidth : "";
-					let header = row.header.replace("<br>", " ");
+					let hidden = row.hidden ? '' : ' checked="checked"';
+					let width = row.baseWidth != 0 ? row.baseWidth : '';
+					let header = row.header.replace('<br>', ' ');
 					let name = row.name;
 					let is_fixed_size = fixed.size.indexOf(name) !== -1;
 					let is_fixed_header = fixed.header.indexOf(name) !== -1;
 					let is_fixed_hidden = fixed.hidden.indexOf(name) !== -1;
 					let is_fixed_align = fixed.align.indexOf(name) !== -1;
-					let left = row.align == "left" ? ' selected="selected"' : "";
-					let center = row.align == "center" ? ' selected="selected"' : "";
-					let right = row.align == "right" ? ' selected="selected"' : "";
+					let left = row.align == 'left' ? ' selected="selected"' : '';
+					let center = row.align == 'center' ? ' selected="selected"' : '';
+					let right = row.align == 'right' ? ' selected="selected"' : '';
 					$(`
 					<tr class="sortable">
 						<th><i class="bi bi-grip-vertical"></i></th>
 						<th>
-							<input type="checkbox" class="form-check-input"${hidden} name="config_hidden"${is_fixed_hidden ? " disabled" : ""} />
+							<input type="checkbox" class="form-check-input"${hidden} name="config_hidden"${is_fixed_hidden ? ' disabled' : ''} />
 							<input type="hidden" name="config_name" value="${name}" />
 						</th>
 						<th class="text-center">
 							${original_name}
 						</th>
 						<td>
-							<input type="text" class="p-0 form-control form-control-xs text-center config_input" value="${header}" name="config_header" autocomplete="off"${is_fixed_header ? " disabled" : ""} />
+							<input type="text" class="p-0 form-control form-control-xs text-center config_input" value="${header}" name="config_header" autocomplete="off"${
+						is_fixed_header ? ' disabled' : ''
+					} />
 						</td>
 						<td>
-							<input type="text" class="p-0 form-control form-control-xs text-center config_input" value="${width}" name="config_width" autocomplete="off" placeholder="자동"${is_fixed_size ? " disabled" : ""} />
+							<input type="text" class="p-0 form-control form-control-xs text-center config_input" value="${width}" name="config_width" autocomplete="off" placeholder="자동"${
+						is_fixed_size ? ' disabled' : ''
+					} />
 						</td>
 						<td>
-							<select name="config_align" autocomplete="off" class="p-0 form-control form-control-xs text-center config_input"${is_fixed_align ? " disabled" : ""} style="height:auto !important">
+							<select name="config_align" autocomplete="off" class="p-0 form-control form-control-xs text-center config_input"${
+								is_fixed_align ? ' disabled' : ''
+							} style="height:auto !important">
 								<option value="left"${left}>좌측</option>
 								<option value="center"${center}>가운데</option>
 								<option value="right"${right}>우측</option>
@@ -986,48 +1004,48 @@ function g_grid(selector, options) {
 					`).appendTo(table);
 				});
 				//그리드 설정 팝업 닫기버튼
-				$("button.setting_close", table).on("click", function (e) {
+				$('button.setting_close', table).on('click', function (e) {
 					e.preventDefault();
-					dropdown.dropdown("toggle");
+					dropdown.dropdown('toggle');
 				});
 				//그리드 설정 모두 선택 체크박스
-				$("input.checkall", table).click(function () {
-					let checked = $(this).prop("checked");
-					$("input[name=config_hidden]:not(:disabled)", table).prop("checked", checked);
+				$('input.checkall', table).click(function () {
+					let checked = $(this).prop('checked');
+					$('input[name=config_hidden]:not(:disabled)', table).prop('checked', checked);
 				});
 				//
-				$("input,select", table).change(function () {
-					let hidden = table.find("input[name=config_hidden]");
-					let header = table.find("input[name=config_header]");
-					let name = table.find("input[name=config_name]");
-					let width = table.find("input[name=config_width]");
-					let align = table.find("select[name=config_align]");
+				$('input,select', table).change(function () {
+					let hidden = table.find('input[name=config_hidden]');
+					let header = table.find('input[name=config_header]');
+					let name = table.find('input[name=config_name]');
+					let width = table.find('input[name=config_width]');
+					let align = table.find('select[name=config_align]');
 					grid_column_config_redraw(grid, name, hidden, header, width, align);
 					grid_column_config_redraw(grid, name, hidden, header, width, align); //컬럼헤더 명칭이 바로 변경되지 않아서 2번실행. 문제점 찾을것
 				});
-				$("button.setting_save", table).on("click", function (e) {
+				$('button.setting_save', table).on('click', function (e) {
 					e.preventDefault();
-					let hidden = table.find("input[name=config_hidden]");
-					let header = table.find("input[name=config_header]");
-					let name = table.find("input[name=config_name]");
-					let width = table.find("input[name=config_width]");
-					let align = table.find("select[name=config_align]");
+					let hidden = table.find('input[name=config_hidden]');
+					let header = table.find('input[name=config_header]');
+					let name = table.find('input[name=config_name]');
+					let width = table.find('input[name=config_width]');
+					let align = table.find('select[name=config_align]');
 					grid_column_config_redraw(grid, name, hidden, header, width, align);
 					grid_column_config_redraw(grid, name, hidden, header, width, align);
 					save_grid_config(grid, settings.config_key);
-					dropdown.dropdown("toggle");
+					dropdown.dropdown('toggle');
 					location.reload();
 				});
-				$("button.setting_reset", table).on("click", async function (e) {
+				$('button.setting_reset', table).on('click', async function (e) {
 					e.preventDefault();
-					let question = await g_message("설정 초기화", "정말 이 화면의 개인설정을 초기화하시겠습니까?", "warning", "confirm");
+					let question = await g_message('설정 초기화', '정말 이 화면의 개인설정을 초기화하시겠습니까?', 'warning', 'confirm');
 					if (question.isConfirmed == true) {
-						g_ajax("/member/ajax_delete_config", {
+						g_ajax('/member/ajax_delete_config', {
 							config_key: settings.config_key,
 						}).done(function (response) {
 							if (response.code == 1) {
-								g_toast("설정이 초기화되었습니다.");
-								dropdown.dropdown("toggle");
+								g_toast('설정이 초기화되었습니다.');
+								dropdown.dropdown('toggle');
 								grid.setColumns(settings.defaultColumns);
 								window.location.reload();
 							}
@@ -1035,39 +1053,41 @@ function g_grid(selector, options) {
 					}
 				});
 				table.sortable({
-					items: "tr.sortable",
+					items: 'tr.sortable',
 					update: function () {
-						let hidden = table.find("input[name=config_hidden]");
-						let header = table.find("input[name=config_header]");
-						let name = table.find("input[name=config_name]");
-						let width = table.find("input[name=config_width]");
-						let align = table.find("select[name=config_align]");
+						let hidden = table.find('input[name=config_hidden]');
+						let header = table.find('input[name=config_header]');
+						let name = table.find('input[name=config_name]');
+						let width = table.find('input[name=config_width]');
+						let align = table.find('select[name=config_align]');
 						grid_column_config_redraw(grid, name, hidden, header, width, align);
 						grid_column_config_redraw(grid, name, hidden, header, width, align);
 					},
 				});
 				dropdown
-					.addClass("scroll-y")
-					.addClass("grid_setting")
-					.on("hide.bs.dropdown", function () {
+					.addClass('scroll-y')
+					.addClass('grid_setting')
+					.on('hide.bs.dropdown', function () {
 						//dropdown.html('');
 					});
 				table.appendTo(form);
 				form.appendTo(dropdown);
-				init_scrollbar(".grid_setting", false);
+				init_scrollbar('.grid_setting', false);
 			}
 		});
 	}
 	return grid;
 }
 
-function g_append_pagenation_side_grid($grid_parent, text, font_size = 16, delay = 50, side = "left") {
+function g_append_pagenation_side_grid($grid_parent, text, font_size = 16, delay = 50, side = 'left') {
 	setTimeout(function () {
-		var $span = $(".tui-grid-pagination", $grid_parent).find(`span.${side}`);
+		var $span = $('.tui-grid-pagination', $grid_parent).find(`span.${side}`);
 		if (0 < $span.length) {
 			$span.text(text);
 		} else {
-			$(".tui-grid-pagination", $grid_parent).append(`<span class="grid_bottom ${side}" style="font-size: ${font_size}px; float: ${side}; margin-top: 5px;">${text}</span>`);
+			$('.tui-grid-pagination', $grid_parent).append(
+				`<span class="grid_bottom ${side}" style="font-size: ${font_size}px; float: ${side}; margin-top: 5px;">${text}</span>`
+			);
 		}
 	}, delay);
 }

@@ -23,17 +23,18 @@ $(function () {
 		api: {
 			readData: {
 				url: '/apiBasic/getAgentList',
+				// 'serializer'는 토스트 그리드에서 제공
 				serializer: (grid_param) => {
-					// grid_param = $.extend(grid_param, $('form.search_form', $modal).serializeObject());
+					// grid_param = $.extend(grid_param, $('form.searchForm', $modal).serializeObject());
 					// let search_types = $modal
-					// 	.find('form.search_form .search_type')
+					// 	.find('form.searchForm .searchType')
 					// 	.find('option')
 					// 	.map(function () {
 					// 		if ($(this).val() != 'all') return $(this).val();
 					// 	})
 					// 	.get();
-					grid_param.search_types = 'all';
-					grid_param.render_version = 'new';
+					grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? 'all';
+					grid_param.keyword = $('form.searchForm', $modal).find('#keyword').val() ?? '';
 					return $.param(grid_param);
 				},
 				method: 'GET',
@@ -41,14 +42,35 @@ $(function () {
 		},
 	};
 
+	console.log('확인');
+
 	// 그리드 정의
 	$modal.grid = new Grid({
 		el: document.querySelector('.agentList'),
 		columns: [
 			{
-				header: '그룹명',
-				name: 'genre',
+				header: '가입방식',
+				name: 'createType',
 				className: 'cursor_pointer',
+				width: '80',
+				align: 'center',
+				formatter: function (data) {
+					let html = '';
+					if (data.value == 'join') {
+						html = '가입';
+					} else if (data.value == 'basic') {
+						html = '등록';
+					} else if (data.value == 'auto') {
+						html = '접수';
+					}
+					return html;
+				},
+			},
+			{
+				header: '그룹명',
+				name: 'groupName',
+				className: 'cursor_pointer',
+				width: '100',
 				align: 'center',
 			},
 			{
@@ -59,59 +81,104 @@ $(function () {
 			},
 			{
 				header: '주소',
-				name: 'artist',
+				name: 'addr',
 				className: 'cursor_pointer',
+				width: '300',
 				align: 'center',
 			},
 			{
 				header: '사업자번호',
-				name: 'release',
+				name: 'agentNum',
 				className: 'cursor_pointer',
 				align: 'center',
 			},
 			{
 				header: '대표',
-				name: 'genre',
+				name: 'ceo',
 				className: 'cursor_pointer',
+				width: '80',
 				align: 'center',
 			},
 
 			{
 				header: '전화번호',
-				name: 'genre',
+				name: 'agnetTel',
 				className: 'cursor_pointer',
 				align: 'center',
 			},
 			{
 				header: '이메일',
-				name: 'genre',
+				name: 'email',
 				className: 'cursor_pointer',
 				align: 'center',
 			},
 			{
 				header: '담당자',
-				name: 'genre',
+				name: 'manager',
 				className: 'cursor_pointer',
+				width: '80',
 				align: 'center',
 			},
 			{
 				header: '담당자 연락처',
-				name: 'genre',
+				name: 'managerTel',
 				className: 'cursor_pointer',
 				align: 'center',
 			},
 		],
-		data: [
-			{
-				name: 'Beautiful Lies',
-				artist: 'Birdy',
-				release: '2016.03.26',
-				genre: 'Pop',
-			},
-		],
+		pageOptions: {
+			useClient: false, // 서버 페이징
+			perPage: 15,
+		},
+		rowHeaders: ['checkbox'],
+		// data: [
+		// 	{
+		// 		name: 'Beautiful Lies',
+		// 		artist: 'Birdy',
+		// 		release: '2016.03.26',
+		// 		genre: 'Pop',
+		// 	},
+		// ],
+		data: $modal.data_source,
 	});
 
+	// 페이지 내 이벤트
+	$modal
+		// 검색
+		.on('submit', '.searchForm', function (e) {
+			e.preventDefault();
+			$modal.grid.getPagination().movePageTo(1);
+		});
+	// 등록
 
+	// 삭제
+	// 그룹관리
+
+	// 그리드 이벤트 정의
+	$modal.grid.on('click', async function (e) {
+		const row = $modal.grid.getRow(e.rowKey);
+
+		if (row && e.columnName != '_checked') {
+			// 업체수정 모달 띄우기
+			console.log('업체수정 모달 open!!');
+			await g_modal(
+				'/basic/agentModify',
+				{
+					id: row.id,
+				},
+				{
+					size: 'xxl',
+					title: '업체수정',
+					show_close_button: true,
+					show_confirm_button: true,
+					confirm_button_text: '저장',
+				}
+			).then(() => {
+				// 모달창이 닫히면 그리드가 갱신되도록 변경
+				$modal.grid.reloadData();
+			});
+		}
+	});
 
 	$modal.data('modal-data', $modal);
 	$modal.addClass('modal-view-applied');

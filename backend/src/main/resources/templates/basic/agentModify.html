@@ -1,0 +1,199 @@
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<div layout:fragment="content">
+    <div class="d-flex flex-wrap">
+        <div class="col-lg-6 col-md-6 pr-1 pl-0">
+            <div class="card">
+                <div class="card-header p-2">
+                    <h7 class="font-weight-bold">업체 정보</h7>
+                </div>
+                <form id="agent_modify_form" name="agent_modify_form">
+
+                    <table class="table table-bordered text-center mb-0">
+                        <colgroup>
+                            <col width="120px" />
+                            <col width="260px" />
+                            <col width="120px" />
+                            <col width="260px" />
+                        </colgroup>
+                        <tbody>
+                            <tr>
+                                <th class="required">업체 형태</th>
+                                <td class="agent_flag_type text-left" colspan="3">
+                                    <div class="ml-2">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input check_bit" type="checkbox" id="agent_type"
+                                                value="">
+                                            <label class="form-check-label" for="agent_type">신청업체
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input check_bit" type="checkbox" id="agent_type1"
+                                                value="">
+                                            <label class="form-check-label" for="agent_type1">교정기관
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input check_bit" type="checkbox" id="agent_type2"
+                                                value="">
+                                            <label class="form-check-label" for="agent_type2">딜러
+                                            </label>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="required">업체명(국문)</th>
+                                <td><input type="text" class="form-control name" name="name" /></td>
+                                <th>업체명(영문)</th>
+                                <td><input type="text" class="form-control nameEn" name="nameEn" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>폐업 구분</th>
+                                <td class="text-left">
+                                    <div class="ml-2 form-check form-check-inline">
+                                        <input class="form-check-input isClose" type="checkbox" name="isClose">
+                                        <label class="form-check-label" for="agent_close">폐업</label>
+                                    </div>
+                                </td>
+                                <th>파일등록</th>
+                                <td>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control uploadFiles" multiple>
+                                        <!-- 첨부파일이 존재하는 경우 체크해서 진행 -->
+                                        <div class="searchFileDiv input-group-append">
+                                            <button class="btn btn-secondary searchFile" type="button"><i
+                                                    class='bi bi-folder2-open'></i></button>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>교정주기</th>
+                                <td class="text-left" colspan="3">
+                                    <div class="ml-2">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" id="cali_cycle_1"
+                                                name="calibrationCycle" value="self_cycle">
+                                            <label class="form-check-label" for="cali_cycle_1">자체교정주기</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" id="cali_cycle_2"
+                                                name="calibrationCycle" value="next_cycle" checked>
+                                            <label class="form-check-label" for="cali_cycle_2">차기교정일자</label>
+                                        </div>
+                                        <!-- 교정주기 - 표기안함 추가 -->
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" id="cali_cycle_3"
+                                                name="calibrationCycle" value="none">
+                                            <label class="form-check-label" for="cali_cycle_3">표기안함</label>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>사업자등록번호</th>
+                                <td>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control agentNum" name="agentNum" value=""
+                                            maxlength="12" />
+                                        <div class="input-group-append">
+                                            <button class="btn btn-secondary chkAgentNum" type="button">중복확인</button>
+                                        </div>
+                                    </div>
+                                </td>
+                                <th>대표자명</th>
+                                <td><input type="text" class="form-control ceo" name="ceo" value="" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>주소(국문)</th>
+                                <td colspan="3">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control addr" name="addr">
+                                        <div class="input-group-append">
+                                            <!-- 카카오 주소 API 연동할 것 -->
+                                            <button class="btn btn-secondary searchAddr" type="button">우편번호 검색</button>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>주소(영문)</th>
+                                <td colspan="3">
+                                    <input type="text" class="form-control addrEn" name="addrEn">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>우편번호</th>
+                                <td><input type="text" class="form-control agentZipCode" name="agentZipCode" value="" />
+                                </td>
+                                <th>할인율(%)</th>
+                                <td>
+                                    <div class="input-group">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">자체</span>
+                                        </div>
+                                        <input type="text" class="form-control text-right pr-1 ratio selfDiscount"
+                                            name='selfDiscount'>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">대행</span>
+                                        </div>
+                                        <input type="text" class='form-control text-right pr-1 ratio outDiscount'
+                                            name='outDiscount'>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>업태</th>
+                                <td><input type="text" class="form-control agentType" name="agentType" value=""
+                                        placeholder="예시) 도소매업, 제조업, 서비스업, 음식점업 등등" /></td>
+                                <th>종목</th>
+                                <td><input type="text" class="form-control agentKind" name="agentKind" value=""
+                                        placeholder="예시) 세부 종류/품목 정보 ex) 분동 제작, 판매 교정 등등" /></td>
+                            </tr>
+                            <tr>
+                                <th>전화번호1</th>
+                                <td><input type="text" class="form-control contact_num agentTel" name="agentTel"
+                                        value="" /></td>
+                                <th>FAX</th>
+                                <td><input type="text" class="form-control contact_num fax" name="fax" value="" /></td>
+                            </tr>
+                            <tr>
+                                <th>세금계산서 이메일</th>
+                                <td colspan="3"><input type="text" class="form-control email" name="email" value="" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>특이사항</th>
+                                <td colspan="3"><textarea class="form-control remark" name="remark" rows="4"
+                                        style="resize: none;"></textarea>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-6 pl-0 pr-0">
+            <div class="card">
+                <div class="card-header p-2">
+                    <h7 class="font-weight-bold">담당자</h7>
+                </div>
+                <div class="d-flex mt-1 mb-1 list_btn_box">
+                    <div class="ml-1 mr-1">
+                        <button class="btn btn-danger delAgentManager">삭제</button>
+                    </div>
+                    <div class="mr-1">
+                        <button class="btn btn-success addAgentManager">추가</button>
+                    </div>
+                </div>
+                <div class="agentManagerGrid"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

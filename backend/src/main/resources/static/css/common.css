@@ -105,13 +105,20 @@
 .form-control {
 	font-size: 14px;
 	height: 38px;
-	padding: 0px 4px;
+	padding: 4px 4px;
 }
 
 div {
 	/* sweet alert창이 좁게 표시되어 아래 부분 주석처리 */
 	/* position: relative; */
 	box-sizing: border-box;
+}
+
+/* 테이블 내 padding값 없애기 */
+.table td, .table th {
+	padding: 0 !important;
+	vertical-align: middle !important;
+	height: 40px !important;
 }
 
 .text_left {
@@ -146,4 +153,42 @@ th.required::after {
 	padding: unset;
 }
 
+.modal-xxl {
+	max-width: 1800px;
+}
+
+.modal-xxxl {
+	max-width: 1900px;
+}
+
+.modal-dialog.modal-full {
+	width: 100vw;
+	height: 100vh;
+
+	max-width: none;
+}
+
+.modal-dialog.modal-full .modal-content {
+	width: 100vw;
+	height: 100vh;
+	overflow: none;
+	max-width: none;
+}
+
+.modal-full .modal-content {
+	height: 100%;
+	border: 0;
+	border-radius: 0;
+}
+
+.modal-full .dataTables_scrollBody {
+	min-height: 726px !important;
+}
+
+
 /* END 모달 스타일 조정 */
+
+
+/* .input-group {
+	height: 33px;
+} */

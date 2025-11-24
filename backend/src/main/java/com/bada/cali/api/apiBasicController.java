@@ -1,9 +1,14 @@
 package com.bada.cali.api;
 
+import com.bada.cali.dto.AgentDTO;
+import com.bada.cali.dto.TuiGridDTO;
 import com.bada.cali.repository.MemberRepository;
+import com.bada.cali.service.AgentServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -13,12 +18,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class apiBasicController {
 	
-	// DAO 초기화
-	private final MemberRepository memberRepository;    // Member 리파지토리
+	private final AgentServiceImpl agentService;
 	
-	// TODO 반환타입과 넘어오는 파라미터를 어떤 타입으로 받을지 정리하기
-//	@GetMapping(value = "/getAgentList")
-//	public
+	// 업체관리 리스트 가져오기 (토스트 그리드)
+	@GetMapping(value = "/getAgentList")
+	public ResponseEntity<TuiGridDTO.ResTuiGrid<TuiGridDTO.Response<AgentDTO.AgentRowData>>> getAgentList(@ModelAttribute AgentDTO.GetListReq req) {
+		log.info("==========getAgentList==========");
+		
+		TuiGridDTO.Response<AgentDTO.AgentRowData> resGridData = agentService.getAgentList(req);
+		
+		// data.api.readData 규약에 맞게 DTO로 감싸기
+		TuiGridDTO.ResTuiGrid<TuiGridDTO.Response<AgentDTO.AgentRowData>> body =
+				new TuiGridDTO.ResTuiGrid<>(true, resGridData);
+		
+		return ResponseEntity.ok(body);
+	}
 	
 	
 }

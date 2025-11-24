@@ -38,5 +38,8 @@ public class GlobalViewNameAdvice {
 		String renderMode = request.getParameter("renderMode");
 		// model에 담기
 		model.addAttribute("renderMode", renderMode);
+		
+		// 기본적으로 애플리케이션의 이름은 '교정관리'라고 표시
+		model.addAttribute("title", "교정관리 프로젝트");
 	}
 }

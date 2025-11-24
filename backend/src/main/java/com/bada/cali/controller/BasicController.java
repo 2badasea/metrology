@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -30,4 +31,12 @@ public class BasicController {
 		log.info("업체관리 페이지 이동");
 		return "basic/agentList";
 	}
+	
+	// 업체 등록/수정 페이지 [모달]
+	@PostMapping(value = "/agentModify")
+	public String agentModify(Model model) {
+		log.info("===== open page: basic/agentModify");
+		return "basic/agentModify";
+	}
+	
 }
