@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<div layout:fragment="content">
+
+    <form class="agentGroupModifyForm">
+        <table class="table table-bordered text-center mb-0">
+            <colgroup>
+                <col width="10px" />
+                <col width="80px" />
+                <col width="150px" />
+            </colgroup>
+            <tbody>
+                <tr>
+                    <th><input type="radio" name="applyType" value="select" checked /></th>
+                    <th>그룹선택</th>
+                    <td class="text-left">
+                        <select class="form-control select2 groupName" name="groupName">
+                            <option value="">선택하세요.</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th><input type="radio" name="applyType" value="new" /></th>
+                    <th>새로운 그룹</th>
+                    <td><input type="text" class="form-control" name="newGroupName" /></td>
+                </tr>
+                <tr>
+                    <th><input type="radio" name="applyType" value="empty" /></th>
+                    <th colspan="2">미적용</th>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+</div>
+
+</html>

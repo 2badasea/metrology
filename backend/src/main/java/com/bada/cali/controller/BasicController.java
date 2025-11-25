@@ -47,4 +47,11 @@ public class BasicController {
 		return "basic/agentModify";
 	}
 	
+	// 그룹관리 페이지 [모달]
+	@PostMapping(value = "/agentGroupModify")
+	public String agentGroupModify(Model model) {
+		log.info("=============== agentGroupModify ");
+		return "basic/agentGroupModify";
+	}
+	
 }

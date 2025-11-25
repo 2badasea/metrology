@@ -42,6 +42,12 @@ $(function () {
 							if (data.isClose == 'y') {
 								$('.isClose', $modal).prop('checked', true);
 							}
+							// 업체형태에 대한 checkbox 설정
+							if (data.agentFlag > 0) {
+								// 반복문을 돌면서 세팅
+								let chkBitInput = $('.agentFlagTypes', $modal).find('.chkBit');
+								setCheckBit(chkBitInput, data.agentFlag);
+							}
 						}
 					},
 					error: function (xhr) {
@@ -58,6 +64,20 @@ $(function () {
 
 		// 담당자 리스트
 	};
+
+	// 저장
+	$modal.confirm_modal = async function (e) {
+		console.log('저장클릭!!');
+
+		// agentflag값 확인
+		const $chkBitInputs = $('.agentFlagTypes', $modal).find('.chkBit');
+		let agentFlag = getCheckBit($chkBitInputs);
+		console.log('값확인');
+		console.log(agentFlag);
+
+		return false;
+		
+	}
 
 	// 담당자 그리드 초기화
 
@@ -80,3 +100,28 @@ $(function () {
 		}
 	}
 });
+
+
+// TODO 추후 아래 두 함수에 대해선 공통요소(common.js)로 분리시킬 것
+// 2진수 단위로 값이 세팅되어 있는 요소들에 대해 값을 세팅하는 함수
+function setCheckBit($ele, bitValue) {
+	// & 대상 input의 value값을 기준으로 & 비트연산을 통해 값이 포함되면 checked 설정을 준다. 
+	$.each($ele, function (index, ele) {
+		let originValue = $(ele).val();
+		if (bitValue & originValue) {
+			$(ele).prop('checked', true);
+		}
+	})
+}
+
+// 2진수 단위로 세팅되어 있는 요소들의 값의 합
+function getCheckBit($ele) {
+	let totalBitNum = 0;
+	$.each($ele, function (index, ele) {
+		if ($(ele).is(':checked')) {
+			totalBitNum += Number($(ele).val());
+		}
+	})
+
+	return totalBitNum;
+}
