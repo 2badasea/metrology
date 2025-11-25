@@ -88,6 +88,7 @@ http.csrf(AbstractHttpConfigurer::disable);
 ## 설명
 - `@Builder`는 빌더 패턴을 자동 생성해 주는 애너테이션이다.
 - 필요한 필드만 선택적으로 지정해 객체를 생성할 수 있다.
+- 값을 넣어주지 않은 경우, 참조형은 null, 원시형은 각 기본값(0, false)이 삽입된다.(@Builder.Default 제외)
 
 ## 예시
 ```java
@@ -197,6 +198,9 @@ if (exception instanceof InternalAuthenticationServiceException
 - **`dataType` (jQuery Ajax)**  
   - 서버로 **전송되지 않는다.**  
   - 오직 **클라이언트가 응답을 어떻게 파싱할지(해석할지)에 대한 힌트/설정**일 뿐이다.
+- 서버에서 JSON 형태의 문자열로 직렬화해서 응답을 하게 되는 경우,
+  - 기본적으로 JSON.parse() 처리를 해주어야 하지만, ajax 속성값으로 dataType: 'json'으로 명시할 경우,
+  - 응답 body에 있는 JSON 문자열을 알아서 파싱해준 다음 success, error 등의 콜백함수에 파싱된 데이터를 전달한다.
 
 
 ### 2. HTTP 기본 구조 정리
@@ -331,6 +335,7 @@ response.setContentType("application/json;charset=UTF-8");
   - dataType: 'text'
     - 응답을 “그냥 문자열”로 취급
     - JSON 자동 파싱 안 함 (필요하면 JSON.parse()를 직접 호출)
+    - 에러가 나진 않고, 콘솔에는 JSON 형태의 문자열이 출력
   - dataType 생략
     - jQuery가 서버의 Content-Type을 보고
     - application/json 이면 자동으로 JSON으로 파싱
@@ -355,6 +360,7 @@ response.getWriter().write("hello world");
 ➜ success가 아니라 error 콜백으로 떨어짐
 - 서버 입장에서는 응답 자체는 문제 없음
 ➜ 에러의 원인은 전적으로 클라이언트의 파싱 전략(dataType) 설정
+- 보통 콘솔에서 보이는 parse 에러는 여기서 발생. 문자열에 대해 파싱처리를 시도하기 때문.
 
 
 ---
@@ -417,6 +423,7 @@ public class Agent {
 - 그렇지 않으면:
   - 생성자 호출(new) 경로와 빌더 호출 경로의 기본값 동작이 달라져서 
   버그/헷갈림의 원인이 될 수 있다.
+- 기본값으로 초기화를 하지 않았음에도 @Builder.Default를 사용하는 건 의미가 없다.
 
 ---
 
@@ -457,18 +464,27 @@ private YnType mainYn;
 
 - 역할: “enum을 DB 컬럼에 어떻게 저장·조회할 것인가?”
 
-## 요약
-1. mainYn = YnType.n;
-  - “엔티티의 기본 enum 값은 YnType.n이다”라는 뜻.
-2. @Enumerated를 생략하면:
-  - JPA 기본값은 EnumType.ORDINAL → 0, 1, 2 같은 숫자로 저장.
-3. @Enumerated(EnumType.STRING)을 쓰면:
-  - enum 이름 그대로 "y", "n" 같은 문자열로 저장.
-4. DB 컬럼이 ENUM('y','n')이면:
-  - EnumType.STRING이 가장 잘 맞는 매핑 방식이다.
-5. 필드 기본값 설정과 DB 저장 형태는 서로 다른 층위이므로,
-  - “기본값을 YnType.n으로 줬다” → enum 상수를 무엇으로 쓸지 결정.
-  - “EnumType.STRING을 쓴다” → 그 enum 상수를 DB에 문자열로 어떻게 표현할지 결정.
+### Enum 기본값 & @Enumerated 정리
+
+1. `mainYn = YnType.n;`  
+   - 의미: **엔티티 필드의 기본 enum 값은 `YnType.n`이다.**
+
+2. `@Enumerated`를 생략하면  
+   - JPA 기본값: `EnumType.ORDINAL`  
+   - DB에는 `0`, `1`, `2` 같은 **숫자(ordinal)** 로 저장된다.
+
+3. `@Enumerated(EnumType.STRING)` 을 사용하면  
+   - DB에는 enum 이름 그대로  
+     예: `"y"`, `"n"` 같은 **문자열**로 저장된다.
+
+4. DB 컬럼이 `ENUM('y','n')` 이라면  
+   - `EnumType.STRING` 이 **가장 자연스럽고 안전한 매핑 방식**이다.
+
+5. “필드 기본값 설정” vs “DB 저장 형태”는 **서로 다른 층위**  
+   - `mainYn = YnType.n`  
+     → 자바 객체에서 **어떤 enum 상수를 기본으로 쓸지**를 결정.  
+   - `@Enumerated(EnumType.STRING)`  
+     → 그 enum 상수를 **DB에 어떤 형태(문자열)로 저장할지**를 결정.
 <br><br>
 
 ---
@@ -599,6 +615,10 @@ my-app.jar
 - 로그인 성공/실패 핸들러 내부에서 예외를 다시 던지면, 이 예외는 **시큐리티 필터 체인 밖으로 전파**될 수 있음.
 - 그 결과, 서블릿 컨테이너(Tomcat 등) 수준에서 처리되면서 **HTTP 500 에러(기본 에러 페이지 또는 커스텀 에러 페이지)** 로 이어질 수 있음.
 - 이 경우 예외는 이미 필터 체인 밖에서 터지기 때문에, **전역 예외 처리기(@ControllerAdvice)는 관여할 수 없음**.
+
+### 참고 
+- UserDetailService에서 반환하는 UserDetail(CustomUserDetails)를 바탕으로 스프링시큐리티는 검증을 수행한다. 이 검증 결과에 따라 성공/실패 훅으로 분기처리 됨
+
 <br><br>
 
 ---

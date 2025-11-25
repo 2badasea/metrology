@@ -8,6 +8,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 // Sprig Data JPA에서 JpaRepository를 상속한 인터페이스는 별도 애너테이션 없이도 빈으로 등록됨(명시적으로 @Repository 애너테이션 명시해도 됨)
@@ -29,5 +32,27 @@ public interface MemberRepository extends JpaRepository<Member, Integer> {
 	@Query("UPDATE Member m SET m.lastLoginDatetime = CURRENT_TIMESTAMP  WHERE m.id = :id")
 	@Transactional
 	int updateLastLogin(@Param("id") Integer id);
+	
+	// 개별 id로 회원 조회
+	Member findByIdAndIsVisible(Integer id, YnType isVisible);
+	
+	// 리스트로 넘어온 id로 n개 조회
+	List<Member> findAllByIdInAndIsVisible(List<Integer> ids, YnType isVisible);
+	
+	// 업체 id를 가진 member 데이터 조회
+	List<Member> findAllByAgentIdInAndIsVisible(List<Integer> ids, YnType isVisible);
+	
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+			       update Member m
+			          set m.isVisible = :isVisible,
+			              m.deleteDatetime = :deleteDatetime,
+			              m.deleteMemberId = :deleteMemberId
+			        where m.agentId in :agentIds
+			""")
+	void delMemberByAgentIds(@Param("agentIds") Collection<Integer> agentIds,
+								  @Param("isVisible") YnType isVisible,
+								  @Param("deleteDatetime") LocalDateTime deleteDatetime,
+								  @Param("deleteMemberId") Integer deleteMemberId);
 	
 }

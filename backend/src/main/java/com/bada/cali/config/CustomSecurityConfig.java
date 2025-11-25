@@ -47,6 +47,7 @@ public class CustomSecurityConfig {
 				// 접근 허용 경로 설정
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers(
+//								"/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico",
 								"/login"
 								, "/error"
 								, "/member/login**"
@@ -102,6 +103,7 @@ public class CustomSecurityConfig {
 		return repository;
 	}
 	
+	// NOTE WebSecurityCustomizer를 사용할 경우,  / 경로로 접근이 가능해짐(index.html 리턴). -> 요즘 방식에 맞지 않으며 위 permitAll()로 체크
 	// css, js, images 등에는 필터가 적용될 필요가 없으므로, 정적 리소스에 대해선 보안 필터를 적용하지 않도록 명시
 	// filterChain()과 역할 중복. web.ignoring()은 보안 필터 자체를 아예 태우지 않음. 즉, filterChain 자체를 스킵
 	@Bean

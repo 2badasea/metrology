@@ -43,6 +43,7 @@ public class Log {
 	
 	// 참조 테이블 idx
 	@Column(name = "ref_table_id", nullable = true, columnDefinition = "INT UNSIGNED DEFAULT 0")
+	@Builder.Default	// 명시하지 않으면 builder 객체 사용 시, 값을 주지 않을 경우 에러가 발생 (NOT NLL 제약조건)
 	private Integer refTableId = 0;
 	
 	// 등록일시

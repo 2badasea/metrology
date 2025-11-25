@@ -208,6 +208,7 @@ function g_ajax(url, data = {}, options = {}) {
 		options
 	);
 	// data가 FormData객체라면 파일업로드 데이터를 처리하기 위해 아래 옵션 설정
+	// false로 설정 시, 브라우저는 헤더를 알아서 multipart/form-data로 contenType을 설정해서 보냄
 	if (data instanceof FormData) {
 		settings.processData = false;
 		settings.contentType = false;

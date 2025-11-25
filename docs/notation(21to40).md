@@ -267,3 +267,222 @@
 
 ---
 
+# 📌 25번. 전역 `@ModelAttribute` 와 `@RequestBody` 의 차이
+## 부제: contentType과 processType, 일반 JSON과 JSON.stringify() 처리에 있어서의 차이점
+
+## 1. 상황 정리
+
+- 커스텀 함수 `g_ajax`에서  
+  데이터가 **FormData 객체**일 경우:
+  - `processData` 를 `false`
+  - `contentType` 을 `false`  
+    로 설정하고 있다.
+- 궁금했던 점:
+  1. 이렇게 하면 브라우저가 `Content-Type` 헤더를 **`multipart/form-data`** 형식으로 알아서 설정해 준다는 말이 맞는지?
+  2. 만약 FormData인데도 `processData`와 `contentType`을 기본값 그대로 두고 요청을 보내면,  
+     `Content-Type` 은 어떤 값으로 설정되는지?
+
+
+## 2. FormData + `processData: false` + `contentType: false` 인 경우
+
+- `contentType: false` 의 의미  
+  → **jQuery가 `Content-Type` 헤더를 직접 설정하지 말라**는 뜻이다.
+- 이 경우 실제 HTTP 요청 시:
+  - 브라우저(XHR)가 데이터를 보고 적절한 `Content-Type` 을 **자동으로 설정**한다.
+  - 이때 설정되는 값은 보통  
+    **`multipart/form-data; boundary=----랜덤값`**  
+    형식이다.
+- 따라서 다음과 같은 이해는 **맞는 말**이다.
+  - “FormData를 쓰면서 `processData: false`, `contentType: false`를 주면  
+    브라우저가 알아서 `multipart/form-data`로 보낸다.”
+
+
+## 3. FormData인데 `processData`·`contentType` 을 기본값으로 둘 때
+
+- jQuery의 기본값:
+  - `processData`: `true`
+  - `contentType`:  
+    **`application/x-www-form-urlencoded; charset=UTF-8`**
+- FormData를 넘기면서도 이 둘을 **손대지 않고** 요청을 보내면:
+  1. `processData: true` 상태에서  
+     → jQuery가 데이터를 **쿼리스트링 형태로 직렬화하려고 시도**한다.  
+       (FormData와 맞지 않는 동작)
+  2. `contentType` 은 기본값 그대로  
+     → **`application/x-www-form-urlencoded; charset=UTF-8`** 이 설정된다.
+
+즉,
+
+- FormData라고 해서 **자동으로 `multipart/form-data`가 되는 것이 아니다.**
+- **직접 `contentType: false`, `processData: false` 를 지정했을 때만**  
+  브라우저가 적절한 `multipart/form-data` 헤더를 채워 넣는다.
+
+
+## 4. 핵심 요약
+
+1. **FormData + `processData: false` + `contentType: false`**
+
+   - jQuery가 `Content-Type` 헤더를 설정하지 않는다.
+   - 브라우저가 자동으로  
+     `multipart/form-data; boundary=...`  
+     형식으로 설정한다.
+   - 파일 업로드 등에서 사용하는 **정석 패턴**이다.
+
+2. **FormData인데 두 옵션을 기본값으로 두는 경우**
+
+   - `processData: true`
+   - `contentType: application/x-www-form-urlencoded; charset=UTF-8`
+   - `multipart/form-data`가 아니라  
+     **폼 URL 인코딩 방식**으로 인식된다.
+   - FormData 전송 방식과 맞지 않기 때문에 **비추천**이다.
+
+## 5. 추가 요약
+
+### 5.1 컨트롤러와 요청 데이터 처리
+
+- 컨트롤러는 URL 요청에 대해 다음 두 축으로 동작한다.
+  - **뷰 반환**: ViewResolver를 통해 뷰 이름을 해석하고 화면을 렌더링한다.
+  - **데이터 반환(JSON/텍스트 등)**: HttpMessageConverter를 통해 객체를 JSON, 텍스트 등으로 변환한다.
+- 요청 데이터는 **HTTP Body** 에 담겨 오며, `Content-Type` 헤더 값에 따라
+  - `application/json`
+  - `text/plain`
+  - 기타 미디어 타입  
+  등으로 인식되어 **알맞은 HttpMessageConverter**가 선택되어 파싱된다.
+
+
+### 5.2 JSON / FormData 전송 시 Content-Type 기본 동작
+
+- 클라이언트에서 다음과 같이 보낼 때:
+  - 순수 JS 객체
+  - `JSON.stringify()`로 만든 문자열
+  - `FormData` 객체  
+  이들을 **별도의 `contentType` 설정 없이 `$.ajax` 기본 설정으로 전송**하면,
+  - jQuery의 기본 스펙에 따라 `Content-Type` 은  
+    **`application/x-www-form-urlencoded; charset=UTF-8`** 으로 설정된다.
+- 이 상태에서:
+  - **FormData** 는 원래의 `multipart/form-data` 구조와 맞지 않게 전송되고,
+  - **JSON 문자열** 역시 `application/json` 이 아니므로  
+    `@RequestBody` 가 기대하는 형식과 맞지 않게 된다.
+    - `@RequestBody`는 일반적으로 `application/json` 으로 오는 JSON 바디를 기대한다.
+- 따라서 **FormData** 를 전송할 때는:
+  - `processData = false`
+  - `contentType = false`  
+  로 설정하여,
+  - jQuery가 `Content-Type` 을 직접 설정하지 않도록 하고,
+  - 브라우저가 자동으로 적절한 **`multipart/form-data; boundary=...`** 헤더를 붙여서 전송하게 만드는 것이 정석이다.
+
+
+### 5.3 JSON.stringify() 처리가 필요한 이유
+
+- HTTP 요청 Body는 본질적으로 **문자(문자열) / 바이트 덩어리**다.
+- 따라서 객체 형태의 데이터를 JSON으로 보내려면:
+  - 먼저 **문자열(JSON 텍스트)** 로 직렬화한 뒤 (`JSON.stringify()`),
+  - `Content-Type` 을 **`application/json`** 으로 설정해야 한다.
+- 서버(Spring)에서 `@RequestBody + DTO` 로 받을 때:
+  - 스프링은 **HttpMessageConverter + Jackson(ObjectMapper)** 를 사용해
+    - JSON 문자열 → DTO 객체로 **역직렬화**한다.
+  - 이 과정에서 Jackson은:
+    - 인스턴스를 만들 **기본 생성자(@NoArgsConstructor)** 와
+    - 필드에 값을 넣을 **통로(@Setter 등)** 를 필요로 한다.
+  - 그래서 **요청 DTO** 에는 보통:
+    - `@NoArgsConstructor`
+    - `@Setter` (또는 `@Data`)  
+    를 붙여주는 패턴이 많이 사용된다.
+
+
+### 5.4 JSON.stringify() 를 하지 않았을 때의 처리 방식
+
+- `JSON.stringify()` 를 하지 않고 JS 객체를 그대로 `data`에 넣고,
+  - `contentType` 을 따로 설정하지 않으면,
+  - jQuery가 이를 **폼 데이터 형식(`a=1&b=2`)** 으로 변환하여 전송한다.
+- 이 경우 서버에서는 **폼/쿼리 파라미터**로 처리되며,
+  - `@ModelAttribute`
+  - `@RequestParam`  
+  으로 받는 것이 자연스럽다.
+
+#### @ModelAttribute
+
+- `@ModelAttribute` 로 받는 경우:
+  - `name=이바다&age=30` 같은 **폼 데이터**
+  - `?name=이바다&age=30` 같은 **쿼리스트링**  
+    에서 파라미터들을 읽어와,
+  - 같은 이름을 가진 **자바 객체의 필드(프로퍼티)** 에 매핑한다.
+- 즉, 여러 개의 파라미터를 **하나의 자바 객체**에 모아서 바인딩할 때 적합하다.
+
+#### @RequestParam
+
+- `@RequestParam` 은 개별 파라미터에 대응하는 방식이다.
+  - 예: `name` 하나, `age` 하나처럼 각각의 단일 값에 매핑.
+- 여러 값을 받고 싶으면:
+  - `@RequestParam` 여러 개 선언
+  - 또는 `Map<String, String>` 등으로 받을 수 있다.
+- 반면 `@ModelAttribute` 는 **여러 파라미터 → 하나의 자바 객체(필드들)** 로 묶어서 받는 역할을 한다.
+
+<br><br>
+
+---
+
+# 📌 26번. 요청 DTO를 MapStruct를 활용하여 Entity로 변환하는 과정에서 값을 추가하고 싶은 경우
+
+## 1. 문제 상황
+
+- 브라우저에서 넘어온 **요청 DTO**를 **Entity로 변환**하는 과정에서  
+  기존 DTO에는 없는 값을 **추가로 세팅**하고 싶을 때가 있다.
+- 이때 DTO에다가 억지로 `setter`를 호출해서 임의의 값을 넣은 뒤 Entity로 변환하는 방식은  
+  **요청 DTO의 순수성을 해치고, 사이드 이펙트를 만들 수 있어서 비추천**이다.
+
+---
+
+## 2. 권장 패턴: MapStruct의 `source`/`target` 매핑 활용
+
+MapStruct를 사용하고 있다면,  
+**매퍼 메서드의 파라미터**를 통해 추가 값을 넘기고,  
+`@Mapping(target = ..., source = ...)` 로 **Entity 필드에 주입**하는 방식이 깔끔하다.
+
+### 2.1 호출부 예시
+
+```java
+YnType isVisible = YnType.y;
+
+// memberJoinReq(요청 DTO)에 isVisible 필드는 없지만,
+// 매퍼 호출 시 별도의 파라미터로 같이 넘긴다.
+agentMapper.toAgentFromMemberJoinReq(memberJoinReq, isVisible);
+```
+
+### 2.2 Mapper 인터페이스 예시
+```java
+@Mapping(target = "isVisible", source = "isVisible")
+Agent toAgentFromMemberJoinReq(MemberDTO.MemberJoinReq memberJoinReq, YnType isVisible);
+```
+
+- memberJoinReq
+→ 브라우저에서 넘어온 원본 요청 DTO
+
+- YnType isVisible
+→ 서버에서 추가로 주입하고 싶은 값
+
+- @Mapping(target = "isVisible", source = "isVisible")
+→ 메서드 파라미터로 받은 isVisible 값을 Agent 엔티티의 isVisible 필드에 매핑하겠다는 의미
+
+## 3. 동작 결과
+
+- agentMapper.toAgentFromMemberJoinReq(memberJoinReq, YnType.y)를 호출하면,
+  - MapStruct가 내부적으로 Agent 엔티티를 생성하면서
+  - isVisible 필드에 YnType.y 값을 세팅한다.
+
+- 즉, 요청 DTO는 건드리지 않고,
+  - Entity 생성 시점에만 필요한 추가 값을 깔끔하게 주입할 수 있다.
+
+## 4. 정리
+
+- ✅ 요청 DTO에 임의로 setter를 호출해서 값 넣는 방식은 지양
+
+- ✅ MapStruct 매퍼 메서드의 추가 파라미터 + @Mapping(target, source) 패턴을 사용
+
+- ✅ 이렇게 하면 요청 DTO는 불변에 가깝게 유지하면서,
+  Entity 생성 시 필요한 서버 측 값만 안전하게 주입할 수 있다.
+
+
+<br><br>
+
+---
+

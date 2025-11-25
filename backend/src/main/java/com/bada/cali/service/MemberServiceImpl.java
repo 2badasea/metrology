@@ -96,6 +96,7 @@ public class MemberServiceImpl {
 		// 1) insert agent
 		Agent insertAgentEntity = agentMapper.toAgentFromMemberJoinReq(memberJoinReq);
 		insertAgentEntity.setCreateType("join");	// 기본값 basic이 아닌 join으로 설정(mapper에서 @mapping 방법도 존재)
+		insertAgentEntity.setAgentFlag(1);		// 기본가입 시, 신청업체로 간주
 		insertAgentEntity.setCreateDatetime(LocalDateTime.now());	// 넣어주지 않으면 NULL를 insert하는 과정에서 DB의 NOT NULL제약에 걸림
 		// save()는 성공하면 예외없이 엔티티를 그대로 리턴. 실패 시, 예외를 던짐 (null이나 false를 리턴하지 않음)
 		// 이때 예외는 컨트롤러까지 전파 => 전역예외에서 캐치하여 에러페이지 or JSON 응답으로 가공해서 반환

@@ -44,7 +44,6 @@ $(function () {
 					loginId: loginId,
 					refPage: 'memberJoin',
 				});
-				console.log('🚀 ~ res:', res);
 
 				if (!res || res?.code == undefined) {
 					throw new Error('응답 형식이 올바르지 않습니다.');

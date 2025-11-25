@@ -21,7 +21,7 @@ public interface AgentMapper {
 	@Mapping(target = "agentNum", source = "loginId")
 	Agent toAgentFromMemberJoinReq(MemberDTO.MemberJoinReq memberJoinReq);
 	
-	// 업체 리스트 데이터 반환
+	// 업체 리스트 데이터 반환 (entity -> dto)
 	AgentDTO.AgentRowData toAgentRowDataFromEntity(Agent agent);
 	
 }

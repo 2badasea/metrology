@@ -2,13 +2,18 @@ package com.bada.cali.dto;
 
 import com.bada.cali.common.YnType;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 public class AgentDTO {
 	
 	// AgentDTO 클래스는 네임스페이스용도. 생성 방지
 	private AgentDTO() {
-	};
+	}
+	
+	;
 	
 	// 1. 그리드 DTO를 상속하는 형태로 구현. 도메인이나 페이지별로 넘어오는 값이 다를 수 있으므로
 	// => TuiGridDTO.Request를 통해 page, perPage 사용 가능
@@ -21,7 +26,13 @@ public class AgentDTO {
 		private String keyword;
 	}
 	
-	// 기본 개별 row 데이터. (유의미한 필드만 나열할 것)
+	// 기본 개별 row 데이터 응답용. (유의미한 필드만 나열할 것)
+	// 불변 DTO + @Builder 스타일로 할 경우, @Builder 추가 후, setter는 없앤 상태로 private final 선언
+	/**
+	 * NOTE 응답이지만 필요. mapstruct로 객체 생성 시, new로 기본생성자로 인스턴스를 생성하고
+	 * 각 필드에 set메서드를 호출해서 값을 세팅하기 때문. 별도 생성자, 빌더 설정이 없는 상태라면
+	 * setter를 선언해주는 것이 필요
+	 */
 	@Getter
 	@Setter
 	public static class AgentRowData {
@@ -42,6 +53,7 @@ public class AgentDTO {
 		// 개별 업체정보(등록/수정)
 		private String nameEn;
 		private int agentFlag;
+		private String agentZipCode;	// 우편번호
 		private String businessType;
 		private String businessKind;
 		private String addrEn;
@@ -53,6 +65,14 @@ public class AgentDTO {
 		private int selfDiscount;
 		private int outDiscount;
 		private YnType isClose;
+	}
+	
+	// 업체 삭제 요청 DTO
+	@Setter
+	@Getter
+	@NoArgsConstructor
+	public static class DelAgentReq {
+		private List<Integer> ids;		// 브라우저에서 ids라는 key로 넘어옴
 	}
 	
 	

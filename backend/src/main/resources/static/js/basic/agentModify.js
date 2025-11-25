@@ -22,6 +22,7 @@ $(function () {
 
 		// 업체id로 초기화 하기(수정)
 		if ($modal.param?.id > 0) {
+			console.log('업체[수정] 모달 open');
 			// 옵셔널체이닝으로 체크
 			agentId = Number($modal.param.id);
 
@@ -51,6 +52,8 @@ $(function () {
 					},
 				}
 			);
+		} else {
+			console.log('업체[등록] 모달 open!');
 		}
 
 		// 담당자 리스트

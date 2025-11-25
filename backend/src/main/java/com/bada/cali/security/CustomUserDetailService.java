@@ -6,6 +6,7 @@ import com.bada.cali.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,6 +14,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Log4j2
 @Service
@@ -41,11 +43,23 @@ public class CustomUserDetailService implements UserDetailsService {
 			throw new LockedException("관리자의 승인이 필요합니다.\n관리자에게 문의해주세요.");
 		}
 		
-		UserDetails userDetails = User.withUsername(loginMember.getLoginId())
-				.password(loginMember.getPwd())                        // DB의 해쉬값 그대로
-				.authorities("ROLE_USER")                        // 최소 권한이라도 넣어두기(필요시 실제 권한 매핑)
-				.build();
+		// 인가를 받아 반환하는 UserDetails 객체에서 더 많은 정보를 얻기 위해 CustomUserDetails(= 커스텀 principal) 만들기
+//		UserDetails userDetails = User.withUsername(loginMember.getLoginId())
+//				.password(loginMember.getPwd())                        // DB의 해쉬값 그대로
+//				.authorities("ROLE_USER")                        // 최소 권한이라도 넣어두기(필요시 실제 권한 매핑)
+//				.build();
+//		return userDetails;
 		
-		return userDetails;
+		var authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+		
+		// 스프링시큐리티 환경에선 api 요청별로 사용자의 정보를 얻기 위해 httpsession을 이용하는 것은 권장되지 않음
+		// 'SecurityContext/Principal' 로 가져오는 방식이 표준
+		// id도 담겨져 있는 CustomUserDetails를 반환. 위 기존 리턴 객체도 확인
+		return new CustomUserDetails(loginMember.getId()
+				, loginMember.getLoginId()
+				, loginMember.getPwd()
+				, loginMember.getName()
+				, authorities);
+		
 	}
 }

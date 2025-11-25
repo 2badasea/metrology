@@ -23,21 +23,33 @@
                                 <td class="agent_flag_type text-left" colspan="3">
                                     <div class="ml-2">
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input check_bit" type="checkbox" id="agent_type"
-                                                value="">
-                                            <label class="form-check-label" for="agent_type">신청업체
+                                            <input class="form-check-input check_bit" type="checkbox" id="agentType1"
+                                                value="1">
+                                            <label class="form-check-label" for="agentType1">신청업체
                                             </label>
                                         </div>
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input check_bit" type="checkbox" id="agent_type1"
-                                                value="">
-                                            <label class="form-check-label" for="agent_type1">교정기관
+                                            <input class="form-check-input check_bit" type="checkbox" id="agentType2"
+                                                value="2">
+                                            <label class="form-check-label" for="agentType2">교정기관
                                             </label>
                                         </div>
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input check_bit" type="checkbox" id="agent_type2"
-                                                value="">
-                                            <label class="form-check-label" for="agent_type2">딜러
+                                            <input class="form-check-input check_bit" type="checkbox" id="agentType3"
+                                                value="4">
+                                            <label class="form-check-label" for="agentType3">대리점
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input check_bit" type="checkbox" id="agentType4"
+                                                value="8">
+                                            <label class="form-check-label" for="agentType4">교정기관
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input check_bit" type="checkbox" id="agentType5"
+                                                value="16">
+                                            <label class="form-check-label" for="agentType5">판매기관
                                             </label>
                                         </div>
                                     </div>
@@ -65,7 +77,7 @@
                                         <!-- 첨부파일이 존재하는 경우 체크해서 진행 -->
                                         <div class="searchFileDiv input-group-append">
                                             <button class="btn btn-secondary searchFile" type="button"><i
-                                                    class='bi bi-folder2-open'></i></button>
+                                                    class="bi bi-folder2-open"></i></button>
                                         </div>
                                     </div>
                                 </td>
@@ -137,12 +149,12 @@
                                             <span class="input-group-text">자체</span>
                                         </div>
                                         <input type="text" class="form-control text-right pr-1 ratio selfDiscount"
-                                            name='selfDiscount'>
+                                            name="selfDiscount">
                                         <div class="input-group-append">
                                             <span class="input-group-text">대행</span>
                                         </div>
-                                        <input type="text" class='form-control text-right pr-1 ratio outDiscount'
-                                            name='outDiscount'>
+                                        <input type="text" class="form-control text-right pr-1 ratio outDiscount"
+                                            name="outDiscount">
                                     </div>
                                 </td>
                             </tr>

@@ -78,6 +78,7 @@ $(function () {
 				name: 'name',
 				className: 'cursor_pointer',
 				align: 'center',
+				sortable: true,
 			},
 			{
 				header: '주소',
@@ -85,6 +86,7 @@ $(function () {
 				className: 'cursor_pointer',
 				width: '300',
 				align: 'center',
+				sortable: true,
 			},
 			{
 				header: '사업자번호',
@@ -148,10 +150,82 @@ $(function () {
 		.on('submit', '.searchForm', function (e) {
 			e.preventDefault();
 			$modal.grid.getPagination().movePageTo(1);
-		});
-	// 등록
+		})
+		// 등록
+		.on('click', '.addAgentBtn', async function (e) {
+			e.preventDefault();
+			await g_modal(
+				'/basic/agentModify',
+				{},
+				{
+					title: '업체등록',
+					size: 'xxl',
+					show_close_button: true,
+					show_confirm_button: true,
+					confirm_button_text: '저장',
+				}
+			).then((resModal) => {
+				// 모달창이 닫히면 그리드 갱신
+				$modal.grid.reloadData();
+			});
+		})
+		// 삭제
+		.on('click', '.deleteAgentBtn', async function (e) {
+			e.preventDefault();
 
-	// 삭제
+			// 1. 그리드 내 체크된 업체 확인
+			const checkedRows = $modal.grid.getCheckedRows();
+			if (checkedRows.length === 0) {
+				g_toast('삭제할 업체를 선택해주세요.', 'warning');
+				return false;
+			} else {
+				// 각 업체의 id를 담는다.
+				let delAgentIds = $.map(checkedRows, function (row, index) {
+					return row.id;
+				});
+				console.log('🚀 ~ delAgentIds:', delAgentIds);
+
+				// 2. 삭제유무 confirm 확인
+				if (confirm('정말 삭제하시겠습니까?\n업체정보, 담당자, 로그인 계정이 삭제됩니다')) {
+					g_loading_message('삭제 처리 중입니다...');
+
+					try {
+						// 서버에 전송할 때, obj 형태로 보냄(DTO로 받음)
+						const sendData = {
+							ids: delAgentIds
+						};
+
+						const resDelete = await g_ajax(
+							'/apiBasic/deleteAgent', JSON.stringify(sendData),
+
+							{
+								contentType: 'application/json; charset=utf-8',
+							}
+						);
+						console.log('삭제요청 return data 확인');
+						console.log(resDelete);
+						if (resDelete?.code === 1) {
+							const delNames = resDelete.data || [];
+							Swal.fire({
+								icon: 'success',
+								title: '삭제 완료',
+								text: `삭제된 업체: ${delNames.join(', ')}`,
+							});
+							// 그리드 갱신
+							$modal.grid.reloadData();
+
+						}
+					} catch (err) {
+						custom_ajax_handler(err);
+					} finally {
+					}
+				} else {
+					return false;
+				}
+			}
+
+			return false;
+		});
 	// 그룹관리
 
 	// 그리드 이벤트 정의
