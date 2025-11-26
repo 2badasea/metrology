@@ -50,6 +50,8 @@ public class CustomUserDetailService implements UserDetailsService {
 //				.build();
 //		return userDetails;
 		
+		// var: java10부터 들어온 로컬 변수 타입 추론. 컴파일러가 우측 표현식을 보고 타입을 알아서 결정해줌
+		// 유저에게 ROLE_USER 권한을 하나 부여한 권한 목록을 생성
 		var authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
 		
 		// 스프링시큐리티 환경에선 api 요청별로 사용자의 정보를 얻기 위해 httpsession을 이용하는 것은 권장되지 않음

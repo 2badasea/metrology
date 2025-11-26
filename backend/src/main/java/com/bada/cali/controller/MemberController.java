@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 
 @Controller
@@ -27,11 +28,9 @@ public class MemberController {
 	
 	// 회원가입 [모달]
 	// NOTE 모달 페이지를 호출하는 경우 기본적으로 Post로 받는다. 모달, 일반페이지 모두 사용 시 RequestMapping을 이용하여 get과 post 모두 허용 가능
-	@PostMapping("/memberJoin")
+	@RequestMapping(value = "/memberJoin", method = {RequestMethod.POST, RequestMethod.GET})
 	public String memberJoin(Model model) {
-//		throw new RuntimeException();
 		log.info("memberJoin get................");
-		model.addAttribute("title", "회원가입");	// title 의미없음.
 		return "member/memberJoin";
 	}
 	

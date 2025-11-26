@@ -41,9 +41,7 @@
 
 ---
 
-# 📌 22번. DAO VS DTO, 서비스계층, 리파지토리 계층 구분
-
-# 서비스 계층 vs 리포지토리(DAO) 계층, 그리고 DTO 정리
+# 📌 22번. 서비스 계층 vs 리포지토리(DAO) 계층, 그리고 DTO 정리
 
 ## 1. 서비스 계층과 리포지토리 계층, 둘 다 DAO인가?
 
@@ -417,6 +415,12 @@
   - 또는 `Map<String, String>` 등으로 받을 수 있다.
 - 반면 `@ModelAttribute` 는 **여러 파라미터 → 하나의 자바 객체(필드들)** 로 묶어서 받는 역할을 한다.
 
+#### 스프링 시큐리티 로그인 필터 이슈 ($.ajax의 contentType 속성값에 의한)
+
+- 로그인 요청에 대한 $.ajax의 contentType 속성값을 application/json으로 설정했을 경우, 시큐리티 필터가 로그인 요청을 가로챘을 때 데이터를 빈 값으로 받았던 이슈가 존재
+  - 기본적으로 시큐리티이 formLogin은 폼 파라미터 형식으로 데이터가 넘어오는 것을 기대 ex) request.getParameter("username")
+  - 필터는 자체적으로 JSON 바디를 파싱하지 않기 때문에 브라우저에서 application/json으로 넘어온 값에 대해 읽을 수가 없게 된다.
+
 <br><br>
 
 ---
@@ -481,6 +485,61 @@ Agent toAgentFromMemberJoinReq(MemberDTO.MemberJoinReq memberJoinReq, YnType isV
 - ✅ 이렇게 하면 요청 DTO는 불변에 가깝게 유지하면서,
   Entity 생성 시 필요한 서버 측 값만 안전하게 주입할 수 있다.
 
+
+<br><br>
+
+---
+
+# 📌 27번. Spring Security 요청 흐름 정리 (FilterChain ↔ UserDetailsService) 
+
+### 1) 결론부터
+- **UserDetailsService가 FilterChain보다 먼저 실행되는 구조가 아니다.**
+- **항상 요청은 먼저 SecurityFilterChain(필터 체인)을 탄다.**
+- `UserDetailsService.loadUserByUsername()`는 **필터 체인 내부에서 “인증이 필요한 순간”에만 호출**된다.
+
+
+### 2) 로그인 요청 시(인증 시도 시) 순서
+1. 클라이언트 요청 진입
+2. **SecurityFilterChain 실행**
+3. 로그인 처리용 인증 필터가 로그인 요청을 감지
+4. 인증 매니저/프로바이더로 인증 시도
+5. 이 시점에 프로바이더가 사용자 조회가 필요하면  
+   → **UserDetailsService.loadUserByUsername(username) 호출**
+6. 반환된 사용자 정보를 기반으로 비밀번호/계정상태/권한 등을 검사
+7. 성공하면 인증 정보(Authentication)를 생성하고 **SecurityContext에 저장**(보통 세션에도 저장)
+
+> 포인트: 로그인 과정에서 `UserDetailsService`는 “필터 체인 다음이 아니라”,  
+> **필터 체인 내부 인증 흐름 중간에서 호출**된다.
+
+
+### 3) 로그인 이후 일반 요청 시(이미 로그인된 상태) 순서
+1. 요청 진입
+2. **SecurityFilterChain 실행**
+3. 세션 등에 저장된 SecurityContext를 복원
+4. 이미 Authentication이 존재하면  
+   → **대부분 UserDetailsService를 다시 호출하지 않는다**
+5. 권한/인가 체크 후 컨트롤러로 통과
+
+> 예외적으로 remember-me 복원, 다른 인증 방식(Basic 등)에서는 다시 호출될 수 있다.
+
+
+### 4) loadUserByUsername()의 반환값은 무엇인가?
+- `loadUserByUsername(username)`의 **반환 타입은 UserDetails**가 맞다.
+- 기본 구현은 프레임워크가 제공하는 UserDetails 구현체를 반환하지만,
+- 너처럼 `CustomUserDetails`를 만들어 `UserDetails`를 `implements` 했다면  
+  **loadUserByUsername()는 CustomUserDetails를 반환**할 수 있다.
+
+
+### 5) CustomUserDetails에 값을 더 담는 게 가능한 이유
+- 로그인 인증 과정(위의 로그인 요청 흐름 5~7단계)에서  
+  반환된 `UserDetails` 객체가 인증 정보의 “principal”로 사용된다.
+- 따라서 `CustomUserDetails`에 `memberId` 같은 추가 정보를 담아두면,
+  로그인 이후 매 요청에서 principal을 통해 그 값을 꺼내 쓸 수 있다.
+  - `principal`는 현재 인증된 사용자 본체(신원 정보) => **"누가 로그인했는가?’에 대한 대표 객체"**
+
+
+### 한 줄 요약
+- **FilterChain → (인증 시도 시) UserDetailsService 호출 → UserDetails(=CustomUserDetails) 반환 → 인증 성공 시 SecurityContext 저장**
 
 <br><br>
 

@@ -69,9 +69,10 @@ public class AgentDTO {
 	
 	// 업체 삭제 요청 DTO
 	@Setter
-	@Getter
+	@Getter		// 삭제대상 id값들을 객체에서 꺼내기 위해 선언
 	@NoArgsConstructor
 	public static class DelAgentReq {
+		// 스크립트의 배열([]) 데이터는 java에서 List<Integer>로 받을 수 있음.
 		private List<Integer> ids;		// 브라우저에서 ids라는 key로 넘어옴
 	}
 	

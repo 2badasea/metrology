@@ -20,7 +20,7 @@ import java.util.List;
 @RequestMapping("/apiBasic")
 @Log4j2
 @RequiredArgsConstructor
-public class apiBasicController {
+public class ApiBasicController {
 	
 	private final AgentServiceImpl agentService;
 	

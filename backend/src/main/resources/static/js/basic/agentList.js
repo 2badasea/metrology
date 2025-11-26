@@ -191,6 +191,7 @@ $(function () {
 
 					try {
 						// 서버에 전송할 때, obj 형태로 보냄(DTO로 받음)
+						// NOTE contentType이 application/json이 아닌 기본형태라면 DTO가 아닌 @RequestParam으로 받는 것도 가능
 						const sendData = {
 							ids: delAgentIds
 						};
@@ -202,8 +203,7 @@ $(function () {
 								contentType: 'application/json; charset=utf-8',
 							}
 						);
-						console.log('삭제요청 return data 확인');
-						console.log(resDelete);
+						console.log("🚀 ~ resDelete:", resDelete);
 						if (resDelete?.code === 1) {
 							const delNames = resDelete.data || [];
 							Swal.fire({

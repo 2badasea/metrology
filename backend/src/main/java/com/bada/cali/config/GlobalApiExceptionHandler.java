@@ -22,13 +22,14 @@ public class GlobalApiExceptionHandler {
 //	인증/인가 문제 → 401 / 403
 //	비즈니스 예외 → 400 또는 도메인에 맞는 상태
 //	나머지 전부 → 500 (마지막 방패: Exception.class)
+	// TODO 추후 각 예외에 맞는 커스텀 메시지를 구현하기 위해 커스텀 예외클래스에 대한 패키지를 별도로 만들어서 관리할 것
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ResMessage<Object>> handleApiException(Exception exception) {
 		log.info("[GlobalApiExceptionHandler]!!");
-		log.info("예외메시지: " + exception.getMessage());
+		log.info("예외메시지: {}", exception.getMessage());
 		ResMessage<Object> resMessage = new ResMessage<>(-1, "서버 오류가 발생했습니다.", null);
 		
 		// 'return ResponseEntity.status(HttpStatus.OK).body(resMessage);' 형태와 아래는 동일한 방식으로 동작
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR ).body(resMessage);
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resMessage);
 	}
 }

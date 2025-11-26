@@ -84,13 +84,14 @@ public class CustomSecurityConfig {
 							response.setContentType("application/json;charset=UTF-8");
 							response.getWriter().write("{\"ok\":true,\"redirect\":\"/member/login?logout\"}");
 						})
-						.invalidateHttpSession(true)                                    // 세션 무효화
-						.clearAuthentication(true)                                        // SecurityContext 비우기
-						.deleteCookies("JSESSIONID", "remember-me")    // 쿠키 삭제(안전하게 한번 더)
+						.invalidateHttpSession(true)							// 세션 무효화
+						.clearAuthentication(true)								// SecurityContext 비우기 (현재 로그인한 사용자 정보)
+						.deleteCookies("JSESSIONID", "remember-me")    // 로그아우 응답에서 쿠키 삭제(안전하게 한번 더) 지시
 				);
 		// 예외처리 (아래 @Bean 등록)
 		http
 				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthenticatedEntryPoint()));
+				// 인증이 필요한 URL에 대한 요청에서 로그인 정보가 없는 경우, 시큐리티 내부엥서 'AuthenticationException' 계열이 발생하고, 그걸 잡아서 AuthenticationEntryPoint로 위임함. 그리고 unauthenticatedEntryPoint() 메서드를 호출하여 처리한다. (로그인 페이지로 리다이렉트 되도록 아래 bean으로 설정해놓음)
 		
 		return http.build();
 	}

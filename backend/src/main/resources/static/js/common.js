@@ -155,6 +155,7 @@ $(function () {
 		try {
 			// POST 호출 (g_ajax 내부가 POST 기본이면 데이터는 빈 객체여도 OK)
 			const res = await g_ajax('/logout', {}); // 서버에서 200/204/302 상관없음
+			// 시큐리티 필터 체인 내부에서 로그아웃 요청에 대해 처리 후 response.setContentType과 reponse.getWriter().get()를 통해 응답 메시지 설정 후 반환
 			if (res?.ok != undefined && res.ok === true) {
 				location.href = res.redirect;
 			}

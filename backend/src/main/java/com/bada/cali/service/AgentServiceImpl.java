@@ -107,22 +107,23 @@ public class AgentServiceImpl {
 	// NOTE 삭제된 업체명들을 리스트에 담아서 리턴 -> 브라우저엔 삭제된 업체명을 알려주도록 변경
 	@Transactional
 	public List<String> deleteAgent(
-			AgentDTO.DelAgentReq delAgentIds,
+			AgentDTO.DelAgentReq delAgentReq,
 			CustomUserDetails user    // 컨트롤러에서 애너테이션을 명시했기 때문에 여기선 필요없음
 	) {
 		log.info("=========AgentServiceImpl.deleteAgent ============");
-		log.info(delAgentIds.toString());    // 단순 toString()의 경우, 해시값 리턴
+		log.info(delAgentReq.toString());    // 단순 toString()의 경우, 해시값 리턴
 		
 		// 삭제대상 업체 id
-		List<Integer> agentIds = delAgentIds.getIds();
+		List<Integer> agentIds = delAgentReq.getIds();
 		// 값이 없는 경우 리턴
 		if (agentIds == null || agentIds.isEmpty()) {
 			throw new IllegalArgumentException("삭제할 업체가 없습니다.");
 		}
 		
-		LocalDateTime now = LocalDateTime.now();    // 삭제시간 통일
-		int userId = user.getId();    // 사용자 id
-		String userName = user.getName();    // 사용자이름
+		// 사용자 id(CustomUserDetails가 가지고 있는 인증 정보principal)
+		int userId = user.getId();
+		String userName = user.getName();
+		LocalDateTime now = LocalDateTime.now();    // 삭제된 시간은 모두 동일하게.
 		
 		// 삭제전 삭제 대상 업체명 미리 확인
 		List<Agent> targetNames = agentRepository.findAllByIdInAndIsVisible(agentIds, YnType.y);
@@ -131,6 +132,7 @@ public class AgentServiceImpl {
 		}
 		
 		// 삭제대상 업체명
+		// NOTE 컬렉션을 대상으로 stram API를 사용하는 방식 정의
 		List<String> names = targetNames.stream().map(Agent::getName).toList();
 		// 삭제대상 id (스트림으로 한번 더 조회. 동시성 이슈 확인)
 		List<Integer> deleteAgentIds = targetNames.stream().map(Agent::getId).toList();
@@ -158,7 +160,7 @@ public class AgentServiceImpl {
 				userName, deletedCount, idList, nameList
 		);
 		
-		// TODO 정상적으로 삭제 시, 이력을 남긴다.
+		// 삭제에 대한 이력을 남긴다.
 		Log deleteSuccessLog = Log.builder()
 				.logType("d")
 				.refTable("agent")

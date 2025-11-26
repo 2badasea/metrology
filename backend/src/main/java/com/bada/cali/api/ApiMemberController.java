@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @Log4j2
 @RequiredArgsConstructor
-public class apiMemberController {
+public class ApiMemberController {
 	private final MemberServiceImpl memberService;
 	
 	/**
