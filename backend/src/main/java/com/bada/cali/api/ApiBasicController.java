@@ -17,7 +17,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 @RestController        // @Controller + @ResponseBody의 조합으로, 자동으로 응답 데이터를 JSON 형태로 직렬화해서 리턴한다.
-@RequestMapping("/apiBasic")
+@RequestMapping("/api/basic")
 @Log4j2
 @RequiredArgsConstructor
 public class ApiBasicController {

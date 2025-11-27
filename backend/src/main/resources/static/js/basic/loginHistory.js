@@ -19,7 +19,7 @@ $(function () {
 
 		// 중복호출 방지
 		try {
-			const res = await g_ajax('/apiBasic/getLoginHistoryList', {});
+			const res = await g_ajax('/api/basic/getLoginHistoryList', {});
 
 			if (res?.code > 0) {
 				const datas = res.data;

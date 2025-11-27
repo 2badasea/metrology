@@ -46,7 +46,7 @@ $(function () {
 				// promise 객체를 반환하는 형태의 비동기요청은 success/error 옵션은 빼는 게 깔끔.
 				// 콜백 옵션을 넘기면서 await까지 쓴느 건 이중 구조
 				// json 데이터를 넘길 때, key:value명이 동일하다면 단축 표현식으로 사용 가능
-				const res = await g_ajax('/apiMember/login', {
+				const res = await g_ajax('/api/member/login', {
 					username: username,
 					password: password,
 					'remember-me': $('input[name=remember-me]').val(),

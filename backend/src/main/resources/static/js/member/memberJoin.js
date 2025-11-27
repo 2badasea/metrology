@@ -40,7 +40,7 @@ $(function () {
 
 			try {
 				// 사업자번호지만, 로그인ID로 사용되기 때문에 loginId 키값으로 보낸다.
-				const res = await g_ajax('/apiMember/chkDuplicateLoginId', {
+				const res = await g_ajax('/api/member/chkDuplicateLoginId', {
 					loginId: loginId,
 					refPage: 'memberJoin',
 				});
@@ -250,7 +250,7 @@ $(function () {
 					},
 				}).then((result) => {});
 
-				const res = await g_ajax('/apiMember/memberJoin', JSON.stringify(memberJoinData), {
+				const res = await g_ajax('/api/member/memberJoin', JSON.stringify(memberJoinData), {
 					contentType: 'application/json;charset=utf-8',
 				});
 				console.log(res);

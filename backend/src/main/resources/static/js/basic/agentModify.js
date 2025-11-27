@@ -29,7 +29,7 @@ $(function () {
 			// g_ajax로 값 세팅
             // NOTE async, await으로도 가능한지 확인
 			g_ajax(
-				'/apiBasic/getAgentInfo',
+				'/api/basic/getAgentInfo',
 				{
 					id: agentId,
 				},

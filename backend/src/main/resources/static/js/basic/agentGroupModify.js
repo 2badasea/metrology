@@ -15,7 +15,7 @@ $(function () {
 		console.log('🚀 ~ $modal.param:', $modal.param);
 
         // 기존에 존재하는 그룹항목 select/option으로 세팅
-        g_ajax('/apiBasic/getGroupName', {}, {
+        g_ajax('/api/basic/getGroupName', {}, {
             success: function (resData) {
                 
             },

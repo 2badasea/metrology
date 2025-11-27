@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * Api 요청을 처리하기 위한 RestController
  */
-@RequestMapping("/apiMember")
+@RequestMapping("/api/member")
 @RestController
 @Log4j2
 @RequiredArgsConstructor

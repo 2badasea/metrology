@@ -22,7 +22,7 @@ $(function () {
 	$modal.data_source = {
 		api: {
 			readData: {
-				url: '/apiBasic/getAgentList',
+				url: '/api/basic/getAgentList',
 				// 'serializer'는 토스트 그리드에서 제공
 				serializer: (grid_param) => {
 					// grid_param = $.extend(grid_param, $('form.searchForm', $modal).serializeObject());
@@ -197,7 +197,7 @@ $(function () {
 						};
 
 						const resDelete = await g_ajax(
-							'/apiBasic/deleteAgent', JSON.stringify(sendData),
+							'/api/basic/deleteAgent', JSON.stringify(sendData),
 
 							{
 								contentType: 'application/json; charset=utf-8',

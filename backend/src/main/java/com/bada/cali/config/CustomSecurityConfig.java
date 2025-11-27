@@ -52,14 +52,14 @@ public class CustomSecurityConfig {
 								, "/error"
 								, "/member/login**"
 								, "/member/memberJoin"
-								, "/apiMember/**").permitAll()    // 해당 경로 접근 허용
+								, "/api/member/**").permitAll()    // 해당 경로 접근 허용
 						.anyRequest().authenticated()    // 그외 요청에 대해선 인증된 사용자만 허용
 				)
 				// 로그인폼 처리
 				.formLogin(form -> form
 						// .loginPage("/login") 스프링시큐리티에서 제공하는 기본 로그인 페이지
 						.loginPage("/member/login").permitAll()    // 시큐리티 제공 기본 로그인 UI가 아닌 커스텀 페이지 경로 지정
-						.loginProcessingUrl("/apiMember/login")    // 로그인 처리 URL 매핑 (컨트롤러를 타지 않고 Security Filter이 가로채(intercept) 직접 처리
+						.loginProcessingUrl("/api/member/login")    // 로그인 처리 URL 매핑 (컨트롤러를 타지 않고 Security Filter이 가로채(intercept) 직접 처리
 						.usernameParameter("username")            // 아이디 입력값
 						.passwordParameter("password")            // 비밀번호 입력값
 						.successHandler(LoginSuccessHandler)    // 로그인 성공 훅
