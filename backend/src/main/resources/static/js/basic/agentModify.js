@@ -155,7 +155,13 @@ $(function () {
 			} finally {
 				$btn.prop('disabled', false);
 			}
-		});
+		})
+		// 주소 및 우편번호 조회
+		.on('click', '.agentZipCode, .searchAddr', function () {
+			// sample4_execDaumPostcode(zipCode = 'agentZipCode', addr = 'addr1')
+			sample4_execDaumPostcode(zipCode = 'agentZipCode', addr = 'addr');
+		})
+		;
 
 	// 저장
 	$modal.confirm_modal = async function (e) {

@@ -109,6 +109,7 @@
                                 <th>사업자등록번호</th>
                                 <td>
                                     <div class="input-group">
+                                        <input type="hidden" class="originAgentNum">
                                         <input type="text" class="form-control agentNum" name="agentNum" value=""
                                             maxlength="12" />
                                         <div class="input-group-append">
@@ -140,7 +141,7 @@
                             </tr>
                             <tr>
                                 <th>우편번호</th>
-                                <td><input type="text" class="form-control agentZipCode" name="agentZipCode" value="" />
+                                <td><input type="text" class="form-control cursor_pointer agentZipCode" name="agentZipCode" value="" readonly/>
                                 </td>
                                 <th>할인율(%)</th>
                                 <td>
