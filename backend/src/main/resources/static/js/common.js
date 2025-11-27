@@ -34,7 +34,7 @@ $(function () {
 		// 2. input의 경우, 값이 바뀌면 무조건 발생.
 	})
 	// 사업자번호 항목 입력 시, 포맷팅
-	.on('keyup', 'input.agent_num', (e) => {
+	.on('keyup', 'input.agentNum', (e) => {
 		let agent_num = e.target.value; // 화살표함수가 아닌 'this.value' 형태로도 값을 얻을 수 있음.
 		agent_num = agent_num.replace(/\D/g, '').slice(0, 10);
 
@@ -1104,7 +1104,7 @@ $.fn.setupValues = function (data = {}, excludes = [], isTrigger) {
 	isTrigger = undefined != isTrigger ? isTrigger : false;
 
 	$(this).each((index, ele) => {
-		let tag = $(ele).prop("nodeName");	// 요소이 nodeName은 태그이름 (INPUT, DIV 등)
+		let tag = $(ele).prop('nodeName'); // 요소이 nodeName은 태그이름 (INPUT, DIV 등)
 		let key = $(ele).attr('name');
 		let type = $(ele).attr('type');
 		let className = $(ele).attr('class') != undefined ? $(ele).attr('class') : [];
@@ -1182,3 +1182,83 @@ $.fn.setupValues = function (data = {}, excludes = [], isTrigger) {
 		}
 	});
 };
+
+/**
+ * 경고창을 띄운다. (제목, 텍스트, 아이콘, 경고창타입, 추가설정값)
+ * @param {string} title 제목
+ * @param {string} html 내용
+ * @param {string} icon 아이콘 [warning, error, success, info, question] 기본값: info
+ * @param {string} type 경고창 종류 [alert, confirm, prompt] 기본값: alert
+ * @param {object} options 오버라이딩 할 옵션값
+ */
+function g_message(title = '', html = '', icon = 'info', type = 'alert', options = {}) {
+	// NOTE 아래처럼 단순히 swal.fire 형태로 문구를 띄우는 것도 가능
+	// g_message("결재문서", `검토자의 결재가 미결이 아닌 경우 결재자가 있어야 합니다.`, "warning");
+
+	let settings = {
+		title: title,
+		html: html,
+		icon: icon,
+		confirmButtonText: '확인',
+		cancelButtonText: '취소',
+		denyButtonText: '아니오',
+		returnFocus: false,
+		showClass: {
+			popup: 'swal2',
+			backdrop: 'swal2-backdrop-show',
+			icon: 'swal2-icon-show',
+		},
+		hideClass: {
+			popup: 'swal2-hide',
+			backdrop: 'swal2-backdrop-hide',
+			icon: 'swal2-icon-hide',
+		},
+	};
+	if (type == 'confirm') {
+		settings = $.extend(settings, {
+			showCancelButton: true,
+			confirmButtonText: '예',
+		});
+	} else if (type == 'prompt') {
+		settings = $.extend(settings, {
+			showCancelButton: true,
+			input: 'text',
+		});
+	} else if (type == 'toast') {
+		settings = $.extend(settings, {
+			toast: true,
+			position: 'top-end',
+			showConfirmButton: false,
+			timer: 5000,
+		});
+	} else if (type == 'loading') {
+	} else {
+		settings = $.extend(settings, {
+			timer: 7000,
+			timerProgressBar: true,
+		});
+	}
+	settings = $.extend(settings, options);
+	return new Promise((resolve, reject) => {
+		setTimeout(function () {
+			// 포커스 문제때문에 타임아웃 0 추가가
+			Swal.fire(settings)
+				.then((result) => {
+					resolve(result);
+				})
+				.catch((e) => {
+					reject(e);
+				});
+		}, 0);
+	});
+}
+
+// 디바운싱 이벤트
+const debounce = (fn, wait = 250) => {
+	let timer;
+	return function (...args) {
+		setTimeout(timer);
+		timer = setTimeout(() => fn.apply(this, args), wait);
+	};
+};
+

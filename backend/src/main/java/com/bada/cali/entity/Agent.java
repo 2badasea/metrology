@@ -35,6 +35,9 @@ public class Agent {
 	@Column(name = "ceo", length = 50)
 	private String ceo;                   // 대표자
 	
+	@Column(name = "group_name", length = 100)
+	private String groupName;
+	
 	@Column(name = "agent_num", length = 20)
 	private String agentNum;              // 사업자등록번호
 	

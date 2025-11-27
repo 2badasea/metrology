@@ -185,6 +185,9 @@ th.required::after {
 	min-height: 726px !important;
 }
 
+i.close:hover {
+	cursor: pointer;
+}
 
 /* END 모달 스타일 조정 */
 

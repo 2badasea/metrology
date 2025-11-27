@@ -33,7 +33,8 @@ $(function () {
 					// 		if ($(this).val() != 'all') return $(this).val();
 					// 	})
 					// 	.get();
-					grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? 'all';
+					grid_param.isClose = $('form.searchForm .isClose', $modal).val();
+					grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? '';
 					grid_param.keyword = $('form.searchForm', $modal).find('#keyword').val() ?? '';
 					return $.param(grid_param);
 				},
@@ -193,17 +194,18 @@ $(function () {
 						// 서버에 전송할 때, obj 형태로 보냄(DTO로 받음)
 						// NOTE contentType이 application/json이 아닌 기본형태라면 DTO가 아닌 @RequestParam으로 받는 것도 가능
 						const sendData = {
-							ids: delAgentIds
+							ids: delAgentIds,
 						};
 
 						const resDelete = await g_ajax(
-							'/api/basic/deleteAgent', JSON.stringify(sendData),
+							'/api/basic/deleteAgent',
+							JSON.stringify(sendData),
 
 							{
 								contentType: 'application/json; charset=utf-8',
 							}
 						);
-						console.log("🚀 ~ resDelete:", resDelete);
+						console.log('🚀 ~ resDelete:', resDelete);
 						if (resDelete?.code === 1) {
 							const delNames = resDelete.data || [];
 							Swal.fire({
@@ -213,7 +215,6 @@ $(function () {
 							});
 							// 그리드 갱신
 							$modal.grid.reloadData();
-
 						}
 					} catch (err) {
 						custom_ajax_handler(err);
@@ -233,37 +234,35 @@ $(function () {
 			// 선택된 업체 존재하는지 확인
 			const checkedRows = $modal.grid.getCheckedRows();
 			if (checkedRows.length === 0) {
-				g_toast('관리할 업체를 선택해주세요.');
+				g_toast('관리할 업체를 선택해주세요.', 'warning');
 				return false;
 			} else {
 				// 그룹관리 업체명?
 				const updateAgentIds = $.map(checkedRows, function (item, index) {
 					return item.id;
-				});	// 배열([]) 리턴
+				}); // 배열([]) 리턴
 				console.log('updateAgentIds: ' + updateAgentIds);
 
-				await g_modal('/basic/agentGroupModify', {
-					ids: updateAgentIds
-				}, {
-					size: '',
-					title: '그룹관리',
-					show_close_button: true,
-					show_confirm_button: true,
-					confirm_button_text: '가입신청',					
-				}).then((data) => {
-					console.log("🚀 ~ data:", data);
-					// 변경된 값이 있는 경우에 모달차이 닫히면서 그리드가 리로드 되도록 변경
-
-				})
-
-
+				await g_modal(
+					'/basic/agentGroupModify',
+					{
+						ids: updateAgentIds,
+					},
+					{
+						size: '',
+						title: '그룹관리',
+						show_close_button: true,
+						show_confirm_button: true,
+						confirm_button_text: '저장',
+					}
+				).then((data) => {
+					console.log('🚀 ~ data:', data);
+					$modal.grid.reloadData();
+				});
 			}
 
-
 			// g_modal 호출
-		})
-		
-		;
+		});
 
 	// 그리드 이벤트 정의
 	$modal.grid.on('click', async function (e) {

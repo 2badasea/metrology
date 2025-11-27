@@ -64,5 +64,30 @@ public class ApiBasicController {
 		return ResponseEntity.ok(resMessage);
 	}
 	
+	// 업체그룹관리 그룹관리 정보가져오기
+	@PostMapping(value = "/getGroupName")
+	public ResponseEntity<ResMessage<List<String>>> getGroupName() {
+		List<String> resGroupNames = agentService.getGroupName();
+		
+		// 존재하면 응답코드 1
+		int resCode = resGroupNames.isEmpty() ? -1 : 1;
+		return ResponseEntity.ok(new ResMessage<>(resCode, null, resGroupNames));
+	}
+	
+	// 업체 그룹관리 수정
+	@PostMapping(value = "/updateGroupName")
+	public ResponseEntity<ResMessage<Object>> updateGroupName(
+			@RequestBody AgentDTO.UpdateGroupNameReq req,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		log.info("=========== updateGroupName");
+		
+		// 업데이트 실행
+		int resUpdate = agentService.updateGroupName(req, user);
+		// 성공 1 반환
+		int resCode = resUpdate > 0 ? 1 : -1;
+		return ResponseEntity.ok(new ResMessage<>(resCode, null, null));
+	}
+	
 	
 }

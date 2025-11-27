@@ -17,17 +17,24 @@
                     </ul>
                     <ul class="ml-auto list-group list-group-horizontal" id="searchFormUl">
                         <li class="mr-1 d-flex">
+                            <select class="form-control isClose" name="isClose">
+                                <!-- 전체선택(여부)의 경우, 빈값으로 값을 보낸다. -->
+                                <option value="">폐업여부</option>
+                                <option value="n" selected>미폐업</option>
+                                <option value="y">폐업</option>
+                            </select>
+                        </li>
+                        <li class="mr-1 d-flex">
                             <div class="input-group">
                                 <select class="form-control searchType" name="searchType" id="searchType">
-                                    <option value="all">전체선택</option>
-                                    <!-- 타임리프 문법으로 꾸며주어야 함. -->
+                                    <!-- 전체선택의 경우 빈 문자열을 보낸다. -->
+                                    <option value="">전체선택</option>
                                     <option value="name">업체명</option>
                                     <option value="agentNum">사업자번호</option>
                                     <option value="addr">주소</option>
                                 </select>
                                 <div class="input-group-append">
-                                    <input type="input" class="form-control" id="keyword"
-                                        name="keyword" value="" />
+                                    <input type="input" class="form-control" id="keyword" name="keyword" value="" />
                                 </div>
                             </div>
                         </li>

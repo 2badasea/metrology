@@ -15,6 +15,34 @@ import java.util.List;
 
 public interface AgentRepository extends JpaRepository<Agent, Integer> {
 	
+	@Query("""
+			SELECT a
+			FROM Agent a
+			WHERE a.isVisible = :isVisible
+			  AND (:isClose IS NULL OR a.isClose = :isClose)
+			  AND (
+			        :keyword = '' OR
+			        (
+			            (:searchType = 'name'     AND a.name     LIKE %:keyword%)
+			         OR (:searchType = 'agentNum' AND a.agentNum LIKE %:keyword%)
+			         OR (:searchType = 'addr'     AND a.addr     LIKE %:keyword%)
+			         OR (:searchType = 'all'      AND (
+			                a.name     LIKE %:keyword%
+			             OR a.agentNum LIKE %:keyword%
+			             OR a.addr     LIKE %:keyword%
+			         ))
+			        )
+			  )
+			""")
+	Page<Agent> searchAgents(
+			@Param("isVisible") YnType isVisible,
+			@Param("isClose") YnType isClose,          // null이면 필터 미적용(전체선택)
+			@Param("searchType") String searchType,    // all/name/agentNum/addr
+			@Param("keyword") String keyword,          // ""이면 검색조건 미적용
+			Pageable pageable
+	);
+	
+	// 단건 조회
 	Agent findByIsVisibleAndId(YnType isVisible, Integer id);
 	
 	// 삭제대상 업체정보
@@ -22,44 +50,6 @@ public interface AgentRepository extends JpaRepository<Agent, Integer> {
 	
 	// 기본: 삭제된 것을 제외하고 전체 가져오기
 	Page<Agent> findByIsVisible(YnType isVisible, Pageable pageable);
-	
-	// 업체명만 검색
-	Page<Agent> findByIsVisibleAndNameContaining(
-			YnType isVisible,
-			String keyword,
-			Pageable pageable)
-	;
-	
-	// 사업자번호 검색
-	Page<Agent> findByIsVisibleAndAgentNumContaining(
-			YnType isVisible,
-			String keyword,
-			Pageable pageable
-	);
-	
-	// 주소 검색
-	Page<Agent> findByIsVisibleAndAddrContaining(
-			YnType isVisible,
-			String keyword,
-			Pageable pageable
-	);
-	
-	// ✅ 전체검색(all): name OR agentNum OR addr (+ isVisible='y')
-	@Query("""
-        SELECT a
-        FROM Agent a
-        WHERE a.isVisible = :isVisible
-          AND (
-                a.name     LIKE %:keyword%
-             OR a.agentNum LIKE %:keyword%
-             OR a.addr    LIKE %:keyword%
-          )
-        """)
-	Page<Agent> searchAllVisible (
-		@Param("isVisible") YnType isVisible,
-		@Param("keyword") String keyword,
-		Pageable pageable
-	);
 	
 	// 업체 삭제 처리
 	// NOTE @parma에 명시된 문자열과 쿼리문 내 ':필드명' 부분과 일치해야 함
@@ -75,6 +65,31 @@ public interface AgentRepository extends JpaRepository<Agent, Integer> {
 	int delAgentByIds(@Param("agentIds") Collection<Integer> agentIds,
 					  @Param("isVisible") YnType isVisible,
 					  @Param("deleteDatetime") LocalDateTime deleteDatetime,
-					  @Param("deleteMemberId") Integer deleteMemberId);
+					  @Param("deleteMemberId") Integer deleteMemberId
+	);
+	
+	// 존재하는 업체 그룹명들 반환 (null과 빈문자열 모두 배제하기 위해 JPQL 작성 && 중복그룹명 제외 by distinct)
+	@Query("""
+				select distinct a.groupName
+				from Agent a
+				where 1 =1
+					and a.isVisible = :isVisible
+					and (a.groupName <> '' and a.groupName IS NOT NULL)
+			
+			""")
+	List<String> findAllByIsVisibleAndGroupNameIsNotBlank(YnType isVisible);
+	
+	// 업체 그룹명 업데이트
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+						UPDATE Agent a
+						SET a.groupName = :groupName
+						WHERE a.id in :ids
+			""")
+	int updateAgentGroupName(
+			@Param("ids") List<Integer> ids,
+			@Param("groupName") String groupName
+	);
+	
 	
 }

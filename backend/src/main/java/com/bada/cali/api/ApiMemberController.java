@@ -46,9 +46,8 @@ public class ApiMemberController {
 		MemberDTO.DuplicateLoginIdRes duplicateLoginIdRes = memberService.chkDuplicateLoginId(loginId, refPage);
 		
 		// DTO에서의 boolean 타입 필드를 꺼내려고 할 때는 메서드를 호출하는 형태로 가져온다.
-		int resCode = duplicateLoginIdRes.isDuplicate() ? -1 : 1;
-		String resMsg = resCode > 0 ? "사용 가능한 아이디입니다." : "이미 가입되어 있는 정보입니다.";
-		ResMessage<MemberDTO.DuplicateLoginIdRes> resMessage = new ResMessage<>(resCode, resMsg, duplicateLoginIdRes);
+		int resCode = duplicateLoginIdRes.isDuplicate() ? -1 : 1;	// 1: 중복없음(가입가능)
+		ResMessage<MemberDTO.DuplicateLoginIdRes> resMessage = new ResMessage<>(resCode, null, duplicateLoginIdRes);
 		
 		// ok(...)은 "200 OK + body 설정"을 한 번에 해주는 축약형 return 'ReponseEntity.status(HttpStatus.OK).body(resMessage)'과 동일
 		return ResponseEntity.ok(resMessage);

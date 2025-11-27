@@ -1,6 +1,7 @@
 package com.bada.cali.dto;
 
 import com.bada.cali.common.YnType;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,7 +23,8 @@ public class AgentDTO {
 	@Setter
 	public static class GetListReq extends TuiGridDTO.Request {
 		// 검색창에서 넘어오는 값들
-		private String searchType;
+		private String isClose;		// '', y, n
+		private String searchType;	// '', name, agentNum, addr
 		private String keyword;
 	}
 	
@@ -74,6 +76,18 @@ public class AgentDTO {
 	public static class DelAgentReq {
 		// 스크립트의 배열([]) 데이터는 java에서 List<Integer>로 받을 수 있음.
 		private List<Integer> ids;		// 브라우저에서 ids라는 key로 넘어옴
+	}
+	
+	// 그룹관리 그룹명 변경 요청 DTO
+	@Setter
+	@Getter	// 값을 꺼내기 위해 필요
+	@NoArgsConstructor
+	public static class UpdateGroupNameReq {
+		// 값이 존재하지 않으면, 컨트롤러 메서드가 호출되기 '직전'에 막혀서 예외가 던져짐 -> 전예외 차원에서 받게 됨
+		@NotEmpty
+		private List<Integer> ids;
+		
+		private String groupName;		// 빈 문자열 허용 가능
 	}
 	
 	

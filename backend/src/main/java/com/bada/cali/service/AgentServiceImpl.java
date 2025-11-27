@@ -41,46 +41,35 @@ public class AgentServiceImpl {
 		int pageIndex = req.getPage() - 1;     // JPA는 0-based
 		int pageSize = req.getPerPage();
 		
-		// Pageable 객체
-		Pageable pageable = PageRequest.of(pageIndex, pageSize);
-		
-		String searchType = req.getSearchType();    // 검색타입
-		String keyword = req.getKeyword();            // 검색키워드
+		Pageable pageable = PageRequest.of(pageIndex, pageSize);    // Pageable 객체
 		YnType isVisible = YnType.y;                // 기본적으로 보이는 것만 노출(is_visible = 'y')
 		
-		// 결과를 담을 객체
-		Page<Agent> pageResult;
-		
-		// 검색 키워드가 존재하지 않는 경우, 삭제된 업체 제외 모두 표시
-		if (keyword == null || keyword.isBlank()) {
-			pageResult = agentRepository.findByIsVisible(isVisible, pageable);
-		} else {
-			// 검색 키워드 및 검색 타입에 따른 구분
-			if (searchType == null || searchType.isBlank()) {
-				searchType = "all";        // 기본값을 전쳉검색으로
-			}
-			switch (searchType) {
-				case "name" -> {
-					pageResult = agentRepository.findByIsVisibleAndNameContaining(isVisible, keyword, pageable);
-				}
-				case "agentNum" -> {
-					pageResult = agentRepository.findByIsVisibleAndAgentNumContaining(isVisible, keyword, pageable);
-				}
-				case "addr" -> {
-					pageResult = agentRepository.findByIsVisibleAndAddrContaining(isVisible, keyword, pageable);
-				}
-				default -> {
-					// 혹시 이상한 값 들어오면 전체검색으로 수행
-					pageResult = agentRepository.searchAllVisible(isVisible, keyword, pageable);
-				}
-			}
+		YnType isClose = null;    // ""(전체선택) -> null(조건제외)
+		String isCloseParam = req.getIsClose();    // "" | 'y' | 'n'
+		if ("y".equalsIgnoreCase(isCloseParam)) {
+			isClose = YnType.y;
+		} else if ("n".equalsIgnoreCase(isCloseParam)) {
+			isClose = YnType.n;
 		}
+		
+		// searchType: ""(전체선택) -> null(조건제외)
+		String searchType = req.getSearchType();    // 검색타입
+		if (searchType == null || searchType.isBlank()) {
+			searchType = "all";
+		}
+		searchType = switch (searchType) {
+			case "all", "name", "agentNum", "addr" -> searchType;
+			default -> "all";
+		};
+		String keyword = req.getKeyword();            // 검색키워드
+		keyword = (keyword == null) ? "" : keyword.trim();
+		
+		// 분기 없이 1회 호출
+		Page<Agent> pageResult = agentRepository.searchAgents(isVisible, isClose, searchType, keyword, pageable);
 		
 		// entity -> DTO 변환
 		List<AgentDTO.AgentRowData> rows = pageResult.getContent().stream()
 				.map(agentMapper::toAgentRowDataFromEntity).toList();
-		log.info("=============== rows ==============");
-		log.info(rows.toString());
 		
 		// 페이지네이션
 		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
@@ -176,5 +165,57 @@ public class AgentServiceImpl {
 		return names;
 	}
 	
+	// 업체 그룹관리 그룹명 반환
+	@Transactional
+	public List<String> getGroupName() {
+		// 그룹명 조회
+		return agentRepository.findAllByIsVisibleAndGroupNameIsNotBlank(YnType.y);
+		
+		// 1. 그룹명만 반환하면 되기 때문에 List<String>으로 리턴타입 수정
+//		List<String> agentList = agentRepository.findAllByIsVisibleAndGroupNameIsNotBlank(YnType.y);
+//		return agentList.stream().map(Agent::getGroupName).toList();
+		// NOTE isEmpty에 대한 분기처리 필요없음. 비어있으면 그냥 빈 리스트를 반환하기 때문
+//		if (!agentList.isEmpty()) {
+//			// 반환 후 수정이 필요없기 때문에 toList()
+//			return agentList.stream().map(Agent::getGroupName).toList();
+//		} else {
+//			return null;
+//		}
+	}
 	
+	// 그룹명 수정
+	@Transactional
+	public int updateGroupName(AgentDTO.UpdateGroupNameReq req, CustomUserDetails user) {
+		
+		// 파라미터값 검증
+		List<Integer> updateIds = req.getIds();
+		if (updateIds == null || updateIds.isEmpty()) {
+			throw new IllegalArgumentException("업데이트 대상 id가 존재하지 않습니다.");
+		}
+		
+		// 그룹명은 빈 값을 허용한다.
+		String groupName = req.getGroupName().trim();
+		
+		// update문의 return 값은 영향을 받은 row의 수
+		int resUpdate = agentRepository.updateAgentGroupName(updateIds, groupName);
+		// 성공 시
+		if (resUpdate > 0) {
+			
+			String ids = updateIds.stream().map(String::valueOf).collect(Collectors.joining(", "));
+			String logContent = String.format("[업체관리] 그룹명을 '%s'로 수정하였습니다. 고유번호: [%s]", groupName, ids);
+			
+			// 이력을 남긴다.
+			Log saveLog = Log.builder()
+					.logType("u")
+					.refTable("agent")
+					.createDatetime(LocalDateTime.now())
+					.workerName(user.getName())
+					.createMemberId(user.getId())
+					.logContent(logContent)
+					.build();
+			// 로그 저장
+			logRepository.save(saveLog);
+		}
+		return resUpdate;
+	}
 }

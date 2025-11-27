@@ -50,9 +50,10 @@ $(function () {
 				}
 
 				let code = res.code;
-				let msg = res.msg;
+				let msg = "사용 가능한 아이디입니다.";
 				let data = res.data;
 				if (code != 1 && (data.agentName || data.agentAddr)) {
+					msg = "이미 가입되어 있는 정보입니다.";
 					msg += `\n업체명: ${data.agentName}, 업체주소: ${data.agentAddr}`;
 				}
 				if (code == 1) {
