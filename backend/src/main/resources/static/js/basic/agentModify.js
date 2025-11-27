@@ -64,9 +64,29 @@ $(function () {
 				}
 			);
 		}
-
-		// 담당자 리스트 그리드 세팅
 	};
+
+	// 수정인 경우, 담당자 리스트 정보 세팅
+	// 그리드를 선언해야 해당 api의 readData가 호출되어 데이터를 가져오게 된다.
+	$modal.data_source = null;
+	if (agentId > 0) {
+		$modal.data_source = {
+			api: {
+				readData: {
+					url: '/api/basic/getAgentManagerList',
+					serializer: (grid_param) => {
+						grid_param.agentId = agentId;
+						grid_param.isVisible = 'y';
+						return $.param(grid_param);
+					},
+					method: 'GET',
+				},
+			},
+		};
+	}
+
+
+	// 최초 그리드 마운티 이후, 빈 row 한 개 생성
 
 	/**
 	 * 사업자번호 키업 이벤트 핸들러
@@ -138,7 +158,7 @@ $(function () {
 					refPage: 'agentModify',
 				});
 
-				Swal.close();	// sweet alert창 있을 경우 닫아버리기
+				Swal.close(); // sweet alert창 있을 경우 닫아버리기
 
 				if (resChkAgentNum?.code == 1) {
 					await g_message('중복체크', '등록가능한 사업자번호 입니다.', 'success');
@@ -147,9 +167,8 @@ $(function () {
 					await g_message('중복체크', '이미 등록된 사업자번호 입니다.', 'warning');
 					$btn.val('n').addClass('btn-secondary').removeClass('btn-success');
 				}
-
 			} catch (err) {
-				Swal.close();	// sweet alert창 있을 경우 닫아버리기
+				Swal.close(); // sweet alert창 있을 경우 닫아버리기
 				// 에러처리
 				custom_ajax_handler(err);
 			} finally {
@@ -159,9 +178,8 @@ $(function () {
 		// 주소 및 우편번호 조회
 		.on('click', '.agentZipCode, .searchAddr', function () {
 			// sample4_execDaumPostcode(zipCode = 'agentZipCode', addr = 'addr1')
-			sample4_execDaumPostcode(zipCode = 'agentZipCode', addr = 'addr');
-		})
-		;
+			sample4_execDaumPostcode((zipCode = 'agentZipCode'), (addr = 'addr'));
+		});
 
 	// 저장
 	$modal.confirm_modal = async function (e) {

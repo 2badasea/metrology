@@ -1,5 +1,6 @@
 package com.bada.cali.mapper;
 
+import com.bada.cali.dto.AgentManagerDTO;
 import com.bada.cali.dto.MemberDTO;
 import com.bada.cali.entity.AgentManager;
 import org.mapstruct.Mapper;
@@ -15,6 +16,9 @@ public interface AgentManagerMapper {
 	// 회원가입 -> 업체담당자 추가
 	@Mapping(target = "tel", source = "phone")
 	AgentManager toEntityFromMemberJoinReq(MemberDTO.MemberJoinReq memberJoinReq);
+	
+	// entity -> dto
+	AgentManagerDTO.AgentManagerRowData toAgentManagerRowDataFromEntity(AgentManager agentManager);
 	
 	
 	

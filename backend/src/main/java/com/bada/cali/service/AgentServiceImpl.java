@@ -2,9 +2,12 @@ package com.bada.cali.service;
 
 import com.bada.cali.common.YnType;
 import com.bada.cali.dto.AgentDTO;
+import com.bada.cali.dto.AgentManagerDTO;
 import com.bada.cali.dto.TuiGridDTO;
 import com.bada.cali.entity.Agent;
+import com.bada.cali.entity.AgentManager;
 import com.bada.cali.entity.Log;
+import com.bada.cali.mapper.AgentManagerMapper;
 import com.bada.cali.mapper.AgentMapper;
 import com.bada.cali.repository.AgentManagerRepository;
 import com.bada.cali.repository.AgentRepository;
@@ -32,7 +35,9 @@ public class AgentServiceImpl {
 	private final AgentManagerRepository agentManagerRepository;
 	private final MemberRepository memberRepository;
 	private final LogRepository logRepository;
+	// mapper
 	private final AgentMapper agentMapper;        // dto <--> entity 간의 변환용 mapstruct
+	private final AgentManagerMapper agentManagerMapper;
 	
 	// 업체관리 리스트 가져오기
 	@Transactional
@@ -218,4 +223,38 @@ public class AgentServiceImpl {
 		}
 		return resUpdate;
 	}
+	
+	// 업체담당자 리스트 반환하기
+	@Transactional
+	public TuiGridDTO.Response<AgentManagerDTO.AgentManagerRowData> getAgentManagerList(AgentManagerDTO.GetListReq req) {
+		
+		int pageIndex = req.getPage() - 1;	// JPA는 0-based
+		int pageSize = req.getPerPage();
+		
+		Pageable pageable = PageRequest.of(pageIndex, pageSize); // Pageable 객체
+		YnType isVisible = req.getIsVisible();
+		YnType mainYn = YnType.y;
+		int agentId = req.getAgentId();
+		
+		// 데이터 조회
+		Page<AgentManager> pageResult = agentManagerRepository.searchAgentManagers(isVisible, agentId, mainYn, pageable);
+		
+		// enity -> dto로 변경
+		List<AgentManagerDTO.AgentManagerRowData> rows = pageResult.getContent().stream()
+				.map(agentManagerMapper::toAgentManagerRowDataFromEntity).toList();
+		
+		// 페이지네이션
+		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
+				.page(req.getPage())
+				.totalCount((int) pageResult.getTotalElements())
+				.build();
+		
+		// 최종 return
+		return TuiGridDTO.Response.<AgentManagerDTO.AgentManagerRowData>builder()
+				.contents(rows)
+				.pagination(pagination)
+				.build();
+		
+	}
+	
 }

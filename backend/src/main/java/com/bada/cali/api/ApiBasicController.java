@@ -2,7 +2,9 @@ package com.bada.cali.api;
 
 import com.bada.cali.common.ResMessage;
 import com.bada.cali.dto.AgentDTO;
+import com.bada.cali.dto.AgentManagerDTO;
 import com.bada.cali.dto.TuiGridDTO;
+import com.bada.cali.repository.AgentManagerRepository;
 import com.bada.cali.repository.MemberRepository;
 import com.bada.cali.security.CustomUserDetailService;
 import com.bada.cali.security.CustomUserDetails;
@@ -23,6 +25,7 @@ import java.util.List;
 public class ApiBasicController {
 	
 	private final AgentServiceImpl agentService;
+	private final AgentManagerRepository agentManagerRepository;
 	
 	// 업체관리 리스트 가져오기 (토스트 그리드)
 	@GetMapping(value = "/getAgentList")
@@ -81,13 +84,28 @@ public class ApiBasicController {
 			@AuthenticationPrincipal CustomUserDetails user
 	) {
 		log.info("=========== updateGroupName");
-		
 		// 업데이트 실행
 		int resUpdate = agentService.updateGroupName(req, user);
 		// 성공 1 반환
 		int resCode = resUpdate > 0 ? 1 : -1;
 		return ResponseEntity.ok(new ResMessage<>(resCode, null, null));
 	}
+	
+	// 특정 업체의 담당자 정보 가져오기
+	@GetMapping(value = "/getAgentManagerList")
+	public ResponseEntity<TuiGridDTO.ResTuiGrid<TuiGridDTO.Response<AgentManagerDTO.AgentManagerRowData>>> getAgentManagerList(@ModelAttribute AgentManagerDTO.GetListReq req) {
+		log.info("========== getAgentManagerList");
+		
+		// 업체관련 서비스계층에서 리스트 가져오도록 처리
+		TuiGridDTO.Response<AgentManagerDTO.AgentManagerRowData> resGridData = agentService.getAgentManagerList(req);
+		
+		TuiGridDTO.ResTuiGrid<TuiGridDTO.Response<AgentManagerDTO.AgentManagerRowData>> body =
+				new TuiGridDTO.ResTuiGrid<>(true, resGridData);
+		
+		return ResponseEntity.ok(body);
+	}
+	
+	
 	
 	
 }

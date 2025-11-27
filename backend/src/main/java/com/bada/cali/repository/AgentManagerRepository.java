@@ -2,6 +2,8 @@ package com.bada.cali.repository;
 
 import com.bada.cali.common.YnType;
 import com.bada.cali.entity.AgentManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -32,6 +34,24 @@ public interface AgentManagerRepository extends CrudRepository<AgentManager, Int
 					  @Param("deleteMemberId") Integer deleteMemberId);
 	
 	
+	
+	@Query("""
+						SELECT am
+						FROM AgentManager am
+						WHERE 1 = 1
+						AND am.agentId = :agentId
+						AND am.isVisible = :isVisible
+						ORDER BY
+								case when am.mainYn = :mainYn then 0 else 1 END ASC,
+								am.id ASC
+								
+			""")
+	Page<AgentManager> searchAgentManagers(
+			@Param("isVisible") YnType isVisible,
+			@Param("agentId") int agentId,
+			@Param("mainYn") YnType mainYn,
+			Pageable pageable
+	);
 }
 	
 
