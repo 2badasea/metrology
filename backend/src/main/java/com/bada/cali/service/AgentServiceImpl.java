@@ -41,7 +41,7 @@ public class AgentServiceImpl {
 	
 	// 업체관리 리스트 가져오기
 	@Transactional
-	public TuiGridDTO.Response<AgentDTO.AgentRowData> getAgentList(AgentDTO.GetListReq req) {
+	public TuiGridDTO.ResData<AgentDTO.AgentRowData> getAgentList(AgentDTO.GetListReq req) {
 		
 		int pageIndex = req.getPage() - 1;     // JPA는 0-based
 		int pageSize = req.getPerPage();
@@ -83,7 +83,7 @@ public class AgentServiceImpl {
 				.build();
 		
 		// 최종 return
-		return TuiGridDTO.Response.<AgentDTO.AgentRowData>builder()
+		return TuiGridDTO.ResData.<AgentDTO.AgentRowData>builder()
 				.contents(rows)
 				.pagination(pagination)
 				.build();
@@ -226,9 +226,9 @@ public class AgentServiceImpl {
 	
 	// 업체담당자 리스트 반환하기
 	@Transactional
-	public TuiGridDTO.Response<AgentManagerDTO.AgentManagerRowData> getAgentManagerList(AgentManagerDTO.GetListReq req) {
+	public TuiGridDTO.ResData<AgentManagerDTO.AgentManagerRowData> getAgentManagerList(AgentManagerDTO.GetListReq req) {
 		
-		int pageIndex = req.getPage() - 1;	// JPA는 0-based
+		int pageIndex = req.getPage() - 1;    // JPA는 0-based
 		int pageSize = req.getPerPage();
 		
 		Pageable pageable = PageRequest.of(pageIndex, pageSize); // Pageable 객체
@@ -250,7 +250,7 @@ public class AgentServiceImpl {
 				.build();
 		
 		// 최종 return
-		return TuiGridDTO.Response.<AgentManagerDTO.AgentManagerRowData>builder()
+		return TuiGridDTO.ResData.<AgentManagerDTO.AgentManagerRowData>builder()
 				.contents(rows)
 				.pagination(pagination)
 				.build();

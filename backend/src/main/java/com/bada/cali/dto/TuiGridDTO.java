@@ -7,7 +7,9 @@ import java.util.List;
 public class TuiGridDTO {
 	
 	// 브라우저 응답용 클래스이므로, 생성 방지
-	private TuiGridDTO() {};
+	private TuiGridDTO() {
+	}
+	
 	
 	// 요청을 받을 객체
 	// NOTE @ModelAttribute로 상속받아 쓰는 요청 DTO이므로 getter/setter 모두 필요
@@ -20,18 +22,18 @@ public class TuiGridDTO {
 	
 	// 페이지네이션 생성 객체
 //	@Setter	응답전용이고, 서비스에서 builder()로 만든 후 수정 안 하기 때문에 필요없음
-	@Getter	// jackson 직렬화(서버->JSON)에는 getter만 있어도 충분
+	@Getter    // jackson 직렬화(서버->JSON)에는 getter만 있어도 충분
 	@Builder
 	public static class Pagination {
 		private int page;
 		private int totalCount;
 	}
 	
-	// response 응답 객체
+	// 토스트 그리드 응답 'data' 를 구성하는 데이터 'contents', 'pagination'
 //	@Setter	위와 마찬가지로 응답전용이고, builder이후에 값을 수정하지 않음
 	@Getter
 	@Builder
-	public static class Response<T> {
+	public static class ResData<T> {
 		private List<T> contents;
 		private Pagination pagination;
 	}
@@ -41,7 +43,7 @@ public class TuiGridDTO {
 //	@NoArgsConstructor	=> 불필요(입력 DTO가 아니기 때문)
 	@Getter
 	@AllArgsConstructor
-	public static class ResTuiGrid<T> {
+	public static class Res<T> {
 		private boolean result;
 		private T data;
 	}

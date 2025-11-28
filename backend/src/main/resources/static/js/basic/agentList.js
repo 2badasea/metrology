@@ -25,14 +25,6 @@ $(function () {
 				url: '/api/basic/getAgentList',
 				// 'serializer'는 토스트 그리드에서 제공
 				serializer: (grid_param) => {
-					// grid_param = $.extend(grid_param, $('form.searchForm', $modal).serializeObject());
-					// let search_types = $modal
-					// 	.find('form.searchForm .searchType')
-					// 	.find('option')
-					// 	.map(function () {
-					// 		if ($(this).val() != 'all') return $(this).val();
-					// 	})
-					// 	.get();
 					grid_param.isClose = $('form.searchForm .isClose', $modal).val();
 					grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? '';
 					grid_param.keyword = $('form.searchForm', $modal).find('#keyword').val() ?? '';
@@ -42,8 +34,6 @@ $(function () {
 			},
 		},
 	};
-
-	console.log('확인');
 
 	// 그리드 정의
 	$modal.grid = new Grid({

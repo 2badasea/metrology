@@ -29,13 +29,13 @@ public class ApiBasicController {
 	
 	// 업체관리 리스트 가져오기 (토스트 그리드)
 	@GetMapping(value = "/getAgentList")
-	public ResponseEntity<TuiGridDTO.ResTuiGrid<TuiGridDTO.Response<AgentDTO.AgentRowData>>> getAgentList(@ModelAttribute AgentDTO.GetListReq req) {
+	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<AgentDTO.AgentRowData>>> getAgentList(@ModelAttribute AgentDTO.GetListReq req) {
 		
-		TuiGridDTO.Response<AgentDTO.AgentRowData> resGridData = agentService.getAgentList(req);
+		TuiGridDTO.ResData<AgentDTO.AgentRowData> resGridData = agentService.getAgentList(req);
 		
 		// data.api.readData 규약에 맞게 DTO로 감싸기
-		TuiGridDTO.ResTuiGrid<TuiGridDTO.Response<AgentDTO.AgentRowData>> body =
-				new TuiGridDTO.ResTuiGrid<>(true, resGridData);
+		TuiGridDTO.Res<TuiGridDTO.ResData<AgentDTO.AgentRowData>> body =
+				new TuiGridDTO.Res<>(true, resGridData);
 		
 		return ResponseEntity.ok(body);
 	}
@@ -93,14 +93,14 @@ public class ApiBasicController {
 	
 	// 특정 업체의 담당자 정보 가져오기
 	@GetMapping(value = "/getAgentManagerList")
-	public ResponseEntity<TuiGridDTO.ResTuiGrid<TuiGridDTO.Response<AgentManagerDTO.AgentManagerRowData>>> getAgentManagerList(@ModelAttribute AgentManagerDTO.GetListReq req) {
+	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<AgentManagerDTO.AgentManagerRowData>>> getAgentManagerList(@ModelAttribute AgentManagerDTO.GetListReq req) {
 		log.info("========== getAgentManagerList");
 		
 		// 업체관련 서비스계층에서 리스트 가져오도록 처리
-		TuiGridDTO.Response<AgentManagerDTO.AgentManagerRowData> resGridData = agentService.getAgentManagerList(req);
+		TuiGridDTO.ResData<AgentManagerDTO.AgentManagerRowData> resGridData = agentService.getAgentManagerList(req);
 		
-		TuiGridDTO.ResTuiGrid<TuiGridDTO.Response<AgentManagerDTO.AgentManagerRowData>> body =
-				new TuiGridDTO.ResTuiGrid<>(true, resGridData);
+		TuiGridDTO.Res<TuiGridDTO.ResData<AgentManagerDTO.AgentManagerRowData>> body =
+				new TuiGridDTO.Res<>(true, resGridData);
 		
 		return ResponseEntity.ok(body);
 	}

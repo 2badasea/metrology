@@ -85,6 +85,46 @@ $(function () {
 		};
 	}
 
+	// 업체 담당자 그리드
+	$modal.grid = new Grid({
+		el: document.querySelector('.agentManagerGrid'),
+		columns: [
+			{
+				header: '그룹명',
+				name: 'groupName',
+				className: 'cursor_pointer',
+				width: '100',
+				align: 'center',
+			},
+			{
+				header: '그룹명',
+				name: 'groupName',
+				className: 'cursor_pointer',
+				width: '100',
+				align: 'center',
+			},
+			{
+				header: '그룹명',
+				name: 'groupName',
+				className: 'cursor_pointer',
+				width: '100',
+				align: 'center',
+			},
+			{
+				header: '그룹명',
+				name: 'groupName',
+				className: 'cursor_pointer',
+				width: '100',
+				align: 'center',
+			},
+		],
+		pageOptions: {
+			useClient: false, // 서버 페이징
+			perPage: 15,
+		},
+		rowHeaders: ['checkbox'],
+		data: $modal.data_source		
+	});
 
 	// 최초 그리드 마운티 이후, 빈 row 한 개 생성
 
