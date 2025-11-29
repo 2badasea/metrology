@@ -17,60 +17,45 @@ $(function () {
 	let agentId = 0;
 	let originAgentNum = '';
 
-	$modal.init_modal = (param) => {
+	$modal.init_modal = async (param) => {
 		$modal.param = param;
-		console.log('🚀 ~ $modal.param:', $modal.param);
+
+		let gridBodyHeight = Math.floor($modal.find('.agentModifyForm').height() - 88);
 
 		// 업체id로 초기화 하기(수정)
 		if ($modal.param?.id > 0) {
 			// 옵셔널체이닝으로 체크
 			agentId = Number($modal.param.id);
 
-			// g_ajax로 값 세팅
 			// NOTE async, await으로도 가능한지 확인
-			g_ajax(
-				'/api/basic/getAgentInfo',
-				{
-					id: agentId,
-				},
-				{
-					success: function (data) {
-						if (data) {
-							$modal.find('form.agentModifyForm input[name], textarea[name]').setupValues(data);
-							// flag, type에 대해서도 세팅할 것
-							// 폐업구분
-							if (data.isClose == 'y') {
-								$('.isClose', $modal).prop('checked', true);
-							}
-							// 업체형태에 대한 checkbox 설정
-							if (data.agentFlag > 0) {
-								// 반복문을 돌면서 세팅
-								let chkBitInput = $('.agentFlagTypes', $modal).find('.chkBit');
-								setCheckBit(chkBitInput, data.agentFlag);
-							}
-							// 사업자번호 존재 시, 기본적으로 중복체크 한 것으로 설정 (값 & 색상 부여)
-							if (data.agentNum) {
-								originAgentNum = data.agentNum;
-								$('button.chkAgentNum', $modal).val('y').removeClass('btn-secondary').addClass('btn-success');
-							}
-						}
-					},
-					error: function (xhr) {
-						custom_ajax_handler(xhr);
-					},
-					complete: function () {
-						console.log('업체정보 데이터 세팅 complete');
-					},
+			try {
+				const resGetInfo = await g_ajax('/api/basic/getAgentInfo', { id: agentId });
+				if (resGetInfo) {
+					$modal.find('form.agentModifyForm input[name], textarea[name]').setupValues(resGetInfo);
+					if (resGetInfo.isClose == 'y') {
+						$('.isClose', $modal).prop('checked', true);
+					}
+					// 업체형태에 대한 checkbox 설정
+					if (resGetInfo.agentFlag > 0) {
+						// 반복문을 돌면서 세팅
+						let chkBitInput = $('.agentFlagTypes', $modal).find('.chkBit');
+						setCheckBit(chkBitInput, resGetInfo.agentFlag);
+					}
+					// 사업자번호 존재 시, 기본적으로 중복체크 한 것으로 설정 (값 & 색상 부여)
+					if (resGetInfo.agentNum) {
+						originAgentNum = resGetInfo.agentNum;
+						$('button.chkAgentNum', $modal).val('y').removeClass('btn-secondary').addClass('btn-success');
+					}
 				}
-			);
+			} catch (err) {
+				custom_ajax_handler(err);
+			} finally {
+				console.log('업체정보 데이터 세팅 complete');
+			}
 		}
-	};
 
-	// 수정인 경우, 담당자 리스트 정보 세팅
-	// 그리드를 선언해야 해당 api의 readData가 호출되어 데이터를 가져오게 된다.
-	$modal.data_source = null;
-	if (agentId > 0) {
-		$modal.data_source = {
+		// 수정인 경우, 담당자 리스트 정보 세팅
+		$modal.dataSource = {
 			api: {
 				readData: {
 					url: '/api/basic/getAgentManagerList',
@@ -83,50 +68,100 @@ $(function () {
 				},
 			},
 		};
-	}
 
-	// 업체 담당자 그리드
-	$modal.grid = new Grid({
-		el: document.querySelector('.agentManagerGrid'),
-		columns: [
-			{
-				header: '그룹명',
-				name: 'groupName',
-				className: 'cursor_pointer',
-				width: '100',
-				align: 'center',
-			},
-			{
-				header: '그룹명',
-				name: 'groupName',
-				className: 'cursor_pointer',
-				width: '100',
-				align: 'center',
-			},
-			{
-				header: '그룹명',
-				name: 'groupName',
-				className: 'cursor_pointer',
-				width: '100',
-				align: 'center',
-			},
-			{
-				header: '그룹명',
-				name: 'groupName',
-				className: 'cursor_pointer',
-				width: '100',
-				align: 'center',
-			},
-		],
-		pageOptions: {
-			useClient: false, // 서버 페이징
-			perPage: 15,
-		},
-		rowHeaders: ['checkbox'],
-		data: $modal.data_source		
-	});
+		// 업체 담당자 그리드
+		$modal.grid = new Grid({
+			el: document.querySelector('.agentManagerGrid'),
+			columns: [
+				{
+					header: '담당자명',
+					name: 'name',
+					className: 'cursor_pointer',
+					editor: 'text',
+					width: '150',
+					align: 'center',
+				},
+				{
+					header: '담당자 이메일',
+					name: 'email',
+					editor: 'text',
+					className: 'cursor_pointer',
+					align: 'center',
+				},
+				{
+					header: '담당자 연락처',
+					name: 'tel',
+					editor: 'text',
+					className: 'cursor_pointer',
+					width: '150',
+					align: 'center',
+				},
+				{
+					header: '대표 여부',
+					name: 'mainYn',
+					editor: {
+						type: 'select',
+						options: {
+							listItems: [
+								{ text: '대표', value: 'y' },
+								{ text: '일반', value: 'n' },
+							],
+						},
+					},
+					formatter: 'listItemText', // 화면에는 '대표/일반'로 보이게
+					className: 'cursor_pointer',
+					width: 100,
+					align: 'center',
+				},
+			],
+			minBodyHeight: gridBodyHeight,
+			bodyHeight: gridBodyHeight,
+			// pageOptions: {
+			// 	perPage: 0
+			// },
+			// summary: {
+			// 	height: 20,
+			// 	position: 'bottom',
+			// 	columnContent: {
+			// 		name: {
+			// 			template: function () {
+			// 				return `총 0 건`;
+			// 			},
+			// 		},
+			// 	},
+			// },
+			rowHeaders: ['checkbox'],
+			editingEvent: 'click', // 원클릭으로 수정할 수 있도록 변경. 기본값은 'dblclick'
 
-	// 최초 그리드 마운티 이후, 빈 row 한 개 생성
+			data: $modal.dataSource,
+		});
+
+		// 그리드 세팅 후, 이벤트 실행
+		$modal.grid.on('onGridUpdated', function (e) {
+			const rowCnt = $modal.grid.getRowCount();
+			if (rowCnt === 0) {
+				console.log('appendRow!!');
+				$modal.grid.appendRow({mainYn: 'y'});
+			}
+		})
+
+		// 담당자 추가 이벤트
+		$modal.grid.addGridRow = (mode = '') => {
+			const focusedCell = $modal.grid.getFocusedCell();
+			let option = {};
+			// 포커스가 존재할 경우, 포커스된 행 바로 아래 추가
+			if (focusedCell.rowKey != null) {
+				let rowIndex = $modal.grid.getIndexOfRow(focusedCell.rowKey);
+				if (mode == 'add') {
+					rowIndex = parseInt(rowIndex) + 1;
+				}
+				option.at = rowIndex;
+			}
+			const mainYn = (mode == 'reset') ? 'y' : 'n';
+			$modal.grid.appendRow({ mainYn: mainYn}, option);
+		}
+
+	};
 
 	/**
 	 * 사업자번호 키업 이벤트 핸들러
@@ -219,7 +254,9 @@ $(function () {
 		.on('click', '.agentZipCode, .searchAddr', function () {
 			// sample4_execDaumPostcode(zipCode = 'agentZipCode', addr = 'addr1')
 			sample4_execDaumPostcode((zipCode = 'agentZipCode'), (addr = 'addr'));
-		});
+		})
+		// 담당자 추가 클릭
+		;
 
 	// 저장
 	$modal.confirm_modal = async function (e) {
@@ -228,7 +265,6 @@ $(function () {
 		// agentflag값 확인
 		const $chkBitInputs = $('.agentFlagTypes', $modal).find('.chkBit');
 		let agentFlag = getCheckBit($chkBitInputs);
-		console.log('값확인');
 		console.log(agentFlag);
 
 		return false;
@@ -240,11 +276,13 @@ $(function () {
 	$modal.addClass('modal-view-applied');
 	if ($modal.hasClass('modal-body')) {
 		//모달 팝업창인 경우 바로 init_modal() 호출
-		const p = $modal.data('param') || {};
-		$modal.init_modal(p);
-		if (typeof $modal.grid == 'object') {
-			$modal.grid.refreshLayout();
-		}
+		setTimeout(() => {
+			const p = $modal.data('param') || {};
+			$modal.init_modal(p);
+			if (typeof $modal.grid == 'object') {
+				$modal.grid.refreshLayout();
+			}
+		}, 200);
 	}
 
 	if (typeof window.modal_deferred == 'object') {

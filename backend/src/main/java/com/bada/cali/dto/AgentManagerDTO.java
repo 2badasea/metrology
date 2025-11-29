@@ -12,7 +12,7 @@ public class AgentManagerDTO {
 	// 업체관리 등록/수정 모달 내 그리드에서 리스트 요청
 	@Setter
 	@Getter
-	public static class GetListReq extends TuiGridDTO.Request {
+	public static class GetListReq {
 		// 업체관리 정보에서 넘어오는 값
 		private int agentId;				// 업체id
 		private YnType isVisible;			// y: 존재하는 것만 호출

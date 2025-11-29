@@ -228,31 +228,31 @@ public class AgentServiceImpl {
 	@Transactional
 	public TuiGridDTO.ResData<AgentManagerDTO.AgentManagerRowData> getAgentManagerList(AgentManagerDTO.GetListReq req) {
 		
-		int pageIndex = req.getPage() - 1;    // JPA는 0-based
-		int pageSize = req.getPerPage();
+//		int pageIndex = req.getPage() - 1;    // JPA는 0-based
+//		int pageSize = req.getPerPage();
 		
-		Pageable pageable = PageRequest.of(pageIndex, pageSize); // Pageable 객체
+//		Pageable pageable = PageRequest.of(pageIndex, pageSize); // Pageable 객체
 		YnType isVisible = req.getIsVisible();
 		YnType mainYn = YnType.y;
 		int agentId = req.getAgentId();
 		
 		// 데이터 조회
-		Page<AgentManager> pageResult = agentManagerRepository.searchAgentManagers(isVisible, agentId, mainYn, pageable);
+		List<AgentManager> pageResult = agentManagerRepository.searchAgentManagers(isVisible, agentId, mainYn);
 		
 		// enity -> dto로 변경
-		List<AgentManagerDTO.AgentManagerRowData> rows = pageResult.getContent().stream()
+		List<AgentManagerDTO.AgentManagerRowData> rows = pageResult.stream()
 				.map(agentManagerMapper::toAgentManagerRowDataFromEntity).toList();
 		
 		// 페이지네이션
-		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
-				.page(req.getPage())
-				.totalCount((int) pageResult.getTotalElements())
-				.build();
+//		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
+//				.page(req.getPage())
+//				.totalCount((int) pageResult.size())
+//				.build();
 		
 		// 최종 return
 		return TuiGridDTO.ResData.<AgentManagerDTO.AgentManagerRowData>builder()
 				.contents(rows)
-				.pagination(pagination)
+//				.pagination(pagination)
 				.build();
 		
 	}

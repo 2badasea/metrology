@@ -46,11 +46,11 @@ public interface AgentManagerRepository extends CrudRepository<AgentManager, Int
 								am.id ASC
 								
 			""")
-	Page<AgentManager> searchAgentManagers(
+	List<AgentManager> searchAgentManagers(
 			@Param("isVisible") YnType isVisible,
 			@Param("agentId") int agentId,
-			@Param("mainYn") YnType mainYn,
-			Pageable pageable
+			@Param("mainYn") YnType mainYn
+//			Pageable pageable
 	);
 }
 	
