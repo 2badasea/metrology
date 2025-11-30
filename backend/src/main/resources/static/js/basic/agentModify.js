@@ -14,8 +14,9 @@ $(function () {
 	// let $modal = $('.modal-view:not(.modal-view-applied)');
 	let $modal_root = $modal.closest('.modal');
 
-	let agentId = 0;
-	let originAgentNum = '';
+	let agentId = 0;			// 업체id
+	let originAgentNum = '';	// 수정 전 사업자번호
+	let delManagerIds = [];
 
 	$modal.init_modal = async (param) => {
 		$modal.param = param;
@@ -47,6 +48,7 @@ $(function () {
 						$('button.chkAgentNum', $modal).val('y').removeClass('btn-secondary').addClass('btn-success');
 					}
 				}
+
 			} catch (err) {
 				custom_ajax_handler(err);
 			} finally {
@@ -116,6 +118,9 @@ $(function () {
 			],
 			minBodyHeight: gridBodyHeight,
 			bodyHeight: gridBodyHeight,
+			rowHeaders: ['checkbox'],
+			editingEvent: 'click', // 원클릭으로 수정할 수 있도록 변경. 기본값은 'dblclick'
+			data: $modal.dataSource,
 			// pageOptions: {
 			// 	perPage: 0
 			// },
@@ -130,18 +135,13 @@ $(function () {
 			// 		},
 			// 	},
 			// },
-			rowHeaders: ['checkbox'],
-			editingEvent: 'click', // 원클릭으로 수정할 수 있도록 변경. 기본값은 'dblclick'
-
-			data: $modal.dataSource,
 		});
 
 		// 그리드 세팅 후, 이벤트 실행
 		$modal.grid.on('onGridUpdated', function (e) {
 			const rowCnt = $modal.grid.getRowCount();
 			if (rowCnt === 0) {
-				console.log('appendRow!!');
-				$modal.grid.appendRow({mainYn: 'y'});
+				$modal.grid.addGridRow('init');	// 초기값('대표')로 빈 줄 생성
 			}
 		})
 
@@ -157,7 +157,7 @@ $(function () {
 				}
 				option.at = rowIndex;
 			}
-			const mainYn = (mode == 'reset') ? 'y' : 'n';
+			const mainYn = (mode == 'init') ? 'y' : 'n';
 			$modal.grid.appendRow({ mainYn: mainYn}, option);
 		}
 
@@ -255,17 +255,82 @@ $(function () {
 			// sample4_execDaumPostcode(zipCode = 'agentZipCode', addr = 'addr1')
 			sample4_execDaumPostcode((zipCode = 'agentZipCode'), (addr = 'addr'));
 		})
-		// 담당자 추가 클릭
+		// 담당자 추가 클릭(저장 시점에 반영)
+		.on('click', '.addAgentManager', function () {
+			// 최대 10명까지만 등록할 수 있도록 변경
+			const rowCnt = $modal.grid.getRowCount();
+			if (rowCnt === 10) {
+				g_toast('담당자는 최대 10명만 등록됩니다.', 'warning');
+				return false;
+			} else {
+				$modal.grid.addGridRow('add');
+			}
+		})
+		// 담당자 삭제
+		.on('click', '.delAgentManager', () => {
+			// id가 존재하는 것만 배열에 담아서 '저장'시점에 반영
+			const checkedRows = $modal.grid.getCheckedRows();
+			if (checkedRows.length === 0) {
+				g_toast('삭제할 직원을 선택해주세요.', 'warning');
+				return false;
+			} else {
+				for (let rowData of checkedRows) {
+					if (rowData.id != undefined && rowData.id > 0) {
+						// 삭제대상 배열 데이터에 담기
+						delManagerIds.push(rowData.id);
+					}
+					$modal.grid.removeRow(rowData.rowKey);
+				}
+				g_toast('삭제된 담당자는 저장 시 반영됩니다.', 'info');
+				if ($modal.grid.getRowCount() === 0) {
+					$modal.grid.addGridRow('init');
+				}
+			}
+		})
 		;
 
 	// 저장
 	$modal.confirm_modal = async function (e) {
 		console.log('저장클릭!!');
+		// 업체정보 & 담당자 정보 유효성 체크 후, formdata에 데이터 담기
+		const $form = $('.agentModifyForm', $modal);
+		$modal.grid.blur();
+
+		// 담당자 정보 세팅
+		const managerRows = $modal.grid.getData();
+		if (managerRows.length > 0) {
+			let flagMainYn = false;
+			for (const amRow of managerRows) {
+				// 대표담당자 존재여부 체크
+				if (amRow.mainYn === 'y') {
+					flagMainYn = true;
+				}
+				// 담당자명 체크
+				if (!check_input(amRow.name)) {
+					g_toast('담당자명이 존재하지 않습니다.');
+					return false;
+				}
+				if (!flagMainYn) {
+					g_toast('대표담당자가 최소 한 명은 있어야 합니다.', 'warning');
+					return false;
+				}
+				console.log('확인!!!!!!!!!!!!');
+			}
+
+
+		} else {
+			g_toast('대표담당자가 최소 한 명은 있어야 합니다.', 'warning');
+			return false;
+		}
+		
+
+
+
+
 
 		// agentflag값 확인
 		const $chkBitInputs = $('.agentFlagTypes', $modal).find('.chkBit');
 		let agentFlag = getCheckBit($chkBitInputs);
-		console.log(agentFlag);
 
 		return false;
 	};
