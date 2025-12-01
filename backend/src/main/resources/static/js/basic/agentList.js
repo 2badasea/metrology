@@ -124,6 +124,8 @@ $(function () {
 			perPage: 15,
 		},
 		rowHeaders: ['checkbox'],
+		minBodyHeight: 700,
+		bodyHeight: 700,
 		// data: [
 		// 	{
 		// 		name: 'Beautiful Lies',

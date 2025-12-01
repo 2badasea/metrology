@@ -14,8 +14,8 @@ $(function () {
 	// let $modal = $('.modal-view:not(.modal-view-applied)');
 	let $modal_root = $modal.closest('.modal');
 
-	let agentId = 0;			// 업체id
-	let originAgentNum = '';	// 수정 전 사업자번호
+	let agentId = 0; // 업체id
+	let originAgentNum = ''; // 수정 전 사업자번호
 	let delManagerIds = [];
 
 	$modal.init_modal = async (param) => {
@@ -48,7 +48,6 @@ $(function () {
 						$('button.chkAgentNum', $modal).val('y').removeClass('btn-secondary').addClass('btn-success');
 					}
 				}
-
 			} catch (err) {
 				custom_ajax_handler(err);
 			} finally {
@@ -141,9 +140,9 @@ $(function () {
 		$modal.grid.on('onGridUpdated', function (e) {
 			const rowCnt = $modal.grid.getRowCount();
 			if (rowCnt === 0) {
-				$modal.grid.addGridRow('init');	// 초기값('대표')로 빈 줄 생성
+				$modal.grid.addGridRow('init'); // 초기값('대표')로 빈 줄 생성
 			}
-		})
+		});
 
 		// 담당자 추가 이벤트
 		$modal.grid.addGridRow = (mode = '') => {
@@ -157,10 +156,9 @@ $(function () {
 				}
 				option.at = rowIndex;
 			}
-			const mainYn = (mode == 'init') ? 'y' : 'n';
-			$modal.grid.appendRow({ mainYn: mainYn}, option);
-		}
-
+			const mainYn = mode == 'init' ? 'y' : 'n';
+			$modal.grid.appendRow({ mainYn: mainYn }, option);
+		};
 	};
 
 	/**
@@ -286,51 +284,72 @@ $(function () {
 					$modal.grid.addGridRow('init');
 				}
 			}
-		})
-		;
+		});
 
 	// 저장
 	$modal.confirm_modal = async function (e) {
 		console.log('저장클릭!!');
 		// 업체정보 & 담당자 정보 유효성 체크 후, formdata에 데이터 담기
 		const $form = $('.agentModifyForm', $modal);
+		const formData = $form.serialize_object();
 		$modal.grid.blur();
 
 		// 담당자 정보 세팅
 		const managerRows = $modal.grid.getData();
 		if (managerRows.length > 0) {
-			let flagMainYn = false;
+			let flagManager = false;
+			let flagMsg = '';
 			for (const amRow of managerRows) {
 				// 대표담당자 존재여부 체크
 				if (amRow.mainYn === 'y') {
-					flagMainYn = true;
+					flagManager = true;
+					flagMsg = '대표담당자가 최소 한 명은 있어야 합니다.';
 				}
 				// 담당자명 체크
 				if (!check_input(amRow.name)) {
-					g_toast('담당자명이 존재하지 않습니다.');
-					return false;
+					flagManager = true;
+					flagMsg = '담당자명이 존재하지 않습니다.';
 				}
-				if (!flagMainYn) {
-					g_toast('대표담당자가 최소 한 명은 있어야 합니다.', 'warning');
-					return false;
-				}
-				console.log('확인!!!!!!!!!!!!');
 			}
-
-
+			if (!flagManager) {
+				g_toast(flagMsg, 'warning');
+				return false;
+			}
 		} else {
 			g_toast('대표담당자가 최소 한 명은 있어야 합니다.', 'warning');
 			return false;
 		}
-		
 
-
-
-
-
-		// agentflag값 확인
+		// 업체형태agentflag값 확인
 		const $chkBitInputs = $('.agentFlagTypes', $modal).find('.chkBit');
-		let agentFlag = getCheckBit($chkBitInputs);
+		let agentFlag = getCheckBit($chkBitInputs); // save
+		console.log('🚀 ~ agentFlag:', agentFlag);
+		if (!agentFlag || agentFlag == 0) {
+			g_toast('업체 형태를 선택해주세요.');
+			return false;
+		}
+		formData.agentFlag = agentFlag;
+
+		// 업체명 확인
+		if (!check_input(formData.name)) {
+			g_toast('업체명은 필수입니다.');
+			return false;
+		}
+
+		// 할인율 항목에 숫자만 입력했는지 확인 (값이 있을 때만 체크)
+		if (formData.selfDiscount && (formData.selfDiscount >= 100 || formData.selfDiscount < 0)) {
+			g_toast('할인율은 0이상 100이하여야 합니다.', 'waring');
+			return false;
+		}
+		if (formData.outDiscount && (formData.outDiscount >= 100 || formData.outDiscount < 0)) {
+			g_toast('할인율은 0이상 100이하여야 합니다.', 'waring');
+			return false;
+		}
+
+		// 사업자등록번호 확인
+		// 등록, 수정, 신청업체, 번호변경
+
+
 
 		return false;
 	};

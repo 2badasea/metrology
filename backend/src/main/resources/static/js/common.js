@@ -63,21 +63,45 @@ $(function () {
 		}
 		e.target.value = out;
 	})
-	// 전화번호 입력 필드
-	.on('keyup', 'input.tel', (e) => {
-		let contactNum = e.target.value; // 화살표함수가 아닌 'this.value' 형태로도 값을 얻을 수 있음.
-		contactNum = contactNum.replace(/\D/g, '').slice(0, 11);
+	// 소수점 한 자리까지 입력 가능
+	.on('input', 'input.numDecimal1', function () {
+		let v = this.value;
 
-		let out = '';
-		if (contactNum.length <= 3) {
-			out = contactNum;
-		} else if (contactNum.length <= 7) {
-			out = contactNum.slice(0, 3) + '-' + contactNum.slice(3);
-		} else {
-			out = contactNum.slice(0, 3) + '-' + contactNum.slice(3, 7) + '-' + contactNum.slice(7);
+		// 1) 숫자와 점(.)만 남기기
+		v = v.replace(/[^0-9.]/g, '');
+
+		// 2) 점이 여러 개면 첫 번째만 남기기
+		const firstDot = v.indexOf('.');
+		if (firstDot !== -1) {
+			v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, '');
 		}
-		e.target.value = out;
+
+		// 3) 소수점 이하 1자리로 제한
+		if (firstDot !== -1) {
+			const [intPart, decPart = ''] = v.split('.');
+			v = intPart + '.' + decPart.slice(0, 1);
+		}
+
+		// ".5" 같은 형태를 "0.5"로 보정하고 싶으면
+		if (v.startsWith('.')) v = '0' + v;
+
+		this.value = v;
 	})
+	// 전화번호 입력 필드
+	// .on('keyup', 'input.tel', (e) => {
+	// 	let contactNum = e.target.value; // 화살표함수가 아닌 'this.value' 형태로도 값을 얻을 수 있음.
+	// 	contactNum = contactNum.replace(/\D/g, '').slice(0, 11);
+
+	// 	let out = '';
+	// 	if (contactNum.length <= 3) {
+	// 		out = contactNum;
+	// 	} else if (contactNum.length <= 7) {
+	// 		out = contactNum.slice(0, 3) + '-' + contactNum.slice(3);
+	// 	} else {
+	// 		out = contactNum.slice(0, 3) + '-' + contactNum.slice(3, 7) + '-' + contactNum.slice(7);
+	// 	}
+	// 	e.target.value = out;
+	// })
 	.on('keyup', 'input.tel', (e) => {
 		// 1) 숫자만 남기고, 최대 11자리까지 자르기
 		let digits = e.target.value.replace(/\D/g, '');
@@ -1261,4 +1285,3 @@ const debounce = (fn, wait = 250) => {
 		timer = setTimeout(() => fn.apply(this, args), wait);
 	};
 };
-
