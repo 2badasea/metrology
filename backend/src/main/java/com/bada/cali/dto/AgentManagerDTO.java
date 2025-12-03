@@ -14,16 +14,16 @@ public class AgentManagerDTO {
 	@Getter
 	public static class GetListReq {
 		// 업체관리 정보에서 넘어오는 값
-		private int agentId;				// 업체id
+		private Integer agentId;				// 업체id
 		private YnType isVisible;			// y: 존재하는 것만 호출
 	}
 	
 	@Setter
 	@Getter
 	public static class AgentManagerRowData {
-		private int id;			// 고유id
+		private Integer id;			// 고유id
 		private YnType mainYn;	// 대표여부
-		private int agentId;	// 업체id
+		private Integer agentId;	// 업체id
 		private String name;	// 담당자 이름
 		private String email;	// 담당자 이메일
 		private String tel;		// 담당자 연락처

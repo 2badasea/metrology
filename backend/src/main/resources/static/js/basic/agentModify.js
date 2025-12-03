@@ -16,7 +16,7 @@ $(function () {
 
 	let agentId = 0; // 업체id
 	let originAgentNum = ''; // 수정 전 사업자번호
-	let delManagerIds = [];
+	let delManagerIds = []; // 삭제 대상 담당자id
 
 	$modal.init_modal = async (param) => {
 		$modal.param = param;
@@ -284,6 +284,42 @@ $(function () {
 					$modal.grid.addGridRow('init');
 				}
 			}
+		})
+		// 첨부파일 체크
+		.on('change', '.uploadFiles', function () {
+			const $input = $(this);
+			let $newInput = $input.clone();
+			$newInput.val('');
+
+			const MAX_FILE_SIZE = 10 * 1024 * 1024; // byte 단위
+			const MAX_FILE_COUNT = 3;		// 한 번에 최대 업로드 개수
+
+			const files = this.files;
+			if (!files || files.length === 0) {
+				return false;
+			}
+
+			// 파일 개수 체크
+			if (files.length > MAX_FILE_COUNT) {
+				g_toast(`파일은 한 번에 최대 ${MAX_FILE_COUNT}개까지만 업로드 가능합니다.\n(선택한 파일 수: ${files.length}개)`, 'warning');
+				$(this).replaceWith($newInput);
+				return false;
+			}
+
+			// 파일 크기 체크 (개당 10MB 이하)
+			for (let i = 0; i < files.length; i++) {
+				const file = files[i];
+
+				if (file.size > MAX_FILE_SIZE) {
+					const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+					g_toast(`'${file.name}' 파일의 크기(${sizeMB} MB)가 허용 용량(최대 10 MB)을 초과합니다.`, 'warning');
+					$(this).replaceWith($newInput);
+					return false;
+				};
+			}
+
+			console.log('업로드 가능한 파일들:', files);
+			
 		});
 
 	// 저장
@@ -330,6 +366,20 @@ $(function () {
 		}
 		formData.agentFlag = agentFlag;
 
+		// 폐업여부
+		formData.isClose = $('input[name=isClose', $modal).is(':checked') ? 'y' : 'n';
+
+		// 사업자등록번호 체크
+		const agentNum = formData.agentNum;
+		// 값이 있을 때만 체크
+		if (check_input(agentNum)) {
+			if ($('.chkAgentNum', $modal).val() !== 'y') {
+				g_toast('사업자번호 중복체크를 해주세요.', 'warning');
+				return false;
+			}
+			// TODO 업체형태가 신청업체 포함 & 사업자번호를 입력했는데, 기존에 존재하지 않았다면 새롭게 생성(member)
+		}
+
 		// 업체명 확인
 		if (!check_input(formData.name)) {
 			g_toast('업체명은 필수입니다.');
@@ -346,12 +396,50 @@ $(function () {
 			return false;
 		}
 
-		// 사업자등록번호 확인
-		// 등록, 수정, 신청업체, 번호변경
+		formData.id = agentId ?? 0; // 등록/수정 여부 판단
+		formData.managers = managerRows; // 담당자 정보
+		formData.delManagerIds = delManagerIds; // 삭제된 담당자 정보
 
+		// 담당자 데이터 삽입
 
+		// 실제 전송할 데이터
+		const sendFormData = new FormData();
+		sendFormData.append('saveAgentDataReq', new Blob([JSON.stringify(formData)], { type: 'application/json' }));
 
-		return false;
+		// 첨부파일 삽입
+		for (const file of $('.uploadFiles', $modal)[0].files) {
+			sendFormData.append('files', file);
+		}
+
+		// 저장여부 확인
+		const saveTypeTxt = agentId > 0 ? '수정' : '등록';
+		const saveConfrim = await g_message(`업체정보 ${saveTypeTxt}`, `업체정보를 ${saveTypeTxt} 하시겠습니까?`, 'question', 'confirm');
+
+		$('.btn_save', $modal).prop('disabled', true); // 버튼 비활성화
+		if (saveConfrim.isConfirmed) {
+			g_loading_message(); // 로딩창
+
+			try {
+				const res = await g_ajax('/api/basic/saveAgent', sendFormData);
+				console.log('🚀 ~ res:', res);
+				if (res?.code == 1) {
+					await g_message(`업체정보 ${saveTypeTxt}`, `업체정보가 ${saveTypeTxt} 되었습니다.`, 'success');
+					$modal_root.modal('hide');
+				} else {
+					await g_message(`업체정보 ${saveTypeTxt} 실패`, `업체정보가 ${saveTypeTxt}에 실패했습니다.`, 'warning');
+				}
+			} catch (err) {
+				custom_ajax_handler(err);
+			} finally {
+				$('.btn_save', $modal).prop('disabled', false);
+				return false;
+			}
+		}
+		// 저장x
+		else {
+			$('.btn_save', $modal).prop('disabled', false); // 버튼 비활성화
+			return false;
+		}
 	};
 
 	// 담당자 그리드 초기화

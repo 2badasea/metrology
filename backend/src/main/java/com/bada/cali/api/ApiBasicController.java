@@ -14,6 +14,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -103,6 +104,20 @@ public class ApiBasicController {
 				new TuiGridDTO.Res<>(true, resGridData);
 		
 		return ResponseEntity.ok(body);
+	}
+	
+	@PostMapping(value = "/saveAgent")
+	public ResponseEntity<ResMessage<Object>> saveAgent(
+			@RequestPart("saveAgentDataReq") AgentDTO.SaveAgentDataReq saveAgentDataReq,
+			@RequestPart(value = "files", required = false) List<MultipartFile> files,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		
+		int resSaveAgent = agentService.saveAgent(saveAgentDataReq, files, user);
+		
+		
+		
+		return null;
 	}
 	
 	

@@ -5,6 +5,7 @@ import com.bada.cali.dto.MemberDTO;
 import com.bada.cali.entity.AgentManager;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
 
 @Mapper(
@@ -20,6 +21,10 @@ public interface AgentManagerMapper {
 	// entity -> dto
 	AgentManagerDTO.AgentManagerRowData toAgentManagerRowDataFromEntity(AgentManager agentManager);
 	
+	AgentManager toEntity(AgentManagerDTO.AgentManagerRowData agentManagerRowData);
+	
+	// update용 기존 엔티티 위에 덮어쓰기
+	void updateEntity(AgentManagerDTO.AgentManagerRowData agentManagerRowData, @MappingTarget AgentManager entity);
 	
 	
 }

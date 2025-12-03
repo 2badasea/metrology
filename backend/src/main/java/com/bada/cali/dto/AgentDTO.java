@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class AgentDTO {
@@ -64,8 +65,8 @@ public class AgentDTO {
 		private String fax;
 		private String accountNumber;
 		private String calibrationCycle;
-		private int selfDiscount;
-		private int outDiscount;
+		private BigDecimal selfDiscount;
+		private BigDecimal outDiscount;
 		private YnType isClose;
 	}
 	
@@ -80,7 +81,7 @@ public class AgentDTO {
 	
 	// 그룹관리 그룹명 변경 요청 DTO
 	@Setter
-	@Getter	// 값을 꺼내기 위해 필요
+	@Getter
 	@NoArgsConstructor
 	public static class UpdateGroupNameReq {
 		// 값이 존재하지 않으면, 컨트롤러 메서드가 호출되기 '직전'에 막혀서 예외가 던져짐 -> 전예외 차원에서 받게 됨
@@ -88,6 +89,38 @@ public class AgentDTO {
 		private List<Integer> ids;
 		
 		private String groupName;		// 빈 문자열 허용 가능
+	}
+	
+	// 업체 등록/수정 DTO 객체
+	@Setter @Getter
+	@NoArgsConstructor
+	public static class SaveAgentDataReq {
+		// 업체 정보
+		private Integer id;		// 업체 고유 id
+		private Integer agentFlag;
+		private String name;		// 업체명
+		private String nameEn;		// 업체명(영문)
+		private YnType isClose;		// 폐업여부 y/n
+		private String calibrationCycle;	// 교정주기(자체, 차기, 표기안함)
+		private String agentNum;		// 사업자등록번호
+		private String ceo;				// 대표
+		private String addr;			// 주소
+		private String addrEn;			// 주소(영문)
+		private String agentZipCode;	// 우편번호
+		private BigDecimal selfDiscount;	// 자체할인율 (소수점 1자리까지 적용)
+		private BigDecimal outDiscount;		// 대행할인율 (소수점 1자리까지 적용)
+		private String businessType;		// 업태
+		private String businessKind;		// 종목
+		private String agentTel;		// 전화번호
+		private String fax;			// 팩스번호
+		private String email;		// 업체메일
+		private String remark;		// 비고 (LONGTEXT)
+		
+		// 삭제 대상 업체담당자 정보
+		List<Integer> delManagerIds;
+		
+		// 업체 담당자 정보
+		List<AgentManagerDTO.AgentManagerRowData> managers;
 	}
 	
 	
