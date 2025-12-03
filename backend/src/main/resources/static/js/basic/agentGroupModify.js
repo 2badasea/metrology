@@ -66,7 +66,7 @@ $(function () {
 		let msgPrefix = applyType == 'empty' ? '미적용' : newType;
 
 		// g_mesasge()는 promise 객체를 리턴하기 때문에 isConfirmed를 기대할 수 없음
-		const updateCheck = await g_message('그룹관리 수정', `'${msgPrefix}'으로 수정하시겠습니까?`, 'question','confirm');
+		const updateCheck = await g_message('그룹관리 수정', `'${msgPrefix}'으로 수정하시겠습니까?`, 'question', 'confirm');
 
 		// 수정
 		if (updateCheck.isConfirmed) {
@@ -89,17 +89,15 @@ $(function () {
 
 				if (resUpdate?.code > 0) {
 					await g_message('그룹명 수정', '그룹명이 수정되었습니다.', 'success');
-					$modal_root.modal('hide');			
+					$modal_root.modal('hide');
 				} else {
 					await g_message('그룹명 수정', '그룹명 수정에 실패했습니다.', 'warning');
-					return false;					
+					return false;
 				}
-
 			} catch (err) {
 				Swal.close();
 				custom_ajax_handler(err);
 			}
-
 		} else {
 			return false;
 		}

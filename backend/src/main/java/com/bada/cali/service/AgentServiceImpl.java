@@ -7,23 +7,26 @@ import com.bada.cali.dto.TuiGridDTO;
 import com.bada.cali.entity.Agent;
 import com.bada.cali.entity.AgentManager;
 import com.bada.cali.entity.Log;
+import com.bada.cali.entity.Member;
 import com.bada.cali.mapper.AgentManagerMapper;
 import com.bada.cali.mapper.AgentMapper;
-import com.bada.cali.repository.AgentManagerRepository;
-import com.bada.cali.repository.AgentRepository;
-import com.bada.cali.repository.LogRepository;
-import com.bada.cali.repository.MemberRepository;
+import com.bada.cali.repository.*;
 import com.bada.cali.security.CustomUserDetails;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,9 +38,11 @@ public class AgentServiceImpl {
 	private final AgentManagerRepository agentManagerRepository;
 	private final MemberRepository memberRepository;
 	private final LogRepository logRepository;
+	private final FileInfoRepository fileInfoRepository;
 	// mapper
 	private final AgentMapper agentMapper;        // dto <--> entity 간의 변환용 mapstruct
 	private final AgentManagerMapper agentManagerMapper;
+	private final PasswordEncoder passwordEncoder;
 	
 	// 업체관리 리스트 가져오기
 	@Transactional
@@ -227,10 +232,10 @@ public class AgentServiceImpl {
 	// 업체담당자 리스트 반환하기
 	@Transactional
 	public TuiGridDTO.ResData<AgentManagerDTO.AgentManagerRowData> getAgentManagerList(AgentManagerDTO.GetListReq req) {
-		
+
 //		int pageIndex = req.getPage() - 1;    // JPA는 0-based
 //		int pageSize = req.getPerPage();
-		
+
 //		Pageable pageable = PageRequest.of(pageIndex, pageSize); // Pageable 객체
 		YnType isVisible = req.getIsVisible();
 		YnType mainYn = YnType.y;
@@ -255,6 +260,138 @@ public class AgentServiceImpl {
 //				.pagination(pagination)
 				.build();
 		
+	}
+	
+	@Transactional
+	public int saveAgent(AgentDTO.SaveAgentDataReq saveAgentDataReq, List<MultipartFile> files, CustomUserDetails user) {
+		
+		LocalDateTime now = LocalDateTime.now();
+		
+		// 업체 저장
+		Integer id = saveAgentDataReq.getId();
+		String saveTypeTxt = id > 0 ? "수정" : "등록";
+		// 등록
+		if (id == 0) {
+			Agent insertAgent = agentMapper.toAgentEntityFromDTO(saveAgentDataReq);
+			insertAgent.setCreateType("auto");
+			insertAgent.setCreateDatetime(now);
+			Agent savedAgent = agentRepository.save(insertAgent);
+			id = savedAgent.getId();	// id 변수에 대입
+		}
+		// 수정
+		else {
+			Agent originAgent = agentRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("업체를 찾을 수 없습니다."));
+			Agent updateAgent = agentMapper.toEntityFromUpdateDTO(saveAgentDataReq, originAgent);
+			updateAgent.setUpdateDatetime(now);
+			updateAgent.setUpdateMemberId(user.getId());		// 로그인 사용자
+			Agent savedAgent = agentRepository.save(updateAgent);
+		}
+		
+		// 업체정보 수정에 대한 이력을 남긴다.
+		String logContent = String.format("[업체정보 %s] 고유번호: %d", saveTypeTxt, id);
+		Log insertUpdateLog = Log.builder()
+				.logType("i")
+				.refTable("agent")
+				.refTableId(id)
+				.workerName(user.getName())
+				.createDatetime(now)
+				.createMemberId(user.getId())
+				.logContent(logContent)
+				.build();
+		logRepository.save(insertUpdateLog);
+		
+		// 업체형태(신청업체) & 사업자번호 존재여부에 따라 업체계정(member) 생성 (createType = 'auto')
+		int agentFlag = saveAgentDataReq.getAgentFlag();
+		String agentNum = saveAgentDataReq.getAgentNum();
+		int chkFlag = 1;
+		// 업체형태가 신청업체인 경우 & 사업자번호 항목이 존재하는 경우
+		if ((agentFlag & chkFlag) != 0 && (agentNum != null && !agentNum.isEmpty())) {
+			Optional<Member> agentUser = memberRepository.findByLoginId(agentNum, YnType.y);
+			// 해당 업체정보의 계정이 존재하지 않는 경우, 신규 새성
+			if (agentUser.isEmpty()) {
+				// builder 객체 활용
+				Member saveMember = Member.builder()
+						.loginId(agentNum)					// 로그인아이디(사업자번호)
+						.pwd(passwordEncoder.encode("1234"))		// 임시비밀번호
+						.createDatetime(now)					// 생성일시
+						.createMemberId(user.getId())			// 생성자
+						.tel(saveAgentDataReq.getAgentTel())	// 연락처
+						.email(saveAgentDataReq.getEmail())		// 이메일
+						.name(saveAgentDataReq.getName())		// 이름(업체명)
+						.agentId(id)						// 업체id
+						.build();
+				Member resSavedMember = memberRepository.save(saveMember);
+				// 신규생성 아이디에 대한 이력을 남긴다. (if문으로 resSavedMember가 null인지 체크 필요X, 실패시 예외 터지게 됨)
+				logContent = String.format("[사용자 추가] 업체정보 %s에 따른 신규 계정 생성 고유번호: %d", saveTypeTxt, resSavedMember.getId());
+				Log insertMemberLog = Log.builder()
+						.logType("i")
+						.refTable("member")
+						.refTableId(resSavedMember.getId())
+						.createDatetime(now)
+						.workerName(user.getName())
+						.createMemberId(user.getId())
+						.logContent(logContent)
+						.build();
+				logRepository.save(insertMemberLog);
+			}
+		}
+		
+		// 업체담당자 삭제 체크
+		List<Integer> delManagerIds = saveAgentDataReq.getDelManagerIds();
+		if (!delManagerIds.isEmpty()) {
+			log.info("=== 담당자 정보 삭제 진입");
+			agentManagerRepository.delAgentManagerByAgentIds(delManagerIds, YnType.n, now, user.getId());
+			// 삭제된 업체 담당자 id
+			String managerIds = delManagerIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+			String delManagerLogContent = String.format("[업체담당자 삭제] 업체 정보 %s에 따른 담당자 삭제. 고유번호 - %s", saveTypeTxt, managerIds);
+			
+			// 삭제된 담당자에 대한 이력을 남긴다.
+			Log delManagerLog = Log.builder()
+					.logType("d")
+					.refTable("agent_manager")
+					.createDatetime(now)
+					.workerName(user.getName())
+					.createMemberId(user.getId())
+					.logContent(delManagerLogContent)
+					.build();
+			logRepository.save(delManagerLog);
+		}
+		
+		// 업체담당자 등록/수정
+		List<AgentManagerDTO.AgentManagerRowData> managers = saveAgentDataReq.getManagers();
+		// 담당자 정보 존재 시, 등록 or 수정
+		if (!managers.isEmpty()) {
+			// FIX 현재 구조에선, 수정사항이 없는 담당자도 같이 update 대상이 되는 문제가 발생 (프론트에서 구분 필요)
+			log.info("=== 담당자 정보 등록/수정 진입");
+			// 등록/수정 분기처리를 위해 stream API 보단 for문 사용
+			for (AgentManagerDTO.AgentManagerRowData row : managers) {
+				
+				// 등록
+				if (row.getId() == null) {
+					log.info("=== 담당자 정보 등록");
+					AgentManager newEntity = agentManagerMapper.toEntity(row);
+					newEntity.setAgentId(id);
+					newEntity.setCreateDatetime(now);
+					newEntity.setCreateMemberId(user.getId());
+					// 저장
+					agentManagerRepository.save(newEntity);
+				}
+				// 수정
+				else {
+					log.info("=== 담당자 정보 수정");
+					// 기존 영속성 entity 객체 가져오기
+					AgentManager existingEntity = agentManagerRepository.findById(row.getId()).orElseThrow(() -> new EntityNotFoundException("해당 업체 담당자를 찾지 못 했습니다."));
+					
+					// NOTE 별도로 save() 안 해도, @Transactional 이면 dirty checking으로 업데이트 함
+					// mapstruct를 이용하여 값 덮어쓰기
+					agentManagerMapper.updateEntity(row, existingEntity);
+					existingEntity.setUpdateDatetime(now);
+					existingEntity.setUpdateMemberId(user.getId());
+				}
+			}
+		}
+		// 첨부파일 확인 및 저장
+		return 1;
 	}
 	
 }

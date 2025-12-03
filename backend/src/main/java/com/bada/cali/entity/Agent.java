@@ -4,6 +4,7 @@ import com.bada.cali.common.YnType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 // 업체 정보
@@ -94,11 +95,11 @@ public class Agent {
 	
 	@Column(name = "self_discount")
 	@Builder.Default
-	private Integer selfDiscount = 0;     // 자체 할인율
+	private BigDecimal selfDiscount = BigDecimal.ZERO;   // 자체 할인율
 	
 	@Column(name = "out_discount")
 	@Builder.Default
-	private Integer outDiscount = 0;      // 대행 할인율
+	private BigDecimal outDiscount = BigDecimal.ZERO;      // 대행 할인율
 	
 	// NOTATION 8번 (@Builder.Default)
 	@Enumerated(EnumType.STRING)

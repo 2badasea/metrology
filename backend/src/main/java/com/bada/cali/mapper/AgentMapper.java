@@ -3,9 +3,7 @@ package com.bada.cali.mapper;
 import com.bada.cali.dto.AgentDTO;
 import com.bada.cali.dto.MemberDTO;
 import com.bada.cali.entity.Agent;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 
 @Mapper(
 		componentModel = "spring",
@@ -23,5 +21,13 @@ public interface AgentMapper {
 	
 	// 업체 리스트 데이터 반환 (entity -> dto)
 	AgentDTO.AgentRowData toAgentRowDataFromEntity(Agent agent);
+	
+	// 업체 등록 시, DTO -> Entity로 변환
+	Agent toAgentEntityFromDTO(AgentDTO.SaveAgentDataReq agentRowData);
+	
+	@BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+	Agent toEntityFromUpdateDTO(AgentDTO.SaveAgentDataReq agentRowData, @MappingTarget Agent agent);
+	
+	
 	
 }
