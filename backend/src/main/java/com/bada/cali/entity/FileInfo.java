@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class FileInfo {
 	
 	@Id
@@ -60,12 +61,14 @@ public class FileInfo {
 	private LocalDateTime updateDatetime;
 	
 	@Column(name = "update_member_id", nullable = false)
-	private Integer updateMemberId;
+	@Builder.Default
+	private Integer updateMemberId = 0;
 	
 	@Column(name = "delete_datetime")
 	private LocalDateTime deleteDatetime;
 	
 	@Column(name = "delete_member_id", nullable = false)
-	private Integer deleteMemberId;
+	@Builder.Default
+	private Integer deleteMemberId = 0;
 	
 }

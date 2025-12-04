@@ -39,6 +39,7 @@ public class AgentServiceImpl {
 	private final MemberRepository memberRepository;
 	private final LogRepository logRepository;
 	private final FileInfoRepository fileInfoRepository;
+	private final FileServiceImpl fileServiceImpl;
 	// mapper
 	private final AgentMapper agentMapper;        // dto <--> entity 간의 변환용 mapstruct
 	private final AgentManagerMapper agentManagerMapper;
@@ -276,14 +277,14 @@ public class AgentServiceImpl {
 			insertAgent.setCreateType("auto");
 			insertAgent.setCreateDatetime(now);
 			Agent savedAgent = agentRepository.save(insertAgent);
-			id = savedAgent.getId();	// id 변수에 대입
+			id = savedAgent.getId();    // id 변수에 대입
 		}
 		// 수정
 		else {
 			Agent originAgent = agentRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("업체를 찾을 수 없습니다."));
 			Agent updateAgent = agentMapper.toEntityFromUpdateDTO(saveAgentDataReq, originAgent);
 			updateAgent.setUpdateDatetime(now);
-			updateAgent.setUpdateMemberId(user.getId());		// 로그인 사용자
+			updateAgent.setUpdateMemberId(user.getId());        // 로그인 사용자
 			Agent savedAgent = agentRepository.save(updateAgent);
 		}
 		
@@ -311,14 +312,14 @@ public class AgentServiceImpl {
 			if (agentUser.isEmpty()) {
 				// builder 객체 활용
 				Member saveMember = Member.builder()
-						.loginId(agentNum)					// 로그인아이디(사업자번호)
-						.pwd(passwordEncoder.encode("1234"))		// 임시비밀번호
-						.createDatetime(now)					// 생성일시
-						.createMemberId(user.getId())			// 생성자
-						.tel(saveAgentDataReq.getAgentTel())	// 연락처
-						.email(saveAgentDataReq.getEmail())		// 이메일
-						.name(saveAgentDataReq.getName())		// 이름(업체명)
-						.agentId(id)						// 업체id
+						.loginId(agentNum)                    // 로그인아이디(사업자번호)
+						.pwd(passwordEncoder.encode("1234"))        // 임시비밀번호
+						.createDatetime(now)                    // 생성일시
+						.createMemberId(user.getId())            // 생성자
+						.tel(saveAgentDataReq.getAgentTel())    // 연락처
+						.email(saveAgentDataReq.getEmail())        // 이메일
+						.name(saveAgentDataReq.getName())        // 이름(업체명)
+						.agentId(id)                        // 업체id
 						.build();
 				Member resSavedMember = memberRepository.save(saveMember);
 				// 신규생성 아이디에 대한 이력을 남긴다. (if문으로 resSavedMember가 null인지 체크 필요X, 실패시 예외 터지게 됨)
@@ -340,7 +341,7 @@ public class AgentServiceImpl {
 		List<Integer> delManagerIds = saveAgentDataReq.getDelManagerIds();
 		if (!delManagerIds.isEmpty()) {
 			log.info("=== 담당자 정보 삭제 진입");
-			agentManagerRepository.delAgentManagerByAgentIds(delManagerIds, YnType.n, now, user.getId());
+			agentManagerRepository.delAgentManagerByIds(delManagerIds, YnType.n, now, user.getId());
 			// 삭제된 업체 담당자 id
 			String managerIds = delManagerIds.stream().map(String::valueOf).collect(Collectors.joining(","));
 			String delManagerLogContent = String.format("[업체담당자 삭제] 업체 정보 %s에 따른 담당자 삭제. 고유번호 - %s", saveTypeTxt, managerIds);
@@ -391,6 +392,18 @@ public class AgentServiceImpl {
 			}
 		}
 		// 첨부파일 확인 및 저장
+		if (files != null && !files.isEmpty()) {
+			log.info("=== 첨부파일 저장 진입. 파일 개수 {}", files.size());
+			
+			// FileService에서 모두 처리하도록 한다.
+			String refTableName = "agent";
+			String dir = String.format("agent/%d/", id);        // 버킷 내 디렉토리명
+			
+			// file_info 저장 및 스토리지 업로드 진행
+			fileServiceImpl.saveFiles(refTableName, id, dir, files, user);
+		}
+		
+		// 예외가 터지지 않았다면 성공이므로 1 리턴
 		return 1;
 	}
 	
