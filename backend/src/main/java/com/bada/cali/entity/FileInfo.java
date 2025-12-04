@@ -57,6 +57,12 @@ public class FileInfo {
 	@Column(name = "create_member_id", nullable = false)
 	private Integer createMemberId;
 	
+	// ★ Member와 read-only 연관관계 추가
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "create_member_id", insertable = false, updatable = false)
+	private Member createMember;
+	
+	
 	@Column(name = "update_datetime")
 	private LocalDateTime updateDatetime;
 	

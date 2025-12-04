@@ -31,6 +31,7 @@ $(function () {
 			// NOTE async, await으로도 가능한지 확인
 			try {
 				const resGetInfo = await g_ajax('/api/basic/getAgentInfo', { id: agentId });
+				console.log('🚀 ~ resGetInfo:', resGetInfo);
 				if (resGetInfo) {
 					$modal.find('form.agentModifyForm input[name], textarea[name]').setupValues(resGetInfo);
 					if (resGetInfo.isClose == 'y') {
@@ -46,6 +47,10 @@ $(function () {
 					if (resGetInfo.agentNum) {
 						originAgentNum = resGetInfo.agentNum;
 						$('button.chkAgentNum', $modal).val('y').removeClass('btn-secondary').addClass('btn-success');
+					}
+					// 첨부파일이 존재하는 경우 첨부파일 조회 버튼 색상 변경
+					if (resGetInfo.fileCnt != undefined && resGetInfo.fileCnt > 0) {
+						$('.searchFile', $modal).val(resGetInfo.fileCnt).removeClass('btn-secondary').addClass('btn-success');
 					}
 				}
 			} catch (err) {
@@ -292,7 +297,7 @@ $(function () {
 			$newInput.val('');
 
 			const MAX_FILE_SIZE = 10 * 1024 * 1024; // byte 단위
-			const MAX_FILE_COUNT = 3;		// 한 번에 최대 업로드 개수
+			const MAX_FILE_COUNT = 3; // 한 번에 최대 업로드 개수
 
 			const files = this.files;
 			if (!files || files.length === 0) {
@@ -315,11 +320,33 @@ $(function () {
 					g_toast(`'${file.name}' 파일의 크기(${sizeMB} MB)가 허용 용량(최대 10 MB)을 초과합니다.`, 'warning');
 					$(this).replaceWith($newInput);
 					return false;
-				};
+				}
 			}
-
 			console.log('업로드 가능한 파일들:', files);
-			
+		})
+		// 첨부파일 조회
+		.on('click', '.searchFile', async function () {
+			if ($(this).val() > 0) {
+				// g_modal 호출하기
+				await g_modal(
+					'/basic/fileList',
+					{
+						refTableName: 'agent',
+						refTableId: agentId,
+					},
+					{
+						size: '',
+						title: '첨부파일 확인',
+						show_close_button: true, // 닫기 버튼만 활성화
+						show_confirm_button: false,
+					}
+				).then((data) => {
+					console.log('🚀 ~ data:', data);
+				});
+			} else {
+				g_toast('등록된 첨부파일이 없습니다', 'warning');
+				return false;
+			}
 		});
 
 	// 저장
@@ -334,7 +361,7 @@ $(function () {
 		const managerRows = $modal.grid.getData();
 		if (managerRows.length > 0) {
 			// 담당자명 체크 & 대표담당자 존재여부 체크
-			let flagMsg = "";
+			let flagMsg = '';
 			let flagManager = true;
 			let flagMain = false;
 			for (const amRow of managerRows) {

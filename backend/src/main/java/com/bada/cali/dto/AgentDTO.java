@@ -68,6 +68,9 @@ public class AgentDTO {
 		private BigDecimal selfDiscount;
 		private BigDecimal outDiscount;
 		private YnType isClose;
+		
+		// 첨부파일 개수 (업체정보를 리턴할 때 같이 담아준다.
+		private Integer fileCnt;
 	}
 	
 	// 업체 삭제 요청 DTO

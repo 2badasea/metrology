@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<div layout:fragment="content">
+
+    <form class="fileListForm">
+        <table class="table table-bordered text-center mb-0">
+            <colgroup>
+                <col width="*" />
+                <col width="90px" />
+                <col width="150px" />
+                <col width="50px">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>파일명</th>
+                    <th>등록자</th>
+                    <th>등록일시</th>
+                    <th>삭제</th>
+                </tr>
+            </thead>
+        </table>
+        <!-- 파일리스트 출력되는 부분 -->
+        <div style="min-height: 200px; max-height: 600px;" class="scroll scroll-y">
+            <table class="table table-bordered text-center table-hover fileList" style="table-layout: fixed;">
+                <colgroup>
+                    <col width="*" />
+                    <col width="90px" />
+                    <col width="150px" />
+                    <col width="50px">
+                </colgroup>
+                <tbody class="fileListArea">
+                    <!-- 반복문을 통해 생성 -->
+                    <tr th:each="file : ${fileList}">
+                        <td th:text="${file.fileName}">파일명</td> 
+                        <td th:text="${file.writerName}">작성자</td> 
+                        <td th:text="${#temporals.format(file.createDatetime, 'yyyy-MM-dd HH:mm')}">작성일시</td> 
+                        <td class="not_click">
+                            <button type="button" class="btn btn-danger w-100 rounded-0 delete"><i
+                                    class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </form>
+</div>
+
+</html>

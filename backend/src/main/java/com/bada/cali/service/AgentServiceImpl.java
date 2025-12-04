@@ -38,7 +38,6 @@ public class AgentServiceImpl {
 	private final AgentManagerRepository agentManagerRepository;
 	private final MemberRepository memberRepository;
 	private final LogRepository logRepository;
-	private final FileInfoRepository fileInfoRepository;
 	private final FileServiceImpl fileServiceImpl;
 	// mapper
 	private final AgentMapper agentMapper;        // dto <--> entity 간의 변환용 mapstruct
@@ -100,7 +99,15 @@ public class AgentServiceImpl {
 	public AgentDTO.AgentRowData getAgentInfo(Integer id) {
 		YnType isVisible = YnType.y;    // 삭제되지 않은 것만 표기
 		// entity에서 가져오자마자 DTO로 변환 후 api contorller로 리턴
-		return agentMapper.toAgentRowDataFromEntity(agentRepository.findByIsVisibleAndId(isVisible, id));
+		
+		// 업체정보
+		AgentDTO.AgentRowData agentRowData = agentMapper.toAgentRowDataFromEntity(agentRepository.findByIsVisibleAndId(isVisible, id));
+		
+		// 첨부파일 존재하는지 확인 (refTableName, refTableId)
+		int fileCount = fileServiceImpl.getFileInfos("agent", id).size();
+		agentRowData.setFileCnt(fileCount);	// 첨부파일 개수 추가
+		
+		return agentRowData;
 	}
 	
 	// 업체 삭제
