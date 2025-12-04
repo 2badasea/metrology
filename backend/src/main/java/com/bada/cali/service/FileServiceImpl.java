@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.bada.cali.common.YnType;
 import com.bada.cali.config.NcpStorageProperties;
+import com.bada.cali.dto.FileInfoDTO;
 import com.bada.cali.entity.FileInfo;
 import com.bada.cali.repository.FileInfoRepository;
 import com.bada.cali.security.CustomUserDetails;
@@ -159,6 +160,15 @@ public class FileServiceImpl {
 			return originName;
 		}
 		return originName.substring(0, lastDot);
+	}
+	
+	// join을 고려하지 않은 단순 file_info 정보만 반환
+	public List<FileInfo> getFileInfos(String refTableName, int refTableId) {
+		return fileInfoRepository.findByRefTableNameAndRefTableIdAndIsVisible(refTableName, refTableId, YnType.y);
+	}
+	
+	public List<FileInfoDTO.FileListRes> getFileInfosWithJoin(String refTableName, int refTableId) {
+		return fileInfoRepository.getFileInfosWithJoin(refTableName, refTableId, YnType.y);
 	}
 	
 	
