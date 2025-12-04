@@ -115,9 +115,7 @@ public class ApiBasicController {
 		
 		int resSaveAgent = agentService.saveAgent(saveAgentDataReq, files, user);
 		
-		
-		
-		return null;
+		return ResponseEntity.ok(new ResMessage<>(resSaveAgent, null, null));
 	}
 	
 	

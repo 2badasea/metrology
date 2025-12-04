@@ -19,7 +19,7 @@ public interface AgentManagerRepository extends CrudRepository<AgentManager, Int
 	
 	List<AgentManager> findAllByAgentIdInAndIsVisible(Collection<Integer> agentIds, YnType isVisible);
 	
-	// 업체 담당자 삭제
+	// 업체 담당자 삭제 (업체 기준)
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query("""
 			       update AgentManager am
@@ -32,6 +32,20 @@ public interface AgentManagerRepository extends CrudRepository<AgentManager, Int
 					  @Param("isVisible") YnType isVisible,
 					  @Param("deleteDatetime") LocalDateTime deleteDatetime,
 					  @Param("deleteMemberId") Integer deleteMemberId);
+	
+	// 업체 담당자 삭제 (담당자별id값 기준)
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+			       update AgentManager am
+			          set am.isVisible = :isVisible,
+			              am.deleteDatetime = :deleteDatetime,
+			              am.deleteMemberId = :deleteMemberId
+			        where am.id in :agentManagerIds
+			""")
+	void delAgentManagerByIds(@Param("agentManagerIds") Collection<Integer> agentManagerIds,
+								   @Param("isVisible") YnType isVisible,
+								   @Param("deleteDatetime") LocalDateTime deleteDatetime,
+								   @Param("deleteMemberId") Integer deleteMemberId);
 	
 	
 	

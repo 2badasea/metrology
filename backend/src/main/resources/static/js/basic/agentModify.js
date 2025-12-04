@@ -333,20 +333,27 @@ $(function () {
 		// 담당자 정보 세팅
 		const managerRows = $modal.grid.getData();
 		if (managerRows.length > 0) {
-			let flagManager = false;
-			let flagMsg = '';
+			// 담당자명 체크 & 대표담당자 존재여부 체크
+			let flagMsg = "";
+			let flagManager = true;
+			let flagMain = false;
 			for (const amRow of managerRows) {
-				// 대표담당자 존재여부 체크
-				if (amRow.mainYn === 'y') {
-					flagManager = true;
-					flagMsg = '대표담당자가 최소 한 명은 있어야 합니다.';
-				}
-				// 담당자명 체크
+				// 담당자명이 존재하지 않는 경우
 				if (!check_input(amRow.name)) {
-					flagManager = true;
 					flagMsg = '담당자명이 존재하지 않습니다.';
+					flagManager = false;
+					break;
+				}
+				if (amRow.mainYn === 'y') {
+					flagMain = true;
 				}
 			}
+			// 대표담당자가 한 명도 없었던 경우
+			if (!flagMain) {
+				flagManager = false;
+				flagMsg = '대표담당자가 최소 한 명은 있어야 합니다.';
+			}
+
 			if (!flagManager) {
 				g_toast(flagMsg, 'warning');
 				return false;
@@ -431,6 +438,7 @@ $(function () {
 			} catch (err) {
 				custom_ajax_handler(err);
 			} finally {
+				Swal.close();
 				$('.btn_save', $modal).prop('disabled', false);
 				return false;
 			}
