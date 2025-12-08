@@ -14,7 +14,7 @@ $(function () {
 	// let $modal = $('.modal-view:not(.modal-view-applied)');
 	let $modal_root = $modal.closest('.modal');
 
-	let agentId = 0; // 업체id
+	let agentId = null; // 업체id
 	let originAgentNum = ''; // 수정 전 사업자번호
 	let delManagerIds = []; // 삭제 대상 담당자id
 
@@ -326,7 +326,8 @@ $(function () {
 		})
 		// 첨부파일 조회
 		.on('click', '.searchFile', async function () {
-			if ($(this).val() > 0) {
+			const $btn = $(this);
+			if ($btn.val() > 0) {
 				// g_modal 호출하기
 				await g_modal(
 					'/basic/fileList',
@@ -335,13 +336,16 @@ $(function () {
 						refTableId: agentId,
 					},
 					{
-						size: '',
+						size: 'lg',
 						title: '첨부파일 확인',
 						show_close_button: true, // 닫기 버튼만 활성화
 						show_confirm_button: false,
 					}
 				).then((data) => {
-					console.log('🚀 ~ data:', data);
+					// 첨부파일 개수가 0인 경우, 첨부파일 조회 안 되도록 변경
+					if (data?.fileCnt === 0) {
+						$btn.val(0).removeClass('btn-success').addClass('btn-secondary');
+					}
 				});
 			} else {
 				g_toast('등록된 첨부파일이 없습니다', 'warning');
@@ -430,7 +434,8 @@ $(function () {
 			return false;
 		}
 
-		formData.id = agentId ?? 0; // 등록/수정 여부 판단
+		// NOTE notation 28번에 정리하기. 등록이더라도 0을 보내게 되면 JPA 입장에서는 update라고 판단함.
+		formData.id = agentId ?? null; // 등록/수정 여부 판단
 		formData.managers = managerRows; // 담당자 정보
 		formData.delManagerIds = delManagerIds; // 삭제된 담당자 정보
 
@@ -459,6 +464,7 @@ $(function () {
 				if (res?.code == 1) {
 					await g_message(`업체정보 ${saveTypeTxt}`, `업체정보가 ${saveTypeTxt} 되었습니다.`, 'success');
 					$modal_root.modal('hide');
+					return true;   // ✅ 이거 추가
 				} else {
 					await g_message(`업체정보 ${saveTypeTxt} 실패`, `업체정보가 ${saveTypeTxt}에 실패했습니다.`, 'warning');
 				}
@@ -467,7 +473,6 @@ $(function () {
 			} finally {
 				Swal.close();
 				$('.btn_save', $modal).prop('disabled', false);
-				return false;
 			}
 		}
 		// 저장x

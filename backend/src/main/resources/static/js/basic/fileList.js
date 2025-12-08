@@ -14,12 +14,68 @@ $(function () {
 		$modal.param = param;
 		console.log('🚀 ~ $modal.param:', $modal.param);
 
+		console.log('테스트입니다.');
 	};
 
+	console.log('모달 확인');
+	console.log($modal);
 
-	// 저장?
+	// 모달 내 이벤트 정의
+	$modal
+		// 다운로드
+		.on('click', 'td:not(.not_click)', function (e) {
+			console.log('file donwload!!');
+			const fileId = $(this).closest('tr').data('fileId');
+			console.log('🚀 ~ fileId:', fileId);
+			if (!fileId || fileId == 0) {
+				g_toast('다운로드 받을 파일정보가 없습니다', 'warning');
+				return false;
+			}
+			// get 방식으로 바로 호출
+			window.location.href = '/file/fileDown/' + fileId;
+		})
+		// 파일 삭제
+		.on('click', 'button.delete', async function (e) {
+			console.log('삭제클릭');
+			const $tr = $(this).closest('tr');
+			const fileId = $tr.data('fileId');
+			const deleteConfirm = await g_message(`파일 삭제`, `해당 파일을 삭제하시겠습니까?`, 'warning', 'confirm');
+
+			if (deleteConfirm.isConfirmed) {
+				g_loading_message(); // 로딩창
+
+				try {
+					const resDelete = await g_ajax('/file/fileDelete/' + fileId);
+					Swal.close();	// 통신이 끝나면 로딩창을 닫는다.
+					if (resDelete?.code > 0) {
+						await g_message(`삭제되었습니다.`, 'success');
+						// 영역삭제
+						$tr.remove();
+
+						// 영역삭제 후, 남은 tr이 없다면 모달을 닫는다.
+						const trCnt = $('.fileList tbody tr', $modal);
+						if (trCnt.length === 0) {
+							console.log('확인!!!');
+							$modal.param.fileCnt = 0;
+							$modal_root.data('modal-data').click_confirm_button();
+						}
+
+					} else {
+						await g_message(`삭제처리에 실패했습니다.`, 'warning');
+					}
+				} catch (xhr) {
+					custom_ajax_handler(xhr);
+				} finally {
+				}
+			} else {
+				return false;
+			}
+		});
+
+	// 저장
 	$modal.confirm_modal = async function (e) {
-
+		$modal_root.modal('hide');
+		return $modal.param;
 	};
 
 	$modal.data('modal-data', $modal);

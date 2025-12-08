@@ -147,20 +147,28 @@ $(function () {
 		// 등록
 		.on('click', '.addAgentBtn', async function (e) {
 			e.preventDefault();
-			await g_modal(
-				'/basic/agentModify',
-				{},
-				{
-					title: '업체 등록',
-					size: 'xxl',
-					show_close_button: true,
-					show_confirm_button: true,
-					confirm_button_text: '저장',
+
+			try {
+				const resModal = await g_modal(
+					'/basic/agentModify',
+					{},
+					{
+						title: '업체 등록',
+						size: 'xxl',
+						show_close_button: true,
+						show_confirm_button: true,
+						confirm_button_text: '저장',
+					}
+				);
+
+				// 모달이 성공적으로 종료되었을 때만 그리드 갱신
+				if (resModal) {
+					$modal.grid.reloadData();
 				}
-			).then((resModal) => {
-				// 모달창이 닫히면 그리드 갱신
-				$modal.grid.reloadData();
-			});
+			} catch (err) {
+				console.error('g_modal 실행 중 에러', err);
+			}
+
 		})
 		// 삭제
 		.on('click', '.deleteAgentBtn', async function (e) {
@@ -262,23 +270,46 @@ $(function () {
 
 		if (row && e.columnName != '_checked') {
 			// 업체수정 모달 띄우기
-			console.log('업체수정 모달 open!!');
-			await g_modal(
-				'/basic/agentModify',
-				{
-					id: row.id,
-				},
-				{
-					size: 'xxl',
-					title: '업체 수정',
-					show_close_button: true,
-					show_confirm_button: true,
-					confirm_button_text: '저장',
-				}
-			).then(() => {
-				// 모달창이 닫히면 그리드가 갱신되도록 변경
-				$modal.grid.reloadData();
-			});
+			try {
+				const resModal = await g_modal(
+					'/basic/agentModify',
+					{
+						id: row.id,
+					},
+					{
+						size: 'xxl',
+						title: '업체 수정',
+						show_close_button: true,
+						show_confirm_button: true,
+						confirm_button_text: '저장',
+					}
+				);
+
+				// 모달이 성공적으로 종료되었을 때만 그리드 갱신
+				if (resModal) {
+					$modal.grid.reloadData();
+				}				
+
+
+			} catch (err) {
+				console.error('g_modal 실행 중 에러', err);
+			}
+			// await g_modal(
+			// 	'/basic/agentModify',
+			// 	{
+			// 		id: row.id,
+			// 	},
+			// 	{
+			// 		size: 'xxl',
+			// 		title: '업체 수정',
+			// 		show_close_button: true,
+			// 		show_confirm_button: true,
+			// 		confirm_button_text: '저장',
+			// 	}
+			// ).then(() => {
+			// 	// 모달창이 닫히면 그리드가 갱신되도록 변경
+			// 	$modal.grid.reloadData();
+			// });
 		}
 	});
 

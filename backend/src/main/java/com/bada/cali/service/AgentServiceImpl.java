@@ -276,10 +276,12 @@ public class AgentServiceImpl {
 		LocalDateTime now = LocalDateTime.now();
 		
 		// 업체 저장
-		Integer id = saveAgentDataReq.getId();
-		String saveTypeTxt = id > 0 ? "수정" : "등록";
+		Integer id = saveAgentDataReq.getId();	// null 가능
+		boolean isNew = (id == null || id == 0);	// true 시 등록
+		String saveTypeTxt = isNew ? "등록" : "수정";
+		
 		// 등록
-		if (id == 0) {
+		if (isNew) {
 			Agent insertAgent = agentMapper.toAgentEntityFromDTO(saveAgentDataReq);
 			insertAgent.setCreateType("auto");
 			insertAgent.setCreateDatetime(now);

@@ -106,19 +106,15 @@ public class ApiBasicController {
 		return ResponseEntity.ok(body);
 	}
 	
+	// 업체정보 등록/수정
 	@PostMapping(value = "/saveAgent")
 	public ResponseEntity<ResMessage<Object>> saveAgent(
 			@RequestPart("saveAgentDataReq") AgentDTO.SaveAgentDataReq saveAgentDataReq,
 			@RequestPart(value = "files", required = false) List<MultipartFile> files,
 			@AuthenticationPrincipal CustomUserDetails user
 	) {
-		
 		int resSaveAgent = agentService.saveAgent(saveAgentDataReq, files, user);
-		
 		return ResponseEntity.ok(new ResMessage<>(resSaveAgent, null, null));
 	}
-	
-	
-	
 	
 }

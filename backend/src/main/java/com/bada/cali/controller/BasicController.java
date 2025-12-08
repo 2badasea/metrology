@@ -55,13 +55,11 @@ public class BasicController {
 	// 첨부파일 리스트 [모달]
 	@PostMapping(value = "/fileList")
 	public String fileList(Model model, @RequestParam String refTableName, @RequestParam int refTableId) {
-		log.info("refTableName: " + refTableName);
-		log.info("refTableId: " + refTableId);
 		
+		// 작업자까지 join을 통해서 가져온다.
 		List<FileInfoDTO.FileListRes> fileList = fileService.getFileInfosWithJoin(refTableName, refTableId);
 		
 		model.addAttribute("fileList", fileList);
-		
 		return "basic/fileList";
 	}
 	
