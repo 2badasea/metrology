@@ -32,10 +32,10 @@
                 </colgroup>
                 <tbody class="fileListArea">
                     <!-- 반복문을 통해 생성 -->
-                    <tr th:each="file : ${fileList}">
-                        <td th:text="${file.fileName}">파일명</td> 
-                        <td th:text="${file.writerName}">작성자</td> 
-                        <td th:text="${#temporals.format(file.createDatetime, 'yyyy-MM-dd HH:mm')}">작성일시</td> 
+                    <tr class="cursor_pointer" th:each="file : ${fileList}" th:attr="data-file-id=${file.id}">
+                        <td th:text="${file.fileName}">파일명</td>
+                        <td th:text="${file.writerName}">작성자</td>
+                        <td th:text="${#temporals.format(file.createDatetime, 'yyyy-MM-dd HH:mm')}">작성일시</td>
                         <td class="not_click">
                             <button type="button" class="btn btn-danger w-100 rounded-0 delete"><i
                                     class="bi bi-trash"></i></button>

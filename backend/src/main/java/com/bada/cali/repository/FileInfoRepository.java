@@ -4,10 +4,13 @@ import com.bada.cali.common.YnType;
 import com.bada.cali.dto.FileInfoDTO;
 import com.bada.cali.entity.FileInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -36,6 +39,21 @@ public interface FileInfoRepository extends JpaRepository<FileInfo, Long> {
 			@Param("refTableName") String refTableName,
 			@Param("refTableId") Integer refTableId,
 			@Param("isVisible") YnType isVisible
+	);
+	
+	// 파일 삭제 처리
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+			       update FileInfo f
+			          set f.isVisible = :isVisible,
+			              f.deleteDatetime = :deleteDatetime,
+			              f.deleteMemberId = :deleteMemberId
+			        where f.id = :fileId
+			""")
+	int deleteFile(@Param("fileId") Long fileId,
+					  @Param("isVisible") YnType isVisible,
+					  @Param("deleteDatetime") LocalDateTime deleteDatetime,
+					  @Param("deleteMemberId") Integer deleteMemberId
 	);
 	
 	

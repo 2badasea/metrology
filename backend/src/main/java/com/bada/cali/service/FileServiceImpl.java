@@ -1,7 +1,10 @@
 package com.bada.cali.service;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.bada.cali.common.YnType;
 import com.bada.cali.config.NcpStorageProperties;
 import com.bada.cali.dto.FileInfoDTO;
@@ -10,11 +13,19 @@ import com.bada.cali.repository.FileInfoRepository;
 import com.bada.cali.security.CustomUserDetails;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +38,7 @@ public class FileServiceImpl {
 	private final FileInfoRepository fileInfoRepository;
 	private final AmazonS3 ncloudS3Client;
 	private final NcpStorageProperties storageProps; // endpoint, bucketName 등
+	private final NcpStorageProperties ncpStorageProperties;
 	
 	@Transactional
 	public void saveFiles(String refTableName,
@@ -135,6 +147,72 @@ public class FileServiceImpl {
 			}
 			throw new RuntimeException("파일 업로드 중 오류 발생", e);
 		}
+	}
+	
+	@Transactional(readOnly = true)
+	public ResponseEntity<Resource> downloadFile(Long fileId) {
+		
+		// DB에서 file조회
+		FileInfo fileInfo = fileInfoRepository.findById(fileId).orElseThrow(() -> new IllegalArgumentException("파일 정보를 찾을 수 없습니다. id= " + fileId));
+		
+		String bucket = storageProps.getBucketName();
+		String rootDir = storageProps.getRootDir();
+		String dir = fileInfo.getDir();
+		String extension = fileInfo.getExtension();
+		
+		// 업로드 시 사용했던 규칙 그대로 objectKey 생성
+		String objectKey = rootDir + "/";
+		if (dir.endsWith("/")) {
+			objectKey += dir + fileInfo.getId();
+		} else {
+			objectKey += dir + "/" + fileInfo.getId();
+		}
+		if (extension != null && !extension.isEmpty()) {
+			objectKey = objectKey + "." + extension;
+		}
+		
+		try {
+			// NCP Object Storage에서 파일 가져오기 (스트리밍 방식)
+			S3Object s3Object = ncloudS3Client.getObject(bucket, objectKey);
+			S3ObjectInputStream s3ObjectInputStream = s3Object.getObjectContent();
+			Long contentLength = s3Object.getObjectMetadata().getContentLength();
+			
+			Resource resource = new InputStreamResource(s3ObjectInputStream);
+			
+			// 헤더용 파일명, 컨텐츠 타입 세팅
+			String originName = fileInfo.getOriginName();
+			if (originName == null || originName.isBlank()) {
+				originName = "file";
+			}
+			String encodedName = URLEncoder.encode(originName, StandardCharsets.UTF_8).replaceAll("\\+", "%20");    // 공백깨짐 방지
+			
+			String contentType = fileInfo.getContentType();
+			MediaType mediaType;
+			try {
+				if (contentType != null && !contentType.isBlank()) {
+					mediaType = MediaType.parseMediaType(contentType);
+				} else {
+					mediaType = MediaType.APPLICATION_OCTET_STREAM;
+				}
+			} catch (InvalidMediaTypeException e) {
+				mediaType = MediaType.APPLICATION_OCTET_STREAM;
+			}
+			
+			// 다운로드 응답 생성
+			return ResponseEntity.ok().contentType(mediaType).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedName + "\"").contentLength(contentLength).body(resource);
+			
+		} catch (AmazonS3Exception e) {
+			if (e.getStatusCode() == 404) {
+				throw new IllegalArgumentException("스토리지에서 파일을 찾을 수 없습니다. key=" + objectKey, e);
+			}
+			throw new IllegalStateException("스토리지 파일 다운로드 중 오류 발생", e);
+		}
+	}
+	
+	// 파일 삭제(스토리지에선 그대로)
+	@Transactional
+	public int deleteFile(Long fileId, CustomUserDetails user) {
+		return fileInfoRepository.deleteFile(fileId, YnType.n, LocalDateTime.now(), user.getId());
 	}
 	
 	
