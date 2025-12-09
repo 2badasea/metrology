@@ -6,6 +6,8 @@ import com.bada.cali.service.FileServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,7 +35,7 @@ public class BasicController {
 	
 	// 업체관리 페이지
 	@GetMapping(value = "/agentList")
-	public String agentList(Model model) {
+	public String agentList(Model model, @AuthenticationPrincipal UserDetails user) {
 		log.info("업체관리 페이지 이동");
 		return "basic/agentList";
 	}

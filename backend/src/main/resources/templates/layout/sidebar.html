@@ -2,25 +2,66 @@
 <html>
 
 <body>
-  <nav th:fragment="sidebar">
-    <!-- TODO 직원별 권한에 따라 메뉴를 동적으로 표시할 수 있도록 변경 필요 -->
-    <!-- 메뉴들 -->
-    <div class="top_info">
-      <img src="/images/springboot.jpg" alt="springboot.jpg">
-    </div>
-    <div class="menu_wrapper mt-5">
-      <ul>
-        <!-- <li><a href="/basic/loginHistory">로그인 이력관리</a></li> -->
-        <!-- <li><a href="/member/memberList">회원 관리</a></li> -->
-        <li><a href="/basic/agentList">업체관리</a></li>
-        <li><a href="#">게시판</a></li>
-        <li><a href="#">설정</a></li>
-      </ul>
-    </div>
-    <div class="bottom_info">
-      <button class="btn btn-warning w-100 h-100 logoutBtn">로그아웃</button>
-    </div>
-  </nav>
+<nav th:fragment="sidebar" class="sidebar d-flex flex-column">
+	<!-- TODO 직원별 권한에 따라 메뉴를 동적으로 표시할 수 있도록 변경 필요 -->
+	<!-- 상단 로고/정보 영역 -->
+	<div class="top_info d-flex align-items-center mb-4">
+		<a href="/basic/home" class="d-inline-block">
+			<img src="/images/springboot.jpg" alt="springboot.jpg" class="sidebar-logo mr-2">
+		</a>
+	</div>
+	<div class="menu_wrapper flex-grow-1">
+		<!-- renderMode != modal 인 경우에만 메뉴 표시 -->
+		<th:block th:if="${renderMode != 'modal'}">
+			
+			<ul class="nav nav-pills flex-column sidebar-menu">
+				<li class="nav-item" th:each="m1 : ${sideMenus}">
+					
+					<!-- 자식 있는 상위메뉴 -->
+					<a th:if="${!m1.children.isEmpty()}"
+					   href="#"
+					   class="nav-link d-flex justify-content-between align-items-center sidebar-parent"
+					   data-toggle="collapse"
+					   th:attr="data-target=|#menu-${m1.id}|"
+					   aria-expanded="false"
+					   th:classappend="${m1.active} ? ' active'">
+						<span th:text="${m1.alias}">메뉴</span>
+						<span class="caret-icon">&#9662;</span>
+					</a>
+					
+					<!-- 자식 없는 단일 메뉴 -->
+					<a th:if="${m1.children.isEmpty()}"
+					   class="nav-link sidebar-link"
+					   th:href="@{${m1.url}}"
+					   th:text="${m1.alias}"
+					   th:classappend="${m1.active} ? ' active'">
+					</a>
+					
+					<!-- 하위 메뉴 (collapse) -->
+					<div class="collapse sidebar-submenu"
+						 th:id="|menu-${m1.id}|"
+						 th:classappend="${m1.expanded} ? ' show'">
+						<ul class="nav flex-column ml-3">
+							<li class="nav-item" th:each="m2 : ${m1.children}">
+								<a class="nav-link sidebar-sublink"
+								   th:href="@{${m2.url}}"
+								   th:text="${m2.alias}"
+								   th:classappend="${m2.active} ? ' active'">
+								</a>
+							</li>
+						</ul>
+					</div>
+				
+				</li>
+			</ul>
+		
+		</th:block>
+	</div>
+	<!-- 하단 로그아웃 버튼 -->
+	<div class="bottom_info mt-auto">
+		<button class="btn btn-warning w-100 logoutBtn">로그아웃</button>
+	</div>
+</nav>
 </body>
 
 </html>

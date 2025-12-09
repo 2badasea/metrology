@@ -2,6 +2,7 @@ package com.bada.cali.security;
 
 import com.bada.cali.entity.Member;
 import com.bada.cali.common.YnType;
+import com.bada.cali.repository.MemberPermissionReadRepository;
 import com.bada.cali.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -14,7 +15,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Log4j2
 @Service
@@ -22,6 +25,7 @@ import java.util.List;
 public class CustomUserDetailService implements UserDetailsService {
 	
 	private final MemberRepository memberRepository;
+	private final MemberPermissionReadRepository memberPermissionReadRepository;
 	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -54,6 +58,11 @@ public class CustomUserDetailService implements UserDetailsService {
 		// 유저에게 ROLE_USER 권한을 하나 부여한 권한 목록을 생성
 		var authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
 		
+		// 유저가 읽기 가능한 메뉴 id 리스트 조회
+		List<Long> readableMenuIds = memberPermissionReadRepository.findMenuIdsByMemberId(loginMember.getId());
+		// 중복제거 + contains 빠른 검색 위해 Set으로 변환
+		Set<Long> readableMenuIdSet = new HashSet<>(readableMenuIds);
+		
 		// 스프링시큐리티 환경에선 api 요청별로 사용자의 정보를 얻기 위해 httpsession을 이용하는 것은 권장되지 않음
 		// 'SecurityContext/Principal' 로 가져오는 방식이 표준
 		// id도 담겨져 있는 CustomUserDetails를 반환. 위 기존 리턴 객체도 확인
@@ -61,7 +70,9 @@ public class CustomUserDetailService implements UserDetailsService {
 				, loginMember.getLoginId()
 				, loginMember.getPwd()
 				, loginMember.getName()
-				, authorities);
+				, authorities
+				, readableMenuIdSet
+		);
 		
 	}
 }
