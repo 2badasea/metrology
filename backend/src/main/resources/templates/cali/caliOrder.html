@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <div layout:fragment="content">
+        <div class="wrapper">
+            <form class="searchForm mb-1" name="searchForm">
+                <div class="d-flex">
+                    <ul class="list-group list-group-horizontal font-weight-bold mr-auto">
+                        <li>
+                            <button type="button" class="btn btn-danger deleteOrder">삭제</button>
+                            <button type="button" class="btn btn-primary addOrder">등록</button>
+                        </li>
+                    </ul>
+                    <ul class="ml-auto list-group list-group-horizontal" id="searchFormUl">
+                        <li class="mr-1 d-flex">
+                            <select class="form-control progress" name="progress">
+                                <!-- 전체선택(여부)의 경우, 빈값으로 값을 보낸다. -->
+                                <option value="">진행전체</option>
+                                <option value="ing" selected>진행중</option>
+                                <option value="complete">교정완료</option>
+                            </select>
+                        </li>
+                        <li class="mr-1 d-flex">
+                            <div class="input-group">
+                                <select class="form-control searchType" name="searchType" id="searchType">
+                                    <!-- 전체선택의 경우 빈 문자열을 보낸다. -->
+                                    <option value="">전체선택</option>
+                                    <option value="custAgent">신청업체</option>
+                                    <option value="certAgent">성적서발행처</option>
+                                </select>
+                                <div class="input-group-append">
+                                    <input type="input" class="form-control" id="keyword" name="keyword" value="" />
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+            <div class="grid orderList"></div>
+        </div>
+    </div>
+</body>
+
+</html>
