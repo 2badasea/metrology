@@ -10,10 +10,10 @@ import java.time.LocalDateTime;
 @Entity
 @Table(
 		name = "cali_order",
-		uniqueConstraints = {
+		uniqueConstraints = {		// 접수번호 유니크 제약
 				@UniqueConstraint(name = "order_num", columnNames = "order_num")
 		},
-		indexes = {
+		indexes = {		// where조건으로 자주 사용되는 필드에 대해서 인덱스 생성
 				@Index(name = "is_visible", columnList = "is_visible")
 		}
 )

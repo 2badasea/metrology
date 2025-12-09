@@ -19,70 +19,76 @@ $(function () {
 	};
 
 	// 교정접수 리스트 가져오기
-	// $modal.data_source = {
-	// 	api: {
-	// 		readData: {
-	// 			url: '/api/basic/getAgentList',
-	// 			// 'serializer'는 토스트 그리드에서 제공
-	// 			serializer: (grid_param) => {
-	// 				grid_param.isClose = $('form.searchForm .isClose', $modal).val();
-	// 				grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? '';
-	// 				grid_param.keyword = $('form.searchForm', $modal).find('#keyword').val() ?? '';
-	// 				return $.param(grid_param);
-	// 			},
-	// 			method: 'GET',
-	// 		},
-	// 	},
-	// };
+	$modal.data_source = {
+		api: {
+			readData: {
+				url: '/api/cali/getOrderList',
+				// 'serializer'는 토스트 그리드에서 제공
+				serializer: (grid_param) => {
+					// grid_param.isClose = $('form.searchForm .isClose', $modal).val();
+					// grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? '';
+					// grid_param.keyword = $('form.searchForm', $modal).find('#keyword').val() ?? '';
+					return $.param(grid_param);
+				},
+				method: 'GET',
+			},
+		},
+	};
 
 	// 그리드 정의
 	$modal.grid = new Grid({
 		el: document.querySelector('.orderList'),
 		columns: [
 			{
-				header: '접수일',
-				name: 'groupName',
+				header: '긴급여부',
+				name: 'priority_type',
 				className: 'cursor_pointer',
-				width: '100',
+				width: '60',
+				align: 'center',
+				formatter: function (data) {
+					return data.value == 'emergency' ? '긴급' : '일반';
+				},
+			},
+			{
+                // DB상에서는 datetime이지만, 화면에는 date타입으로 표현
+				header: '접수일',
+				name: 'orderDatetime',
+				className: 'cursor_pointer',
+				align: 'center',
+				sortable: true,
+				formatter: function (data) {
+					return !data.value ? '' : data.value.slice(0, 10);
+				},
+			},
+			{
+				header: '접수번호',
+				name: 'order_num',
+				className: 'cursor_pointer',
+				width: '150',
 				align: 'center',
 			},
 			{
 				header: '신청업체',
-				name: 'name',
+				name: 'cust_agent',
+                with: '200',
 				className: 'cursor_pointer',
 				align: 'center',
-				sortable: true,
 			},
 			{
 				header: '신청업체 주소',
-				name: 'addr',
+				name: 'cust_agent_addr',
 				className: 'cursor_pointer',
-				width: '300',
-				align: 'center',
-				sortable: true,
-			},
-			{
-				header: '성적서발행처',
-				name: 'agentNum',
-				className: 'cursor_pointer',
+				width: '250',
 				align: 'center',
 			},
-			{
-				header: '성적서발행처 주소',
-				name: 'ceo',
-				className: 'cursor_pointer',
-				width: '80',
-				align: 'center',
-			},
-
 			{
 				header: '접수내역',
 				className: 'cursor_pointer',
 				align: 'center',
-                formatter: function (data) {
-                    return '<button type="button" class="btn btn-info">접수내역</button>';
-                }
-			}
+				formatter: function (data) {
+					return '<button type="button" class="btn btn-info">접수내역</button>';
+				},
+			},
 		],
 		pageOptions: {
 			useClient: false, // 서버 페이징
@@ -125,7 +131,6 @@ $(function () {
 			} catch (err) {
 				console.error('g_modal 실행 중 에러', err);
 			}
-
 		})
 		// 삭제
 		.on('click', '.deleteOrder', async function (e) {
@@ -163,7 +168,7 @@ $(function () {
 							const delNames = resDelete.data || [];
 							Swal.fire({
 								icon: 'success',
-								title: '삭제 완료'
+								title: '삭제 완료',
 							});
 							// 그리드 갱신
 							$modal.grid.reloadData();
@@ -178,8 +183,7 @@ $(function () {
 			}
 
 			return false;
-		})
-		;
+		});
 
 	// 그리드 이벤트 정의
 	$modal.grid.on('click', async function (e) {
@@ -205,8 +209,7 @@ $(function () {
 				// 모달이 성공적으로 종료되었을 때만 그리드 갱신
 				if (resModal) {
 					$modal.grid.reloadData();
-				}				
-
+				}
 			} catch (err) {
 				console.error('g_modal 실행 중 에러', err);
 			}
