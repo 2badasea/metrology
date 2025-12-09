@@ -36,21 +36,19 @@ public class BasicController {
 	// 업체관리 페이지
 	@GetMapping(value = "/agentList")
 	public String agentList(Model model, @AuthenticationPrincipal UserDetails user) {
-		log.info("업체관리 페이지 이동");
+		model.addAttribute("title", "업체관리");
 		return "basic/agentList";
 	}
 	
 	// 업체 등록/수정 페이지 [모달]
 	@PostMapping(value = "/agentModify")
 	public String agentModify(Model model) {
-		log.info("===== open page: basic/agentModify");
 		return "basic/agentModify";
 	}
 	
 	// 그룹관리 페이지 [모달]
 	@PostMapping(value = "/agentGroupModify")
 	public String agentGroupModify(Model model) {
-		log.info("=============== agentGroupModify ");
 		return "basic/agentGroupModify";
 	}
 	

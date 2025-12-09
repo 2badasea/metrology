@@ -21,7 +21,9 @@ public class Agent {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;        // 고유번호(기본키)
 	
+	// DB상에서는 enum이지만, String 형으로 값 전달 가능
 	@Column(name = "create_type", nullable = false, length = 100)
+	@Builder.Default
 	private String createType = "basic";
 	
 	@Column(name = "name", length = 100)
@@ -30,7 +32,8 @@ public class Agent {
 	@Column(name = "name_en", length = 100)
 	private String nameEn;                // 업체명 영문
 	
-	@Column(name = "agent_flag")
+	// 업체형태. 업체별로 반드시 값을 가짐. 애플리케이션 단에서 값을 삽입해주어야 함.
+	@Column(name = "agent_flag", nullable = false)
 	private Integer agentFlag;            // 업체형태(1,2,4,8,16 bit flag)
 	
 	@Column(name = "ceo", length = 50)
@@ -88,50 +91,49 @@ public class Agent {
 	@Column(name = "remark")
 	private String remark;                // 업체 특이사항 (LONGTEXT)
 	
+	// 교정주기 NOT NULL
 	@Enumerated(EnumType.STRING)
-	@Column(name = "calibration_cycle", length = 20)
+	@Column(name = "calibration_cycle", nullable = false, length = 20)
 	@Builder.Default
 	private CalibrationCycleType calibrationCycle = CalibrationCycleType.self_cycle;  // 교정주기
 	
-	@Column(name = "self_discount")
+	// 'nullable = true'는 명시할 필요가 없음. 기본값이 true이기 때문.
+	@Column(name = "self_discount", nullable = true)
 	@Builder.Default
 	private BigDecimal selfDiscount = BigDecimal.ZERO;   // 자체 할인율
 	
-	@Column(name = "out_discount")
+	@Column(name = "out_discount", nullable = true)
 	@Builder.Default
 	private BigDecimal outDiscount = BigDecimal.ZERO;      // 대행 할인율
 	
 	// NOTATION 8번 (@Builder.Default)
 	@Enumerated(EnumType.STRING)
-	@Column(name = "is_visible", nullable = false, length = 1)
+	@Column(name = "is_visible", nullable = false, columnDefinition = "ENUM('y','n') default 'y'")
 	@Builder.Default
 	private YnType isVisible = YnType.y;  // y:사용, n:미사용
 	
 	@Enumerated(EnumType.STRING)
-	@Column(name = "is_close", nullable = false, length = 1)
+	@Column(name = "is_close", nullable = false, columnDefinition = "ENUM('y','n') default 'n'")
 	@Builder.Default
 	private YnType isClose = YnType.n;    // 폐업 구분
 	
-	@Column(name = "create_datetime", nullable = false, updatable = false)
+	@Column(name = "create_datetime", nullable = false)
 	private LocalDateTime createDatetime; // 등록일시
 	
 	@Column(name = "create_member_id", nullable = false)
-	@Builder.Default
-	private Long createMemberId = 0L;   // 등록자
+	private Long createMemberId;   // 등록자
 	
 	@Column(name = "update_datetime")
 	private LocalDateTime updateDatetime; // 수정일시
 	
-	@Column(name = "update_member_id", nullable = false)
-	@Builder.Default
-	private Long updateMemberId = 0L;   // 수정자
+	@Column(name = "update_member_id")
+	private Long updateMemberId;   // 수정자
 	
 	@Column(name = "delete_datetime")
 	private LocalDateTime deleteDatetime; // 삭제일시
 	
-	@Column(name = "delete_member_id", nullable = false)
-	@Builder.Default
-	private Long deleteMemberId = 0L;   // 삭제자
+	@Column(name = "delete_member_id")
+	private Long deleteMemberId;   // 삭제자
 	
 	// calibration_cycle ENUM 매핑 (DB 값과 맞추려고 소문자 사용)
 	public enum CalibrationCycleType {
