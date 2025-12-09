@@ -87,14 +87,14 @@ public class GlobalViewNameAdvice {
 	 * - menus 는 depth ASC, sortOrder ASC 로 정렬되어 있다고 가정
 	 */
 	private List<MenuNode> buildMenuTree(List<Menu> menus, String currentPath) {
-		Map<Integer, MenuNode> nodeMap = new LinkedHashMap<>();
+		Map<Long, MenuNode> nodeMap = new LinkedHashMap<>();
 		List<MenuNode> roots = new ArrayList<>();
 		
 		// 파라미터로 넘어오는uri의 경우, 맨앞 경로('/')가 짤린 상태로 오기 때문에 임의로 붙여서 비교를 한다.
 		currentPath = "/" + currentPath;
 		
 		for (Menu menu : menus) {
-			Integer id = menu.getId();
+			Long id = menu.getId();
 			
 			// 현재 메뉴에 대한 노드 생성/재사용
 			MenuNode current = nodeMap.computeIfAbsent(id, key -> MenuNode.from(menu));
@@ -111,7 +111,7 @@ public class GlobalViewNameAdvice {
 			}
 			
 			// parent 있는 경우 → 부모 노드 찾아서 children 에 추가
-			Integer parentId = menu.getParent().getId();
+			Long parentId = menu.getParent().getId();
 			MenuNode parentNode = nodeMap.get(parentId);
 			
 			// parent 도 이 유저가 접근 가능한 메뉴라고 가정 (member_permission_read 에도 존재)
@@ -161,7 +161,7 @@ public class GlobalViewNameAdvice {
 	@Setter
 	public static class MenuNode {
 		// ===== getter (Thymeleaf에서 접근 필요) =====
-		private final Integer id;
+		private final Long id;
 		private final String alias;
 		private final String code;
 		private final String url;
@@ -172,7 +172,7 @@ public class GlobalViewNameAdvice {
 		private boolean active;        // 현재 페이지와 매칭되는 메뉴인지
 		private boolean expanded;    // 자식 중에 active가 있어서 펼쳐져야 하는 상위메뉴인지
 		
-		private MenuNode(Integer id, String alias, String code, String url,
+		private MenuNode(Long id, String alias, String code, String url,
 						 Integer depth, Integer sortOrder) {
 			this.id = id;
 			this.alias = alias;

@@ -43,9 +43,7 @@ public class ApiBasicController {
 	
 	// 업체 정보 가져오기(개별)
 	@PostMapping(value = "/getAgentInfo")
-	public ResponseEntity<AgentDTO.AgentRowData> getAgentInfo(@RequestParam Integer id) {
-		log.info("==========getAgentInfo");
-		log.info("==========id: {}", id);
+	public ResponseEntity<AgentDTO.AgentRowData> getAgentInfo(@RequestParam Long id) {
 		
 		AgentDTO.AgentRowData resAgentData = agentService.getAgentInfo(id);
 		return ResponseEntity.ok(resAgentData);

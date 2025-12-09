@@ -19,7 +19,7 @@ public class Agent {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;        // 고유번호(기본키)
+	private Long id;        // 고유번호(기본키)
 	
 	@Column(name = "create_type", nullable = false, length = 100)
 	private String createType = "basic";
@@ -117,21 +117,21 @@ public class Agent {
 	
 	@Column(name = "create_member_id", nullable = false)
 	@Builder.Default
-	private Integer createMemberId = 0;   // 등록자
+	private Long createMemberId = 0L;   // 등록자
 	
 	@Column(name = "update_datetime")
 	private LocalDateTime updateDatetime; // 수정일시
 	
 	@Column(name = "update_member_id", nullable = false)
 	@Builder.Default
-	private Integer updateMemberId = 0;   // 수정자
+	private Long updateMemberId = 0L;   // 수정자
 	
 	@Column(name = "delete_datetime")
 	private LocalDateTime deleteDatetime; // 삭제일시
 	
 	@Column(name = "delete_member_id", nullable = false)
 	@Builder.Default
-	private Integer deleteMemberId = 0;   // 삭제자
+	private Long deleteMemberId = 0L;   // 삭제자
 	
 	// calibration_cycle ENUM 매핑 (DB 값과 맞추려고 소문자 사용)
 	public enum CalibrationCycleType {

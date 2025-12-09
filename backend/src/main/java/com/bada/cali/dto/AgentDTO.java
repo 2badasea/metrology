@@ -40,7 +40,7 @@ public class AgentDTO {
 	@Setter
 	public static class AgentRowData {
 		// 리스트에 데이터 출력할 때
-		private Integer id;
+		private Long id;
 		private String createType;
 		private String groupName;
 		private String name;
@@ -78,8 +78,8 @@ public class AgentDTO {
 	@Getter		// 삭제대상 id값들을 객체에서 꺼내기 위해 선언
 	@NoArgsConstructor
 	public static class DelAgentReq {
-		// 스크립트의 배열([]) 데이터는 java에서 List<Integer>로 받을 수 있음.
-		private List<Integer> ids;		// 브라우저에서 ids라는 key로 넘어옴
+		// 스크립트의 배열([]) 데이터는 java에서 List<Long>로 받을 수 있음.
+		private List<Long> ids;		// 브라우저에서 ids라는 key로 넘어옴
 	}
 	
 	// 그룹관리 그룹명 변경 요청 DTO
@@ -89,7 +89,7 @@ public class AgentDTO {
 	public static class UpdateGroupNameReq {
 		// 값이 존재하지 않으면, 컨트롤러 메서드가 호출되기 '직전'에 막혀서 예외가 던져짐 -> 전예외 차원에서 받게 됨
 		@NotEmpty
-		private List<Integer> ids;
+		private List<Long> ids;
 		
 		private String groupName;		// 빈 문자열 허용 가능
 	}
@@ -99,7 +99,7 @@ public class AgentDTO {
 	@NoArgsConstructor
 	public static class SaveAgentDataReq {
 		// 업체 정보
-		private Integer id;		// 업체 고유 id
+		private Long id;		// 업체 고유 id
 		private Integer agentFlag;
 		private String name;		// 업체명
 		private String nameEn;		// 업체명(영문)
@@ -120,7 +120,7 @@ public class AgentDTO {
 		private String remark;		// 비고 (LONGTEXT)
 		
 		// 삭제 대상 업체담당자 정보
-		List<Integer> delManagerIds;
+		List<Long> delManagerIds;
 		
 		// 업체 담당자 정보
 		List<AgentManagerDTO.AgentManagerRowData> managers;

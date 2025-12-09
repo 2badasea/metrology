@@ -96,7 +96,7 @@ public class AgentServiceImpl {
 	
 	// 개별 업체 정보
 	@Transactional
-	public AgentDTO.AgentRowData getAgentInfo(Integer id) {
+	public AgentDTO.AgentRowData getAgentInfo(Long id) {
 		YnType isVisible = YnType.y;    // 삭제되지 않은 것만 표기
 		// entity에서 가져오자마자 DTO로 변환 후 api contorller로 리턴
 		
@@ -121,14 +121,14 @@ public class AgentServiceImpl {
 		log.info(delAgentReq.toString());    // 단순 toString()의 경우, 해시값 리턴
 		
 		// 삭제대상 업체 id
-		List<Integer> agentIds = delAgentReq.getIds();
+		List<Long> agentIds = delAgentReq.getIds();
 		// 값이 없는 경우 리턴
 		if (agentIds == null || agentIds.isEmpty()) {
 			throw new IllegalArgumentException("삭제할 업체가 없습니다.");
 		}
 		
 		// 사용자 id(CustomUserDetails가 가지고 있는 인증 정보principal)
-		int userId = user.getId();
+		Long userId = user.getId();
 		String userName = user.getName();
 		LocalDateTime now = LocalDateTime.now();    // 삭제된 시간은 모두 동일하게.
 		
@@ -142,7 +142,7 @@ public class AgentServiceImpl {
 		// NOTE 컬렉션을 대상으로 stram API를 사용하는 방식 정의
 		List<String> names = targetNames.stream().map(Agent::getName).toList();
 		// 삭제대상 id (스트림으로 한번 더 조회. 동시성 이슈 확인)
-		List<Integer> deleteAgentIds = targetNames.stream().map(Agent::getId).toList();
+		List<Long> deleteAgentIds = targetNames.stream().map(Agent::getId).toList();
 		
 		// 1. 업체 삭제 (return 값을 받을 필요는 없음. 에러가 발생한 경우, 트랜잭션과 함께 전역예외가 캐치)
 		int delAgentCount = agentRepository.delAgentByIds(deleteAgentIds, YnType.n, now, userId);
@@ -206,7 +206,7 @@ public class AgentServiceImpl {
 	public int updateGroupName(AgentDTO.UpdateGroupNameReq req, CustomUserDetails user) {
 		
 		// 파라미터값 검증
-		List<Integer> updateIds = req.getIds();
+		List<Long> updateIds = req.getIds();
 		if (updateIds == null || updateIds.isEmpty()) {
 			throw new IllegalArgumentException("업데이트 대상 id가 존재하지 않습니다.");
 		}
@@ -247,7 +247,7 @@ public class AgentServiceImpl {
 //		Pageable pageable = PageRequest.of(pageIndex, pageSize); // Pageable 객체
 		YnType isVisible = req.getIsVisible();
 		YnType mainYn = YnType.y;
-		int agentId = req.getAgentId();
+		Long agentId = req.getAgentId();
 		
 		// 데이터 조회
 		List<AgentManager> pageResult = agentManagerRepository.searchAgentManagers(isVisible, agentId, mainYn);
@@ -276,7 +276,7 @@ public class AgentServiceImpl {
 		LocalDateTime now = LocalDateTime.now();
 		
 		// 업체 저장
-		Integer id = saveAgentDataReq.getId();	// null 가능
+		Long id = saveAgentDataReq.getId();	// null 가능
 		boolean isNew = (id == null || id == 0);	// true 시 등록
 		String saveTypeTxt = isNew ? "등록" : "수정";
 		
@@ -347,7 +347,7 @@ public class AgentServiceImpl {
 		}
 		
 		// 업체담당자 삭제 체크
-		List<Integer> delManagerIds = saveAgentDataReq.getDelManagerIds();
+		List<Long> delManagerIds = saveAgentDataReq.getDelManagerIds();
 		if (!delManagerIds.isEmpty()) {
 			log.info("=== 담당자 정보 삭제 진입");
 			agentManagerRepository.delAgentManagerByIds(delManagerIds, YnType.n, now, user.getId());

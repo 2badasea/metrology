@@ -97,7 +97,7 @@ $(function () {
 				{
 					header: '담당자 연락처',
 					name: 'tel',
-					editor: 'text',
+					editor: contact_num_editor,
 					className: 'cursor_pointer',
 					width: '150',
 					align: 'center',

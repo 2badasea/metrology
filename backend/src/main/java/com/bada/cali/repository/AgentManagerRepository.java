@@ -13,11 +13,11 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
-public interface AgentManagerRepository extends CrudRepository<AgentManager, Integer> {
+public interface AgentManagerRepository extends CrudRepository<AgentManager, Long> {
 	
-	AgentManager findByAgentIdAndIsVisible(Integer agentId, YnType ynType);
+	AgentManager findByAgentIdAndIsVisible(Long agentId, YnType ynType);
 	
-	List<AgentManager> findAllByAgentIdInAndIsVisible(Collection<Integer> agentIds, YnType isVisible);
+	List<AgentManager> findAllByAgentIdInAndIsVisible(Collection<Long> agentIds, YnType isVisible);
 	
 	// 업체 담당자 삭제 (업체 기준)
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
@@ -28,10 +28,10 @@ public interface AgentManagerRepository extends CrudRepository<AgentManager, Int
 			              am.deleteMemberId = :deleteMemberId
 			        where am.agentId in :agentIds
 			""")
-	void delAgentManagerByAgentIds(@Param("agentIds") Collection<Integer> agentIds,
+	void delAgentManagerByAgentIds(@Param("agentIds") Collection<Long> agentIds,
 					  @Param("isVisible") YnType isVisible,
 					  @Param("deleteDatetime") LocalDateTime deleteDatetime,
-					  @Param("deleteMemberId") Integer deleteMemberId);
+					  @Param("deleteMemberId") Long deleteMemberId);
 	
 	// 업체 담당자 삭제 (담당자별id값 기준)
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
@@ -42,10 +42,10 @@ public interface AgentManagerRepository extends CrudRepository<AgentManager, Int
 			              am.deleteMemberId = :deleteMemberId
 			        where am.id in :agentManagerIds
 			""")
-	void delAgentManagerByIds(@Param("agentManagerIds") Collection<Integer> agentManagerIds,
+	void delAgentManagerByIds(@Param("agentManagerIds") Collection<Long> agentManagerIds,
 								   @Param("isVisible") YnType isVisible,
 								   @Param("deleteDatetime") LocalDateTime deleteDatetime,
-								   @Param("deleteMemberId") Integer deleteMemberId);
+								   @Param("deleteMemberId") Long deleteMemberId);
 	
 	
 	
@@ -62,7 +62,7 @@ public interface AgentManagerRepository extends CrudRepository<AgentManager, Int
 			""")
 	List<AgentManager> searchAgentManagers(
 			@Param("isVisible") YnType isVisible,
-			@Param("agentId") int agentId,
+			@Param("agentId") Long agentId,
 			@Param("mainYn") YnType mainYn
 //			Pageable pageable
 	);

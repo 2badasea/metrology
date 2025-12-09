@@ -17,7 +17,7 @@ public class AgentManager {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;        // 담당자 고유번호(기본키)
+	private Long id;        // 담당자 고유번호(기본키)
 	
 	@Column(name = "main_yn")
 	@Builder.Default
@@ -26,7 +26,7 @@ public class AgentManager {
 	
 	@Column(name = "agent_id", nullable = false)
 	@Builder.Default
-	private Integer agentId = 0;        // 업체id (내부 직원의 경우 모두 0)
+	private Long agentId = 0L;        // 업체id (내부 직원의 경우 모두 0)
 	
 	@Column(name = "name", length = 100, nullable = false)
 	private String name;        // 담당자명
@@ -48,21 +48,21 @@ public class AgentManager {
 	
 	@Column(name = "create_member_id", nullable = false)
 	@Builder.Default
-	private Integer createMemberId = 0;			// 생성자id
+	private Long createMemberId = 0L;			// 생성자id
 	
 	@Column(name = "update_datetime", nullable = true)
 	private LocalDateTime updateDatetime;		// 수정일시
 	
 	@Column(name = "update_member_id", nullable = false)
 	@Builder.Default
-	private Integer updateMemberId = 0;			// 수정자id
+	private Long updateMemberId = 0L;			// 수정자id
 	
 	@Column(name = "delete_datetime", nullable = true)
 	private LocalDateTime deleteDatetime;		// 삭제일시
 	
 	@Column(name = "delete_member_id", nullable = false)
 	@Builder.Default
-	private Integer deleteMemberId = 0;			// 삭제자id
+	private Long deleteMemberId = 0L;			// 삭제자id
 	
 	
 }

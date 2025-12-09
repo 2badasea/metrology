@@ -15,6 +15,6 @@ public interface MemberPermissionReadRepository extends JpaRepository<MemberPerm
 	@Query("select mpr.menu.id " +
 			"from MemberPermissionRead mpr " +
 			"where mpr.member.id = :memberId")
-	List<Long> findMenuIdsByMemberId(@Param("memberId") int memberId);
+	List<Long> findMenuIdsByMemberId(@Param("memberId") Long memberId);
 	
 }

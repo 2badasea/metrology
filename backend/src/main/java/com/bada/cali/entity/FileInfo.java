@@ -26,7 +26,7 @@ public class FileInfo {
 	private String refTableName;   // 예: "agent", "member", "report" 등
 	
 	@Column(name = "ref_table_id", nullable = false)
-	private Integer refTableId;    // 상위 테이블 PK
+	private Long refTableId;    // 상위 테이블 PK
 	
 	@Column(name = "origin_name", nullable = false, length = 255)
 	private String originName;     // 원본파일명 (확장자 포함)
@@ -55,7 +55,7 @@ public class FileInfo {
 	private LocalDateTime createDatetime;
 	
 	@Column(name = "create_member_id", nullable = false)
-	private Integer createMemberId;
+	private Long createMemberId;
 	
 	// ★ Member와 read-only 연관관계 추가
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -68,13 +68,13 @@ public class FileInfo {
 	
 	@Column(name = "update_member_id", nullable = false)
 	@Builder.Default
-	private Integer updateMemberId = 0;
+	private Long updateMemberId = 0L;
 	
 	@Column(name = "delete_datetime")
 	private LocalDateTime deleteDatetime;
 	
 	@Column(name = "delete_member_id", nullable = false)
 	@Builder.Default
-	private Integer deleteMemberId = 0;
+	private Long deleteMemberId = 0L;
 	
 }

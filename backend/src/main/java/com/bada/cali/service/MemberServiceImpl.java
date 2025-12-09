@@ -66,7 +66,7 @@ public class MemberServiceImpl {
 		// refPage의 경우 null일 경우 NPE 예외 발생 가능성 -> 아래처럼 문자열 상수를 왼쪽에 두면 null 이어도 안전
 		if ("memberJoin".equalsIgnoreCase(refPage)) {
 			// 회원가입에서 조회한 경우, 업체 정보까지 조회 후 리턴
-			int agentId = optMember.get().getAgentId();
+			Long agentId = optMember.get().getAgentId();
 			if (agentId > 0) {
 				Optional<Agent> optAgent = agentRepository.findById(agentId);
 				if (optAgent.isPresent()) {
@@ -102,7 +102,7 @@ public class MemberServiceImpl {
 		// 이때 예외는 컨트롤러까지 전파 => 전역예외에서 캐치하여 에러페이지 or JSON 응답으로 가공해서 반환
 		Agent savedAgent = agentRepository.save(insertAgentEntity);
 		// 생성된 업체 id
-		int agentId = savedAgent.getId();
+		Long agentId = savedAgent.getId();
 		
 		// 2) inset agent_manager (업체 담당자 삽입)
 		// agentId 값 할당
@@ -131,7 +131,7 @@ public class MemberServiceImpl {
 				.refTable("member")
 				.refTableId(savedMember.getId())
 				.createDatetime(LocalDateTime.now())
-				.createMemberId(0)
+				.createMemberId(0L)
 				.logContent(logContent)
 				.build();
 		logRepository.save(insertSuccessLog);
