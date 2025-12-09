@@ -18,7 +18,7 @@ public class Log {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", nullable = false, updatable = false, columnDefinition = "INT UNSIGNED")
-	private Integer id;
+	private Long id;
 	
 	// LOG ip
 	@Column(name = "log_ip", length = 50)
@@ -44,7 +44,7 @@ public class Log {
 	// 참조 테이블 idx
 	@Column(name = "ref_table_id", nullable = true, columnDefinition = "INT UNSIGNED DEFAULT 0")
 	@Builder.Default	// 명시하지 않으면 builder 객체 사용 시, 값을 주지 않을 경우 에러가 발생 (NOT NLL 제약조건)
-	private Integer refTableId = 0;
+	private Long refTableId = 0L;
 	
 	// 등록일시
 	@Column(name = "create_datetime", nullable = true, columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
@@ -52,5 +52,5 @@ public class Log {
 	
 	// 등록자
 	@Column(name = "create_member_id", nullable = false, columnDefinition = "INT UNSIGNED DEFAULT 0")
-	private Integer createMemberId = 0;
+	private Long createMemberId = 0L;
 }

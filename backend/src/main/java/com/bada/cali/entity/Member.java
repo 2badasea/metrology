@@ -18,7 +18,7 @@ public class Member {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id; // member 고유번호
+	private Long id; // member 고유번호
 	
 	@Column(name = "login_id", length = 20, nullable = false)
 	private String loginId;
@@ -28,7 +28,7 @@ public class Member {
 	
 	@Column(name = "agent_id", nullable = false)
 	@Builder.Default
-	private Integer agentId = 0;
+	private Long agentId = 0L;
 	
 	@Column(name = "name", length = 100, nullable = false)
 	private String name;
@@ -69,17 +69,17 @@ public class Member {
 	// 직무
 	@Column(name = "task_id", nullable = false)
 	@Builder.Default
-	private Integer taskId = 0;
+	private Long taskId = 0L;
 	
 	// 부서
 	@Column(name = "department_id", nullable = false)
 	@Builder.Default
-	private Integer departmentId = 0;
+	private Long departmentId = 0L;
 	
 	// 직급
 	@Column(name = "level_id", nullable = false)
 	@Builder.Default
-	private Integer levelId = 0;
+	private Long levelId = 0L;
 	
 	// 입사일
 	@Column(name = "join_date", length = 20)
@@ -181,21 +181,21 @@ public class Member {
 	
 	@Column(name = "create_member_id", nullable = false)
 	@Builder.Default
-	private Integer createMemberId = 0;
+	private Long createMemberId = 0L;
 	
 	@Column(name = "update_datetime", nullable = true)
 	private LocalDateTime updateDatetime;
 	
 	@Column(name = "update_member_id", nullable = false)
 	@Builder.Default
-	private Integer updateMemberId = 0;
+	private Long updateMemberId = 0L;
 	
 	@Column(name = "delete_datetime", nullable = true)
 	private LocalDateTime deleteDatetime;
 	
 	@Column(name = "delete_member_id", nullable = false)
 	@Builder.Default
-	private Integer deleteMemberId = 0;
+	private Long deleteMemberId = 0L;
 	
 	public enum AuthType {
 		admin, user

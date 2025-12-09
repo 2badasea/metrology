@@ -19,7 +19,7 @@ public interface FileInfoRepository extends JpaRepository<FileInfo, Long> {
 	// 특정 조건에 맞는 파일 개수 리턴
 	List<FileInfo> findByRefTableNameAndRefTableIdAndIsVisible(
 			String refTableName,
-			Integer refTableId,
+			Long refTableId,
 			YnType isVisible
 	);
 	
@@ -37,7 +37,7 @@ public interface FileInfoRepository extends JpaRepository<FileInfo, Long> {
 			"and f.isVisible = :isVisible")
 	List<FileInfoDTO.FileListRes> getFileInfosWithJoin(
 			@Param("refTableName") String refTableName,
-			@Param("refTableId") Integer refTableId,
+			@Param("refTableId") Long refTableId,
 			@Param("isVisible") YnType isVisible
 	);
 	
@@ -53,7 +53,7 @@ public interface FileInfoRepository extends JpaRepository<FileInfo, Long> {
 	int deleteFile(@Param("fileId") Long fileId,
 					  @Param("isVisible") YnType isVisible,
 					  @Param("deleteDatetime") LocalDateTime deleteDatetime,
-					  @Param("deleteMemberId") Integer deleteMemberId
+					  @Param("deleteMemberId") Long deleteMemberId
 	);
 	
 	

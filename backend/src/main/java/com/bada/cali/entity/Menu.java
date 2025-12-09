@@ -20,7 +20,7 @@ public class Menu {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+	private Long id;
 	
 	// menu_alias : 화면에 보여줄 메뉴명
 	@Column(name = "menu_alias", nullable = false, length = 100)

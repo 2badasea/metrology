@@ -42,7 +42,7 @@ public class FileServiceImpl {
 	
 	@Transactional
 	public void saveFiles(String refTableName,
-						  Integer refTableId,
+						  Long refTableId,
 						  String dir,        // '폴더명/' or '폴더명/id/' 형태로 넘어올 수 있음
 						  List<MultipartFile> files,
 						  CustomUserDetails user
@@ -241,11 +241,11 @@ public class FileServiceImpl {
 	}
 	
 	// join을 고려하지 않은 단순 file_info 정보만 반환
-	public List<FileInfo> getFileInfos(String refTableName, int refTableId) {
+	public List<FileInfo> getFileInfos(String refTableName, Long refTableId) {
 		return fileInfoRepository.findByRefTableNameAndRefTableIdAndIsVisible(refTableName, refTableId, YnType.y);
 	}
 	
-	public List<FileInfoDTO.FileListRes> getFileInfosWithJoin(String refTableName, int refTableId) {
+	public List<FileInfoDTO.FileListRes> getFileInfosWithJoin(String refTableName, Long refTableId) {
 		return fileInfoRepository.getFileInfosWithJoin(refTableName, refTableId, YnType.y);
 	}
 	

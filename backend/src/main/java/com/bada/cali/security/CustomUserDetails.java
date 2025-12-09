@@ -11,14 +11,14 @@ import java.util.Set;
 // CustomUserDetailService class에서 loadUserByUsername에서 리턴하는 객체의 형태를 커스텀하기 위함
 @Getter
 public class CustomUserDetails implements UserDetails {
-	private final Integer id;
+	private final Long id;
 	private final String username;
 	private final String password;
 	private final String name;
 	private final Collection<? extends GrantedAuthority> authorities;
 	private final Set<Long> readableMenuIds;        // 사용자별 접근이 가능한 메뉴id
 	
-	public CustomUserDetails(Integer id, String username, String password, String name, Collection<? extends GrantedAuthority> authorities, Set<Long> readableMenuIds) {
+	public CustomUserDetails(Long id, String username, String password, String name, Collection<? extends GrantedAuthority> authorities, Set<Long> readableMenuIds) {
 		this.id = id;
 		this.username = username;
 		this.password = password;
