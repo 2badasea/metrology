@@ -20,15 +20,15 @@ public class AgentManager {
 	private Long id;        // 담당자 고유번호(기본키)
 	
 	@Column(name = "main_yn")
-	@Builder.Default
 	@Enumerated(EnumType.STRING)        // NOTATION 9번
+	@Builder.Default
 	private YnType mainYn = YnType.n;        // y: 대표담당자(업체대표X), n: 일반담당자
 	
-	@Column(name = "agent_id", nullable = false)
-	@Builder.Default
-	private Long agentId = 0L;        // 업체id (내부 직원의 경우 모두 0)
+	// 기본값을 주지 않음. 업체담당자에게 agent_id값은 필수이기 때문
+	@Column(name = "agent_id")
+	private Long agentId;        // 업체id (내부 직원의 경우 모두 0이거나 NULL)
 	
-	@Column(name = "name", length = 100, nullable = false)
+	@Column(name = "name", length = 100)
 	private String name;        // 담당자명
 	
 	@Column(name = "email", length = 125)
@@ -46,23 +46,22 @@ public class AgentManager {
 	@Column(name = "create_datetime", nullable = false)
 	private LocalDateTime createDatetime;		// 생성일시
 	
+	// NOTE create_member_id의 경우, 값이 반드시 존재해야 하기 때문에 null을 허용하지 않는 대신
+	// 애플리케이션 단에서 반드시 값을 초기화 시키도록 한다.
 	@Column(name = "create_member_id", nullable = false)
-	@Builder.Default
-	private Long createMemberId = 0L;			// 생성자id
+	private Long createMemberId;			// 생성자id
 	
-	@Column(name = "update_datetime", nullable = true)
+	@Column(name = "update_datetime")
 	private LocalDateTime updateDatetime;		// 수정일시
 	
-	@Column(name = "update_member_id", nullable = false)
-	@Builder.Default
-	private Long updateMemberId = 0L;			// 수정자id
+	@Column(name = "update_member_id")
+	private Long updateMemberId;			// 수정자id
 	
-	@Column(name = "delete_datetime", nullable = true)
+	@Column(name = "delete_datetime")
 	private LocalDateTime deleteDatetime;		// 삭제일시
 	
-	@Column(name = "delete_member_id", nullable = false)
-	@Builder.Default
-	private Long deleteMemberId = 0L;			// 삭제자id
+	@Column(name = "delete_member_id")
+	private Long deleteMemberId;			// 삭제자id
 	
 	
 }
