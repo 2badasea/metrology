@@ -545,3 +545,607 @@ Agent toAgentFromMemberJoinReq(MemberDTO.MemberJoinReq memberJoinReq, YnType isV
 
 ---
 
+# 📌 28번.  @ResponseBody vs @ResponseEntity
+
+### 1. 공통점
+
+- 둘 다 **뷰 이름을 리턴하지 않고**,  
+  **HTTP 응답 바디에 직접 데이터(객체, 문자열 등)를 실어서 반환**할 때 사용.
+- 내부적으로 둘 다 **HttpMessageConverter**를 통해  
+  자바 객체 → JSON / XML / String 등으로 **직렬화**해서 전송.
+- 주로 **REST API 응답**에서 사용.
+
+---
+
+### 2. @ResponseBody
+
+- **역할**
+  - 컨트롤러 메서드의 **리턴 값을 그대로 HTTP 응답 바디에 작성**하라고 스프링에게 알려주는 애너테이션.
+  - 주로 `@Controller` + `@ResponseBody` 조합으로 사용.
+  - `@RestController` 사용 시에는 **클래스 레벨에서 자동으로 @ResponseBody가 적용**되는 것과 동일한 효과.
+
+- **상태 코드 / 헤더**
+  - 별도로 설정하지 않으면 **기본으로 200 OK**로 응답.
+  - 상태 코드를 바꾸고 싶으면,
+    - `@ResponseStatus` 애너테이션으로 고정값 지정하거나,
+    - 예외 처리(전역 예외 처리기)에서 상태 코드 조정.
+
+- **언제 주로 쓰나**
+  - 단순히 **“바디에 이 객체/문자열만 담아서 보내면 된다”** 수준일 때.
+  - 상태코드·헤더를 세밀하게 제어할 필요가 적은 경우.
+
+---
+
+### 3. @ResponseEntity
+
+- **역할**
+  - **응답 바디 + HTTP 상태 코드 + 응답 헤더**를 한 번에 담는 **응답용 객체**.
+  - 리턴 타입을 `ResponseEntity<T>`로 선언하면,
+    - `T` → 실제 응답 바디에 들어갈 객체
+    - `HttpStatus` → 상태 코드
+    - `HttpHeaders` → 헤더
+    를 함께 제어할 수 있음.
+
+- **상태 코드 / 헤더**
+  - 컨트롤러 메서드에서 **상태 코드, 헤더를 동적으로 결정**할 때 유용.
+    - 예: 생성 시 201, 유효성 실패 시 400, 권한 문제 시 403 등 상황별로 제어.
+    - 특정 헤더(`Location`, `Content-Type`, 커스텀 헤더 등)를 추가하고 싶을 때.
+
+- **언제 주로 쓰나**
+  - REST API에서 **상태 코드가 의미를 가지는 설계**를 하고 싶을 때.
+  - 요청 처리 결과에 따라 상태 코드·헤더를 다양하게 바꿔야 할 때.
+  - 파일 다운로드, 리다이렉트(Location 헤더), 캐시 제어, 쿠키 설정 등  
+    **HTTP 레벨을 디테일하게 다루는 경우**.
+
+---
+
+### 4. 정리 비교
+
+| 항목                | @ResponseBody                                    | @ResponseEntity                                     |
+|---------------------|--------------------------------------------------|-----------------------------------------------------|
+| 리턴 타입           | 보통 도메인 객체, DTO, String 등                | `ResponseEntity<T>`                                 |
+| 바디 직렬화         | O (HttpMessageConverter 사용)                    | O (내부적으로 동일 메커니즘 사용)                  |
+| HTTP 상태 코드 제어 | 기본 200, `@ResponseStatus` 등으로 간접 제어     | **메서드마다 직접 설정 가능**                       |
+| 헤더 제어           | 컨트롤러 레벨에서 직접 제어하기 어려움          | **응답마다 HttpHeaders로 자유롭게 지정 가능**      |
+| 주 사용처           | 단순 JSON 응답, 기본 상태코드로 충분한 경우     | REST API에서 상태 코드, 헤더를 세밀하게 다룰 때    |
+
+> 한 줄 요약  
+> - **간단한 JSON 응답만 필요** → `@ResponseBody`  
+> - **상태 코드/헤더까지 HTTP 응답 전체를 컨트롤** → `ResponseEntity<T>`
+
+
+<br><br>
+
+---
+
+# 📌 29번. @ResponseEntity<?> 와 같이 '?'를 사용하게 되는 것의 효과
+
+## 상황에 따라 응답 body의 형태가 달라질 수 있을 때 ?를 명시한다. 
+```java
+@GetMapping("/api/members/{id}")
+public ResponseEntity<?> getMember(@PathVariable Long id) {
+    MemberDto member = service.findById(id);
+
+    if (member == null) {
+        // 에러 JSON
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of(
+                    "code", "NOT_FOUND",
+                    "message", "해당 회원을 찾을 수 없습니다."
+                ));
+    }
+
+    // 정상 응답 JSON
+    return ResponseEntity.ok(member);
+}
+```
+- '?'가 아닌 구체적인 타입(DTO)를 명시한 경우, 스프링은 런타임 시점에 해당 타입의 객체를 받아서 Jackson으로 JSON 직렬화 -> HTTP 응답 바디에 넣어줌.
+  - 컴파일 시점에 미리 정보를 주게 되는 셈.
+
+- '?'를 명시할 경우, 위에 구체타입을 명시한 것과 동일한 형태로 응답. 즉 , ok(member)에 담은 데이터타입에 맞추어 알아서 JSON으로 만들어주는 것.
+
+- 어차피 타입을 어떻게 명시하든 간에, 클라이언트에서 받는 것은 key, value 형태의 값이기 때문.
+- 실무에선 가급적이면 타입을 구체적으로 명시해주는 것이 좋음
+
+<br><br>
+
+---
+
+# 📌 30번. Java 9부터 추가된 정적 팩토리 메서드 ex) Map.of(), List.of() 등
+
+```java
+Map<String, Object> map = Map.of(
+    "code", "NOT_FOUND",
+    "message", "해당 회원을 찾을 수 없습니다."
+);
+```
+- 특징
+  - 반환 타입: 불변 Map (put/remove 불가, 하면 UnsupportedOperationException)
+  - null 키/값 허용 안 함 → NullPointerException
+  - 같은 키 중복으로 넣으면 → IllegalArgumentException
+  - 작은 사이즈의 “간단한 맵” 만들 때 쓰기 좋음
+
+### 다른 컬렉션 예시
+```java
+List<String> list = List.of("A", "B", "C");     // 불변 List
+Set<Integer> set = Set.of(1, 2, 3);             // 불변 Set
+Map<String, Integer> map = Map.of("A", 1, "B", 2);
+```
+공통적으로: 불변 컬렉션, null 요소 넣으면 안 됨, Set.of는 중복 요소 있으면 IllegalArgumentException 반환. 
+
+<br><br>
+
+---
+
+# 📌 31번. `@RequestBody` vs `@ModelAttribute` 정리
+
+### 1. 개념 요약
+
+- **`@RequestBody`**
+  - HTTP 요청 **바디 전체**를 읽어서 객체로 변환하는 방식.
+  - 주로 JSON, XML 같은 **바디 기반 요청**에서 사용.
+  - 내부적으로 `HttpMessageConverter`를 통해 역직렬화가 이뤄진다.
+
+- **`@ModelAttribute`**
+  - HTTP 요청에 흩어져 있는 **파라미터들**을 모아 객체의 프로퍼티에 바인딩하는 방식.
+  - 쿼리스트링, 폼 전송 값 등에 사용.
+  - 내부적으로 `DataBinder`가 요청 파라미터를 객체 필드/세터에 매핑한다.
+
+### 2. 값을 어디서 읽는가?
+
+#### `@ModelAttribute`
+
+- 값의 출처:
+  - 쿼리 파라미터 (`?name=...&age=...`)
+  - `application/x-www-form-urlencoded` 폼 데이터
+  - `multipart/form-data` (파일 업로드 시 일반 필드들)
+- 특징:
+  - “요청 파라미터 이름 ↔ 객체 필드 이름” 기준으로 바인딩.
+  - URL 쿼리, 폼 필드 등 **여러 위치에 흩어진 값들을 한 번에 합쳐서** 객체로 만들어준다.
+  - HTTP 메서드(GET/POST 등)와는 무관하게, “파라미터”라는 개념이면 전부 대상이 된다.
+
+#### `@RequestBody`
+
+- 값의 출처:
+  - HTTP 요청의 **raw body**(본문) 전체
+- 특징:
+  - 쿼리 파라미터는 무시하고, 오직 **바디 내용**만으로 객체를 만든다.
+  - JSON, XML, 텍스트 등 바디 포맷을 읽어, 해당 포맷에 맞게 역직렬화한다.
+  - 필드 매핑은 “JSON 키(또는 XML 태그) ↔ 객체 필드 이름”을 기준으로 한다.
+
+### 3. 요청 Content-Type 관점 비교
+
+#### `@ModelAttribute`와 잘 어울리는 Content-Type
+
+- GET 요청 (Content-Type 없음, 쿼리스트링만 사용)
+- POST/PUT 등에서의:
+  - `application/x-www-form-urlencoded`
+  - `multipart/form-data`
+
+주 용도는 **전통적인 웹 페이지 폼 전송**이다.
+
+스프링은 이러한 요청들을:
+- 폼 필드/쿼리스트링을 “요청 파라미터”로 인식하고
+- 이를 `@ModelAttribute`로 선언된 객체에 바인딩한다.
+
+#### `@RequestBody`와 잘 어울리는 Content-Type
+
+- REST API에서 주로 사용하는 바디 기반 타입:
+  - `application/json`
+  - `application/xml`
+  - `text/plain` (적절한 MessageConverter가 있을 때)
+
+스프링은 이런 요청에 대해:
+- `HttpMessageConverter`를 선택해
+- 요청 바디 전체를 읽고 자바 객체로 변환한 뒤
+- 그 결과를 `@RequestBody` 파라미터에 주입한다.
+
+### 4. 주 사용 시나리오
+
+#### 1) 웹 페이지 + 폼 전송 (Thymeleaf, JSP 등)
+
+- `@ModelAttribute` 사용 비중이 높다.
+- GET:
+  - 검색 조건, 필터 값 → 쿼리스트링으로 전달 → `@ModelAttribute`로 바인딩.
+- POST:
+  - 회원가입/수정 폼 → `application/x-www-form-urlencoded` 전송 → `@ModelAttribute`로 바인딩.
+
+#### 2) REST API + JSON
+
+- `@RequestBody` 사용 비중이 높다.
+- 프론트엔드(React, Vue 등)나 모바일 앱이 JSON으로 요청을 보내면:
+  - 서버에서 `@RequestBody`로 DTO를 받고,
+  - 응답은 `@ResponseBody` 또는 `ResponseEntity`로 JSON을 반환하는 구조.
+
+### 5. 한눈에 보는 비교표
+
+| 항목                          | `@ModelAttribute`                                                   | `@RequestBody`                                                   |
+|-----------------------------|---------------------------------------------------------------------|------------------------------------------------------------------|
+| 값 읽는 위치                  | 쿼리스트링, 폼 필드, multipart 등 **요청 파라미터**                   | HTTP 요청 **바디 전체**                                          |
+| 주 사용 Content-Type         | `application/x-www-form-urlencoded`, `multipart/form-data`, GET 쿼리 | `application/json`, `application/xml`, 기타 바디 기반 타입        |
+| 바인딩 기준                  | 파라미터 이름 ↔ 객체 필드 이름 (DataBinder)                         | 바디 포맷(JSON/XML) ↔ 객체 필드 이름 (HttpMessageConverter)     |
+| 주 사용 시나리오              | 전통적인 웹 폼, 검색 조건, URL 파라미터                              | REST API에서의 입력 DTO                                          |
+| 쿼리 파라미터도 함께 받는가? | 예. 쿼리 + 폼 값 모두 바인딩 대상                                    | 아니오. 바디만 사용                                               |
+
+### 6. 요약
+
+- **폼/쿼리 파라미터 기반 입력**: `@ModelAttribute`
+  - 화면 폼 전송, 검색 조건, URL 파라미터 등을 객체로 묶을 때 적합하다.
+- **JSON 바디 기반 입력**: `@RequestBody`
+  - REST API에서 요청 바디(JSON 등)를 DTO로 받는 데 최적화되어 있다.
+
+이 기준만 기억해도 대부분의 상황에서 적절한 애너테이션을 선택할 수 있다.
+
+<br><br>
+
+---
+
+# 📌 32번. Stream API의 `toList()` vs `collect(Collectors.toList())`
+
+### 1. 공통점
+
+- 둘 다 **Stream의 요소를 `List`로 모을 때** 사용하는 방식이다.
+- 예) `someStream.toList()`, `someStream.collect(Collectors.toList())`
+- 두 방식 모두:
+  - 스트림의 **순서를 유지**한다(순차 스트림 기준).
+  - 스트림에 있던 요소들을 복사해서 새로운 리스트를 만든다  
+    (원본 컬렉션과는 별개로 동작).
+
+### 2. 가장 큰 차이: 가변(mutable) vs 불변(unmodifiable)
+
+#### `stream.collect(Collectors.toList())`
+
+- **“가변(mutable)” 리스트**를 반환하는 것이 일반적이다.
+- 리턴받은 리스트에 대해:
+  - `add`, `remove`, `clear`, `set` 등의 **수정 작업이 가능**하다.
+- 명세 상 구체적인 구현 타입(ArrayList 등)이 보장되지는 않지만,
+  - 관례적으로 **수정 가능한 리스트**가 온다는 전제 하에 쓰는 경우가 많다.
+- 한마디로:
+  > “스트림 → 수정 가능한 리스트 하나 만들어줘.”
+
+#### `stream.toList()`
+
+- Java 16부터 추가된 메서드.
+- **“수정 불가(unmodifiable)” 리스트**를 반환하는 것이 명시되어 있다.
+- 리턴받은 리스트에 대해:
+  - `add`, `remove`, `clear`, `set` 등을 호출하면  
+    → `UnsupportedOperationException` 발생.
+- 단, 리스트가 **불변**인 것이지,
+  - 리스트 안에 들어 있는 **객체 자체가 불변이라는 뜻은 아니다.**  
+    (객체 필드 변경은 여전히 가능)
+
+- 한마디로:
+  > “스트림 → 읽기 전용 리스트 하나 만들어줘.”
+
+### 3. “불변 vs 가변” 관점에서 정리
+
+| 항목                          | `collect(Collectors.toList())`             | `toList()`                               |
+|-----------------------------|--------------------------------------------|------------------------------------------|
+| 반환 리스트 구조 수정 가능 여부 | 가능 (일반적으로 가변 리스트)                | 불가능 (구조 수정 시 예외)                |
+| 의도                         | 이후 값 추가/삭제/변경이 필요한 컬렉션        | 결과를 “읽기 전용”으로 다루고 싶을 때       |
+| 사용 가능 Java 버전          | Java 8 이상                                | Java 16 이상                             |
+
+- **구조 수정**: `add`, `remove`, `clear`, `set` 등
+- **구조는 불변이지만 요소는 불변 아님**:  
+  `toList()`로 만든 리스트에 들어있는 객체들은 여전히 mutable일 수 있다.
+
+### 4. `toList()`와 `List.of(...)`의 차이
+
+- 공통점:
+  - 둘 다 **수정 불가(unmodifiable)** 리스트를 반환한다.
+- 차이점:
+  - `List.of(...)`는 **`null` 요소를 허용하지 않는다**.  
+    `List.of(1, null)` → `NullPointerException`
+  - `stream.toList()`는 **스트림 안에 이미 `null`이 있다면 그걸 그대로 담을 수 있다.**
+    (Stream 자체가 `null` 요소를 담고 있는 경우)
+
+> 정리:  
+> `List.of()`는 “상수 리스트” 만드는 용도에 가깝고,  
+> `toList()`는 “스트림 결과를 읽기 전용 리스트로 받고 싶을 때” 쓰는 느낌.
+
+### 5. “리턴값에서 수정이 되는지 여부” 정리
+
+1. **수정 가능한 리스트가 필요**한 경우
+   - `collect(Collectors.toList())` 사용  
+   - 또는 타입을 명시하고 싶다면  
+     `collect(Collectors.toCollection(ArrayList::new))` 같이 사용
+
+2. **결과를 외부에서 건드리지 못하게 하고 싶을 때**
+   - Java 16 이상: `stream.toList()` 사용
+   - 또는 명시적으로 `Collections.unmodifiableList(...)` 적용
+
+### 6. 실무에서의 선택 기준
+
+- **Java 8 프로젝트**
+  - `collect(Collectors.toList())`가 기본 선택지.
+  - 불변 리스트가 필요하면 추후에 감싸기:
+    - `Collections.unmodifiableList(list)` 등.
+
+- **Java 16 이상 프로젝트**
+  - “읽기 전용 결과 리스트”가 필요하면 `toList()` 선호.
+  - “결과 리스트를 계속 수정할 컬렉션”이 필요하면 여전히  
+    `collect(Collectors.toList())` 또는 `toCollection(ArrayList::new)` 사용.
+
+### 7. 한 줄 요약
+
+- `collect(Collectors.toList())`  
+  > 수정 가능한 리스트가 필요할 때 쓰는, 전통적인 수집 패턴.
+
+- `toList()`  
+  > 결과를 건드리지 않을 읽기 전용 리스트로 받고 싶을 때 쓰는, 최신 문법.
+  > 수정을 하기 위해 set(값)을 호출하는 경우, 바로 예외가 발생한다.
+
+
+### 8. 예시 코드
+```java
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class StreamToListExample {
+
+    public static void main(String[] args) {
+        List<Integer> numbers = List.of(1, 2, 3, 4, 5);
+
+        // 1) collect(Collectors.toList()) : 보통 "가변 리스트" 반환
+        List<Integer> mutableList = numbers.stream()
+                .filter(n -> n % 2 == 0)
+                .collect(Collectors.toList());
+
+        System.out.println("mutableList = " + mutableList); // [2, 4]
+
+        // 수정 시도 - 일반적으로 정상 동작 (요소 추가 가능)
+        mutableList.add(100);
+        System.out.println("mutableList after add = " + mutableList); // [2, 4, 100]
+
+
+        // 2) toList() : "수정 불가(unmodifiable) 리스트" 반환 (Java 16+)
+        List<Integer> immutableList = numbers.stream()
+                .filter(n -> n % 2 == 0)
+                .toList();
+
+        System.out.println("immutableList = " + immutableList); // [2, 4]
+
+        // 수정 시도 - 런타임에 UnsupportedOperationException 발생
+        immutableList.add(100); // 여기서 예외 발생
+    }
+}
+```
+
+<br><br>
+
+---
+
+# 📌 33번. @Modifying 옵션 정리 (flushAutomatically / clearAutomatically)
+
+## 예시코드
+```java
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+				UPDATE Agent a
+				SET a.groupName = :groupName
+				WHERE a.id in :ids
+	""")
+	int updateAgentGroupName(
+			@Param("ids") List<Integer> ids,
+			@Param("groupName") String groupName
+	);
+```
+
+### 1) 기본값
+- `flushAutomatically`, `clearAutomatically` **둘 다 기본값은 `false`**
+- 필요할 때만 `true`로 켜는 옵션이다.
+
+### 2) 각 옵션이 하는 일
+
+#### `flushAutomatically = true`
+- 수정 쿼리 실행 **전에** 영속성 컨텍스트를 **flush**(쓰기 지연 SQL을 DB에 반영)한다.
+- 장점
+  - 벌크 수정 쿼리 실행 전에 쌓여 있던 변경사항이 반영되어, **DB 기준 쿼리가 더 정확**해질 수 있다.
+- 단점
+  - “아직 DB에 나가면 안 되는 변경”까지 **의도치 않게 먼저 반영**될 수 있다(성능/제약조건/중간상태 노출 리스크).
+
+#### `clearAutomatically = true`
+- 수정 쿼리 실행 **후에** 영속성 컨텍스트를 **clear**(1차 캐시 비움, 관리 엔티티 detach)한다.
+- 장점
+  - 벌크 update/delete는 영속성 컨텍스트의 엔티티 상태를 자동으로 동기화하지 않는데,
+    clear로 이후 조회가 DB에서 다시 일어나 **stale(묵은) 데이터 문제를 예방**한다.
+- 단점
+  - 현재 관리 중이던 엔티티들이 전부 detach되어, 이후 로직에서 **변경감지(dirty checking) 기대가 깨질 수 있음**.
+  - flush되지 않은 변경이 있었다면 위험해질 수 있다.
+
+### 3) 언제 `true`가 유리한가?
+- **벌크 UPDATE/DELETE를 실행한 뒤**, 같은 트랜잭션에서 **바로 이어서 조회/검증/응답**까지 해야 해서
+  “반드시 DB 기준 최신값”이 필요할 때
+  - 이때는 보통 `clearAutomatically=true`가 특히 중요하다.
+
+### 4) “무조건 true”가 위험한 대표 상황
+- 같은 트랜잭션에서 다른 엔티티들을 수정 중인데 아직 DB에 쓰고 싶지 않은 상태에서
+  - `flushAutomatically=true`로 인해 **의도치 않은 flush**가 발생할 수 있음
+  - `clearAutomatically=true`로 인해 **관리 상태가 끊겨** 이후 로직이 흔들릴 수 있음
+
+### 5) 실무 감각(추천)
+- “벌크 수정 후 같은 트랜잭션에서 다시 조회/로직”이 있으면 → `clearAutomatically=true`를 우선 고려
+- 트랜잭션 내에 다른 변경도 섞여 있으면 → `flushAutomatically=true`는 신중하게 사용
+- 통제력이 필요하면 옵션 대신 필요한 지점에서 **명시적으로 flush/clear를 호출**하는 방식도 많이 쓴다.
+
+### 6) 추가설명
+- update, delete문에 `@Modifying` 애너테이션을 명시하지 않으면 오류를 반환.
+- https://pgmjun.tistory.com/126 링크 참조
+
+<br><br>
+
+---
+
+# 📌 34번. 이벤트 객체에 preventDefault() 메서드가 의미가 있는 경우
+- `<form>` 태그 내에 button이 존재할 때. 물론, 이때도 type이 button이면 문제가 없음.
+  - 기본 타입이 submit이기 때문에, 자동으로 form 전송 이벤트가 발생하는 걸 막기 위해선 preventDefault() 함수 호출
+- `<a>`가 버튼으로만 쓰이고, href 속성값으로 이동하는 기본이벤트를 방지하고 싶을 때만.
+
+<br><br>
+
+---
+
+# 📌 35번. radio에서 체크된 요소의 값을 가져오는 방법
+
+## 예시코드
+```javascript
+// 내가 사용한 방식 (잘못된 방식) => name이 applyType인 요소 중 첫 번째를 가져오게 됨
+const applyType = $('input[name=applyType]', $modal).val();
+
+// 수정방향 (체크된 것을 명시해주어야 함)
+const applyType = $('input[name=applyType]:checked', $modal).val();
+
+// 또 다른 잘못된 표현 => is() 메서는 boolean을 리턴함. 불리언에 대해선 val() 제공 X
+$('input[name=applyType]:checked', $modal).is(":checked").val();
+```
+
+### 요약
+- 선택자로 지정해주면서 `:checked` 를 통해서 가져오면 된다.
+- .is(':checked).val() 표현은 애초에 잘못되었고, is() 메서드의 반환타입은 boolean이다.
+
+<br><br>
+
+---
+
+# 📌 36번. java에서 List<Integer>에 있는 값을 문자열로 변경하기 및 String.format()을 활용하여 원하는 형태의 메시지 생성하기
+
+### 예시코드
+```java
+List<Integer> ids = List.of(1, 2, 3, 4, 5); // 불변객체
+String agentName = "바다솔루션";
+
+String strIds = ids.stream().map(String::valueOf).collect(Collectors.joining(", "));
+String logContent = String.format("업체명이 %s로 수정되었습니다. 변경된 아이디: %s", agentName, strIds);
+```
+
+<br><br>
+
+---
+
+# 📌 37번. Stream API: `stream()`, `map()`, `collect()` 정리
+
+### 1. `stream()` 메서드
+
+- `stream()`은 `java.util.Collection` 인터페이스에 정의된 **디폴트 메서드**이다.
+- 따라서 **`Collection`을 구현한 모든 객체**에서 호출할 수 있다.
+  - 예: `List`, `Set`, `Queue` 등
+- 리턴 타입은 제네릭 기반의 `Stream<T>` 이다.
+  - 예: `List<Integer>` → `Stream<Integer>`
+- 역할:
+  - 컬렉션을 **스트림 파이프라인의 시작점**으로 변환해 주는 메서드이다.
+
+### 2. `map()` 메서드
+
+- `map()`은 `java.util.stream.Stream`에서 제공하는 **인스턴스 메서드**이다.
+- 즉, **스트림 객체(예: `Stream<T>`)** 에서만 호출 가능하다.
+- 호출 조건:
+  - 레퍼런스 타입이 `Stream<T>` 여야 한다.
+- 특징:
+  - 스트림의 각 요소를 주어진 함수에 따라 다른 값으로 **변환**하는 연산이다.
+  - `String::valueOf` 같은 메서드 레퍼런스를 인자로 받을 수 있다.
+- 리턴 타입:
+  - `Stream<R>`
+  - 요소 타입이 바뀐 **새 스트림을 반환하는 중간 연산(intermediate operation)**이다.
+  - 예: `Stream<Integer> → map(String::valueOf) → Stream<String>`
+
+### 3. `collect()` 메서드
+
+- `collect()` 역시 `Stream<T>`의 인스턴스 메서드이며,  
+  스트림을 **실제 결과로 모으는 종단 연산(terminal operation)**이다.
+- 호출 조건:
+  - 레퍼런스 타입이 `Stream<T>` 여야 한다.
+- 형태:
+  - `collect(Collector<? super T, A, R> collector)`
+- 리턴 타입:
+  - 넘겨주는 **`Collector`의 정의에 따라 최종 타입 `R`이 달라진다.**
+  - 예시:
+    - `Collectors.joining(", ")` → `String`
+    - `Collectors.toList()` → `List<T>`
+    - `Collectors.toSet()` → `Set<T>`
+- 요약:
+  - 스트림에 담긴 요소들을 어떤 그릇(List, Set, String 등)에 **최종적으로 수집할지** 결정하는 단계이다.
+
+### 한 줄 요약
+
+1. `stream()`  
+   → 컬렉션(`Collection<T>`)을 **`Stream<T>`로 바꾸는 시작점**
+
+2. `map()`  
+   → `Stream<T>`에서 요소를 변환해 **다른 타입의 `Stream<R>`을 만드는 중간 연산**
+
+3. `collect()`  
+   → `Stream<T>`를 **List, Set, String 등 최종 결과로 모으는 종단 연산**  
+     (리턴 타입은 어떤 `Collector`를 사용하느냐에 따라 결정된다)
+
+<br><br>
+
+---
+
+# 📌 38번. JS, Jquery 의 요소를 순회하는 함수에 대한 정리
+
+### 1. `$(제이쿼리객체).each(function (index, item) {})`
+- 문법적으로 배열도 순회 가능하지만 **비추천**.
+- 주 용도: **DOM 요소 순회**에 적합.
+  - 예: `$('form > div').each(function (idx, item) { ... });`
+
+### 2. `$.each(배열 or 객체, function (index, item) {})`
+- jQuery에서 **배열/객체 데이터 순회용**으로 유효.
+- 배열일 때:
+  - `index` → 인덱스
+  - `item` → 요소
+  - `this` → 현재 요소
+- 예:
+```js
+  const checkedRows = $modal.grid.getCheckedRows(); // 배열 데이터
+  $.each(checkedRows, function (index, item) {
+    // this === item
+  });
+```
+
+### 3. 자바스크립트 for ... of
+- 바닐라 JS에서 배열 순회에 가장 적합한 구문.
+- 값(value) 중심 순회.
+- 예:
+```js
+for (const row of checkedRows) {
+  // row가 각 요소
+}
+```
+
+### 4. 자바스크립트 for ... in
+- 배열 순회에는 부적합.
+- 객체의 key(프로퍼티 이름) 순회용.
+- 배열에 사용 시 인덱스(문자열 key)를 순회:
+```js
+const checkedRows = $modal.grid.getCheckedRows();
+for (const index in checkedRows) {
+  const row = checkedRows[index];
+}
+```
+- 그리드 데이터 / 배열 순회에는 굳이 사용할 필요 없음.
+
+### 5. 자바스크립트 forEach
+- 콜백 시그니처: (value, index, array)
+- 첫 번째 인자: value
+- 두 번째 인자: index
+- 배열, 유사 배열 모두 순회 가능.
+- 특징:
+  > 콜백에서 return false 해도 해당 콜백만 종료, 순회는 계속.
+  > break, continue 사용 불가 (단순 반복문이 아니라 함수 콜백이기 때문).
+  > 중간에 순회를 종료하는 기능이 없다 → 중간 종료가 필요하면 for, for...of, some, every 등을 사용하는 것이 좋다.
+
+<br><br>
+
+---
+
+# 📌 39번. 
+
+
+<br><br>
+
+---
+
+
+ 
