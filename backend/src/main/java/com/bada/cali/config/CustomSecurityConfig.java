@@ -5,7 +5,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -28,32 +27,28 @@ import javax.sql.DataSource;
 @EnableMethodSecurity(prePostEnabled = true)    // 기본값(true). 애너테이션을 이용한 권한체크(NOTATION 1번)
 public class CustomSecurityConfig {
 	
-	// 로그인 성공/실패에 따른 훅(hook) 주입
-	private final AuthenticationSuccessHandler LoginSuccessHandler;
-	private final AuthenticationFailureHandler LoginFailureHandler;
-	// 자동로그인 기능을 위한 의존성 주입
-	private final DataSource dataSource;
+	private final AuthenticationSuccessHandler LoginSuccessHandler;        // 로그인 성공 훅
+	private final AuthenticationFailureHandler LoginFailureHandler;        // 로그인 실패 훅
+	private final DataSource dataSource;        // 자동로그인 기능을 위한 의존성 주입
 	
 	// filterChain 메서드 호출 시, 전역에서 로그인 검증을 하지 않고, 원하는 URL의 자원을 반환
 	// NOTE 시큐리티 필터체인(filterChain) 내부에서 던지는 예외들에 대해선 로그인 성공/실패 훅 내부로 전달됨(훅 내부에서 체크 가능)
-	// 다만, 전
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http, UserDetailsService userDetailsService) throws Exception {
 		log.info("================= configure ===============");
 		
 		http
-				// csrf 토큰확인 비활성화 처리 (NOTATION 3번)
-				.csrf(AbstractHttpConfigurer::disable)
+				.csrf(AbstractHttpConfigurer::disable)                    // csrf 토큰확인 비활성화 처리 (NOTATION 3번)
 				// 접근 허용 경로 설정
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers(
-//								"/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico",
+								// "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico", 아래 'WebSecurityCustomizer'에서 정적 리소스 접근 처리
 								"/login"
 								, "/error"
 								, "/member/login**"
 								, "/member/memberJoin"
 								, "/api/member/**").permitAll()    // 해당 경로 접근 허용
-						.anyRequest().authenticated()    // 그외 요청에 대해선 인증된 사용자만 허용
+						.anyRequest().authenticated()                // 그외 요청에 대해선 인증된 사용자만 허용
 				)
 				// 로그인폼 처리
 				.formLogin(form -> form
@@ -84,14 +79,14 @@ public class CustomSecurityConfig {
 							response.setContentType("application/json;charset=UTF-8");
 							response.getWriter().write("{\"ok\":true,\"redirect\":\"/member/login?logout\"}");
 						})
-						.invalidateHttpSession(true)							// 세션 무효화
-						.clearAuthentication(true)								// SecurityContext 비우기 (현재 로그인한 사용자 정보)
-						.deleteCookies("JSESSIONID", "remember-me")    // 로그아우 응답에서 쿠키 삭제(안전하게 한번 더) 지시
+						.invalidateHttpSession(true)                            		// 세션 무효화
+						.clearAuthentication(true)                                		// SecurityContext 비우기 (현재 로그인한 사용자 정보)
+						.deleteCookies("JSESSIONID", "remember-me")    // 로그아웃 응답에서 쿠키 삭제(안전하게 한번 더) 지시
 				);
 		// 예외처리 (아래 @Bean 등록)
 		http
 				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthenticatedEntryPoint()));
-				// 인증이 필요한 URL에 대한 요청에서 로그인 정보가 없는 경우, 시큐리티 내부엥서 'AuthenticationException' 계열이 발생하고, 그걸 잡아서 AuthenticationEntryPoint로 위임함. 그리고 unauthenticatedEntryPoint() 메서드를 호출하여 처리한다. (로그인 페이지로 리다이렉트 되도록 아래 bean으로 설정해놓음)
+		// 인증이 필요한 URL에 대한 요청에서 로그인 정보가 없는 경우, 시큐리티 내부에서 'AuthenticationException' 계열이 발생하고, 그걸 잡아서 AuthenticationEntryPoint로 위임함. 그리고 unauthenticatedEntryPoint() 메서드를 호출하여 처리한다. (로그인 페이지로 리다이렉트 되도록 아래 bean으로 설정해놓음)
 		
 		return http.build();
 	}

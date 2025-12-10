@@ -5,7 +5,6 @@ $(function () {
 	let $modal;
 	const $bodyCandidate = $candidates.filter('.modal-body');
 	if ($bodyCandidate.length) {
-		// 이번 memberJoin 모달의 body
 		$modal = $bodyCandidate.first();
 	} else {
 		// 페이지로 직접 열렸을 수도 있으니, 그때는 그냥 첫 번째 modal-view 사용
@@ -328,6 +327,7 @@ $(function () {
 	if (typeof window.modal_deferred == 'object') {
 		window.modal_deferred.resolve('script end');
 	} else {
+		// 모달이 아닌 일반 페이지인 경우엔 아래 init_page가 동작한다.
 		if (!$modal_root.length) {
 			init_page($modal);
 		}
