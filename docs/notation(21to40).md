@@ -1140,12 +1140,69 @@ for (const index in checkedRows) {
 
 ---
 
-# 📌 39번. 
+# 📌 39번. git 형상관리 기본
+
+- 원칙
+  > 기능별 브랜치 생성 feature/agent-manage (케밥형태)
+  > 최초 push할 때 git push -u origin feature/agent-manage 로 입력
+  > -u 를 입력하는 건 해당 기능별 로컬브랜치와 원격브랜치를 연결해주는 역할
+  > 이후엔 단순 git pull, git push만 입력해도 됨
+
+- 형상관리 루틴
+  1. 기능별 브랜치에서 작업 후 커밋&푸쉬
+  2. git fetch origin
+      > 원격(origin)의 최신 커밋/브랜치 정보를 로컬에 내려받기만 하는 명령어
+      > 현재 작업중인 브랜치와 무관하게 입력 가능
+      > 단순히 원격상태를 최신화하는 명령어
+  3. main에 병합하고, 해당 main의 최신소스를 다시 feature 브랜치에 반영하는 방법
+      > 위 작업 이후, GitHub 웹에서 PR 생성 ( git fetch origin 이후)
+      > 문제없으면  Merge pull request 버튼 클릭 → main에 병합 완료
+  4. 각 PC에서도 main 최신화
+      ```bash
+      git checkout main
+      git pull origin main
+      ```
+      - 위 명령어를 입력하면 로컬main도 깃허브 최신 main과 동일해짐.
+  5. main을 먼저 업데이트하고, 그걸 feature에 merge
+      ```bash
+        # 1) 원격 최신 상태 가져오기
+        git fetch origin
+
+        # 2) main으로 이동해서 최신화
+        git checkout main
+        git pull origin main
+
+        # 3) 다시 기능 브랜치로 이동
+        git checkout feature/agent-manage
+
+        # 4) 기능 브랜치에 main 내용 합치기
+        git merge main  # 
+        # === 혹은 ===
+        # git rebase main   # (이건 히스토리 깔끔, 대신 조금 더 어렵고 push -f 필요)
+      ```
+      > git merge main: 현재 브랜치(feature/agent-manage)로 main의 변경사항을 한 번에 합쳐주는 것
 
 
 <br><br>
 
 ---
+
+# 📌 40번. JPA `save()` 호출 결과의 `null` 체크가 불필요한 이유
+
+### save() 메서드 스펙
+```java
+// save() 메서드 시그니처 스펙은 아래와 같이 NotNull을 보장하고 있음. 
+@NotNull <S extends T> S save(S entity);
+```
+
+- JPA Repository의 `save()`는 **성공적으로 반환되는 경우 `null`을 반환하지 않는 계약(Contract)** 을 가짐.
+  - 시그니처에 `@NotNull`이 붙어 있어 **리턴값이 non-null** 임을 명시한다.
+- 저장에 실패하는 상황(제약조건 위반, 트랜잭션/DB 오류 등)에서는 `null`을 반환하는 방식이 아니라, 보통 **런타임 예외가 발생**하며 서비스 계층 밖으로 전파된다.
+- 따라서 서비스 계층에서는 `save()` 호출 직후에 리턴값 `null` 여부를 검사하기보다는,
+  - 정상 흐름에서는 **바로 다음 로직을 이어서 작성**하고
+  - 실패 흐름은 **예외 처리(전역 예외 처리, 트랜잭션 롤백 정책 등)** 로 다루는 방식이 일반적이다.
+
+> 참고: “리턴값이 null이 아니다”와 “DB에 커밋까지 완료됐다”는 같은 의미는 아니다. 커밋/flush 시점은 트랜잭션 경계에 따라 달라질 수 있다.
 
 
  
