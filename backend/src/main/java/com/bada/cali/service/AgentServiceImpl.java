@@ -79,7 +79,7 @@ public class AgentServiceImpl {
 		
 		// entity -> DTO 변환
 		List<AgentDTO.AgentRowData> rows = pageResult.getContent().stream()
-				.map(agentMapper::toAgentRowDataFromEntity).toList();
+				.map(agentMapper::toAgentRowDataFromEntity).toList();	// toList로 불변객체 생성
 		
 		// 페이지네이션
 		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
@@ -89,7 +89,7 @@ public class AgentServiceImpl {
 		
 		// 최종 return
 		return TuiGridDTO.ResData.<AgentDTO.AgentRowData>builder()
-				.contents(rows)
+				.contents(rows)		// entity -> dto로 변환된 데이터 모두
 				.pagination(pagination)
 				.build();
 	}
@@ -105,7 +105,7 @@ public class AgentServiceImpl {
 		
 		// 첨부파일 존재하는지 확인 (refTableName, refTableId)
 		int fileCount = fileServiceImpl.getFileInfos("agent", id).size();
-		agentRowData.setFileCnt(fileCount);	// 첨부파일 개수 추가
+		agentRowData.setFileCnt(fileCount);    // 첨부파일 개수 추가
 		
 		return agentRowData;
 	}
@@ -117,8 +117,6 @@ public class AgentServiceImpl {
 			AgentDTO.DelAgentReq delAgentReq,
 			CustomUserDetails user    // 컨트롤러에서 애너테이션을 명시했기 때문에 여기선 필요없음
 	) {
-		log.info("=========AgentServiceImpl.deleteAgent ============");
-		log.info(delAgentReq.toString());    // 단순 toString()의 경우, 해시값 리턴
 		
 		// 삭제대상 업체 id
 		List<Long> agentIds = delAgentReq.getIds();
@@ -240,10 +238,10 @@ public class AgentServiceImpl {
 	// 업체담당자 리스트 반환하기
 	@Transactional
 	public TuiGridDTO.ResData<AgentManagerDTO.AgentManagerRowData> getAgentManagerList(AgentManagerDTO.GetListReq req) {
-
+		
+		// 그리드에서 페이지네이션을 사용하지 않는 경우, 아래와 같은 데이터는 모두 필요없음.
 //		int pageIndex = req.getPage() - 1;    // JPA는 0-based
 //		int pageSize = req.getPerPage();
-
 //		Pageable pageable = PageRequest.of(pageIndex, pageSize); // Pageable 객체
 		YnType isVisible = req.getIsVisible();
 		YnType mainYn = YnType.y;
@@ -276,8 +274,8 @@ public class AgentServiceImpl {
 		LocalDateTime now = LocalDateTime.now();
 		
 		// 업체 저장
-		Long id = saveAgentDataReq.getId();	// null 가능
-		boolean isNew = (id == null || id == 0);	// true 시 등록
+		Long id = saveAgentDataReq.getId();    // null 가능
+		boolean isNew = (id == null || id == 0);    // true 시 등록
 		String saveTypeTxt = isNew ? "등록" : "수정";
 		
 		// 등록
@@ -285,6 +283,7 @@ public class AgentServiceImpl {
 			Agent insertAgent = agentMapper.toAgentEntityFromDTO(saveAgentDataReq);
 			insertAgent.setCreateType("auto");
 			insertAgent.setCreateDatetime(now);
+			insertAgent.setCreateMemberId(user.getId());
 			Agent savedAgent = agentRepository.save(insertAgent);
 			id = savedAgent.getId();    // id 변수에 대입
 		}
@@ -294,7 +293,7 @@ public class AgentServiceImpl {
 			Agent updateAgent = agentMapper.toEntityFromUpdateDTO(saveAgentDataReq, originAgent);
 			updateAgent.setUpdateDatetime(now);
 			updateAgent.setUpdateMemberId(user.getId());        // 로그인 사용자
-			Agent savedAgent = agentRepository.save(updateAgent);
+			agentRepository.save(updateAgent);
 		}
 		
 		// 업체정보 수정에 대한 이력을 남긴다.
@@ -349,7 +348,6 @@ public class AgentServiceImpl {
 		// 업체담당자 삭제 체크
 		List<Long> delManagerIds = saveAgentDataReq.getDelManagerIds();
 		if (!delManagerIds.isEmpty()) {
-			log.info("=== 담당자 정보 삭제 진입");
 			agentManagerRepository.delAgentManagerByIds(delManagerIds, YnType.n, now, user.getId());
 			// 삭제된 업체 담당자 id
 			String managerIds = delManagerIds.stream().map(String::valueOf).collect(Collectors.joining(","));
@@ -378,7 +376,6 @@ public class AgentServiceImpl {
 				
 				// 등록
 				if (row.getId() == null) {
-					log.info("=== 담당자 정보 등록");
 					AgentManager newEntity = agentManagerMapper.toEntity(row);
 					newEntity.setAgentId(id);
 					newEntity.setCreateDatetime(now);
@@ -388,7 +385,6 @@ public class AgentServiceImpl {
 				}
 				// 수정
 				else {
-					log.info("=== 담당자 정보 수정");
 					// 기존 영속성 entity 객체 가져오기
 					AgentManager existingEntity = agentManagerRepository.findById(row.getId()).orElseThrow(() -> new EntityNotFoundException("해당 업체 담당자를 찾지 못 했습니다."));
 					

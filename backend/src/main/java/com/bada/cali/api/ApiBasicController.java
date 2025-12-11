@@ -29,11 +29,10 @@ public class ApiBasicController {
 	private final AgentManagerRepository agentManagerRepository;
 	
 	// 업체관리 리스트 가져오기 (토스트 그리드)
+	// NOTE 그리드 api형식에 맞춰서 데이터를 받기 때문에, JSON.stringify() 처리를 하지 않았기에 @ModelAttribute로 받음.
 	@GetMapping(value = "/getAgentList")
 	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<AgentDTO.AgentRowData>>> getAgentList(@ModelAttribute AgentDTO.GetListReq req) {
-		
 		TuiGridDTO.ResData<AgentDTO.AgentRowData> resGridData = agentService.getAgentList(req);
-		
 		// data.api.readData 규약에 맞게 DTO로 감싸기
 		TuiGridDTO.Res<TuiGridDTO.ResData<AgentDTO.AgentRowData>> body =
 				new TuiGridDTO.Res<>(true, resGridData);
@@ -55,7 +54,6 @@ public class ApiBasicController {
 			@RequestBody AgentDTO.DelAgentReq delAgentReq,
 			@AuthenticationPrincipal CustomUserDetails user
 	) {
-		log.info("=========== deleteAgent");
 		List<String> delAgentNames = agentService.deleteAgent(delAgentReq, user);
 		
 		ResMessage<List<String>> resMessage = new ResMessage<>();

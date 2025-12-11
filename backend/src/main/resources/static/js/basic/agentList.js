@@ -5,7 +5,6 @@ $(function () {
 	let $modal;
 	const $bodyCandidate = $candidates.filter('.modal-body');
 	if ($bodyCandidate.length) {
-		// 이번 memberJoin 모달의 body
 		$modal = $bodyCandidate.first();
 	} else {
 		// 페이지로 직접 열렸을 수도 있으니, 그때는 그냥 첫 번째 modal-view 사용
@@ -121,7 +120,7 @@ $(function () {
 		],
 		pageOptions: {
 			useClient: false, // 서버 페이징
-			perPage: 15,
+			perPage: 20,
 		},
 		rowHeaders: ['checkbox'],
 		minBodyHeight: 663,
@@ -161,14 +160,13 @@ $(function () {
 					}
 				);
 
-				// 모달이 성공적으로 종료되었을 때만 그리드 갱신
+				// 모달이 성공적으로 종료되었을 때만 그리드 갱신 (정상적으로 닫히면 true를 리턴)
 				if (resModal) {
 					$modal.grid.reloadData();
 				}
 			} catch (err) {
 				console.error('g_modal 실행 중 에러', err);
 			}
-
 		})
 		// 삭제
 		.on('click', '.deleteAgentBtn', async function (e) {
@@ -180,11 +178,10 @@ $(function () {
 				g_toast('삭제할 업체를 선택해주세요.', 'warning');
 				return false;
 			} else {
-				// 각 업체의 id를 담는다.
+				// 각 업체의 id를 담는다. (새로운 배열에 담기 위해 map 사용)
 				let delAgentIds = $.map(checkedRows, function (row, index) {
 					return row.id;
 				});
-				console.log('🚀 ~ delAgentIds:', delAgentIds);
 
 				// 2. 삭제유무 confirm 확인
 				if (confirm('정말 삭제하시겠습니까?\n업체정보, 담당자, 로그인 계정이 삭제됩니다')) {
@@ -205,7 +202,6 @@ $(function () {
 								contentType: 'application/json; charset=utf-8',
 							}
 						);
-						console.log('🚀 ~ resDelete:', resDelete);
 						if (resDelete?.code === 1) {
 							const delNames = resDelete.data || [];
 							Swal.fire({
@@ -236,32 +232,32 @@ $(function () {
 			if (checkedRows.length === 0) {
 				g_toast('관리할 업체를 선택해주세요.', 'warning');
 				return false;
-			} else {
-				// 그룹관리 업체명?
-				const updateAgentIds = $.map(checkedRows, function (item, index) {
-					return item.id;
-				}); // 배열([]) 리턴
-				console.log('updateAgentIds: ' + updateAgentIds);
-
-				await g_modal(
-					'/basic/agentGroupModify',
-					{
-						ids: updateAgentIds,
-					},
-					{
-						size: '',
-						title: '그룹관리',
-						show_close_button: true,
-						show_confirm_button: true,
-						confirm_button_text: '저장',
-					}
-				).then((data) => {
-					console.log('🚀 ~ data:', data);
-					$modal.grid.reloadData();
-				});
 			}
 
-			// g_modal 호출
+			// 그룹관리 업체명?
+			const updateAgentIds = $.map(checkedRows, function (agent, index) {
+				return agent.id;
+			}); // 배열([]) 리턴
+
+			const resModal = await g_modal(
+				'/basic/agentGroupModify',
+				{
+					ids: updateAgentIds,
+				},
+				{
+					size: '',
+					title: '그룹관리',
+					show_close_button: true,
+					show_confirm_button: true,
+					confirm_button_text: '저장',
+				}
+			);
+
+			// 모달이 정상적으로 종료된 경우, 그리드 갱신 후 최신화
+			// NOTE 모달 내에서 $modal_root.modal('hide'); 호출 후 return true 명시
+			if (resModal) {
+				$modal.grid.reloadData();
+			}
 		});
 
 	// 그리드 이벤트 정의
@@ -288,28 +284,10 @@ $(function () {
 				// 모달이 성공적으로 종료되었을 때만 그리드 갱신
 				if (resModal) {
 					$modal.grid.reloadData();
-				}				
-
-
+				}
 			} catch (err) {
 				console.error('g_modal 실행 중 에러', err);
 			}
-			// await g_modal(
-			// 	'/basic/agentModify',
-			// 	{
-			// 		id: row.id,
-			// 	},
-			// 	{
-			// 		size: 'xxl',
-			// 		title: '업체 수정',
-			// 		show_close_button: true,
-			// 		show_confirm_button: true,
-			// 		confirm_button_text: '저장',
-			// 	}
-			// ).then(() => {
-			// 	// 모달창이 닫히면 그리드가 갱신되도록 변경
-			// 	$modal.grid.reloadData();
-			// });
 		}
 	});
 
@@ -328,6 +306,7 @@ $(function () {
 	if (typeof window.modal_deferred == 'object') {
 		window.modal_deferred.resolve('script end');
 	} else {
+		// 모달이 아닌 일반 페이지인 경우엔 아래 init_page가 동작한다.
 		if (!$modal_root.length) {
 			init_page($modal);
 		}

@@ -11,15 +11,58 @@
                         <li>
                             <button type="button" class="btn btn-danger deleteOrder">삭제</button>
                             <button type="button" class="btn btn-primary addOrder">등록</button>
+                            <button type="button" class="btn btn-info orderCopy">접수복사</button>
+                            <button type="button" class="btn btn-secondary reArrangeManageNum">관리번호 재정렬</button>
                         </li>
                     </ul>
                     <ul class="ml-auto list-group list-group-horizontal" id="searchFormUl">
-                        <li class="mr-1 d-flex">
-                            <select class="form-control progress" name="progress">
+                        <!-- 작성일 날짜 검색 -->
+                        <li class="mr-1">
+                            <div class="d-flex">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">접수일</span>
+                                    </div>
+                                    <div class="input-group-append">
+                                        <input type="date" class="form-control text-center rounded-0 orderStartDate"
+                                            placeholder="시작일" name="orderStartDate"
+                                            th:value="${#temporals.format(orderStartDate, 'yyyy-MM-dd')}" />
+                                    </div>
+                                    <span class="input-group-text"
+                                        style="border-radius: 0px; border-left: 0px; border-right: 0px;">~</span>
+                                    <div class="input-group-append">
+                                        <input type="date" class="form-control text-center rounded-0 orderEndDate"
+                                            placeholder="종료일" name="orderEndDate"
+                                            th:value="${#temporals.format(orderEndDate, 'yyyy-MM-dd')}" />
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="mr-1">
+                            <!-- 세금계산서 발행여부 -->
+                            <select class="form-control isTax" name="isTax">
+                                <option value="" selected>세금계산서 전체</option>
+                                <option value="">발행</option>
+                                <option value="">미발행</option>
+                            </select>
+                        </li>
+                        <li class="mr-1">
+                            <!-- 교정유형 전체 -->
+                            <select class="form-control caliType" name="caliType">
+                                <option value="" selected>교정유형 전체</option>
+                                <option value="standard">고정표준실</option>
+                                <option value="site">현장</option>
+                            </select>
+                        </li>
+                        <!--  -->
+                        <li class="mr-1">
+                            <select class="form-control statusType" name="statusType">
                                 <!-- 전체선택(여부)의 경우, 빈값으로 값을 보낸다. -->
                                 <option value="">진행전체</option>
-                                <option value="ing" selected>진행중</option>
-                                <option value="complete">교정완료</option>
+                                <option value="wait" selected>진행중</option>
+                                <option value="complete">완료</option>
+                                <option value="hold">보류</option>
+                                <option value="cancel">취소</option>
                             </select>
                         </li>
                         <li class="mr-1 d-flex">
@@ -27,8 +70,11 @@
                                 <select class="form-control searchType" name="searchType" id="searchType">
                                     <!-- 전체선택의 경우 빈 문자열을 보낸다. -->
                                     <option value="">전체선택</option>
+                                    <option value="orderNum">접수번호</option>
                                     <option value="custAgent">신청업체</option>
-                                    <option value="certAgent">성적서발행처</option>
+                                    <option value="report_agent">성적서발행처</option>
+                                    <option value="report_agent_addr">성적서발행처주소</option>
+                                    <option value="remark">요청사항</option>
                                 </select>
                                 <div class="input-group-append">
                                     <input type="input" class="form-control" id="keyword" name="keyword" value="" />

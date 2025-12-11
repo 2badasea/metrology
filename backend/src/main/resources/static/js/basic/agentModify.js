@@ -31,7 +31,6 @@ $(function () {
 			// NOTE async, await으로도 가능한지 확인
 			try {
 				const resGetInfo = await g_ajax('/api/basic/getAgentInfo', { id: agentId });
-				console.log('🚀 ~ resGetInfo:', resGetInfo);
 				if (resGetInfo) {
 					$modal.find('form.agentModifyForm input[name], textarea[name]').setupValues(resGetInfo);
 					if (resGetInfo.isClose == 'y') {
@@ -56,10 +55,10 @@ $(function () {
 			} catch (err) {
 				custom_ajax_handler(err);
 			} finally {
-				console.log('업체정보 데이터 세팅 complete');
 			}
-		}
 
+		}
+		
 		// 수정인 경우, 담당자 리스트 정보 세팅
 		$modal.dataSource = {
 			api: {
@@ -322,7 +321,6 @@ $(function () {
 					return false;
 				}
 			}
-			console.log('업로드 가능한 파일들:', files);
 		})
 		// 첨부파일 조회
 		.on('click', '.searchFile', async function () {
@@ -397,7 +395,6 @@ $(function () {
 		// 업체형태agentflag값 확인
 		const $chkBitInputs = $('.agentFlagTypes', $modal).find('.chkBit');
 		let agentFlag = getCheckBit($chkBitInputs); // save
-		console.log('🚀 ~ agentFlag:', agentFlag);
 		if (!agentFlag || agentFlag == 0) {
 			g_toast('업체 형태를 선택해주세요.');
 			return false;
@@ -460,7 +457,6 @@ $(function () {
 
 			try {
 				const res = await g_ajax('/api/basic/saveAgent', sendFormData);
-				console.log('🚀 ~ res:', res);
 				if (res?.code == 1) {
 					await g_message(`업체정보 ${saveTypeTxt}`, `업체정보가 ${saveTypeTxt} 되었습니다.`, 'success');
 					$modal_root.modal('hide');

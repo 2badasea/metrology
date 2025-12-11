@@ -55,9 +55,6 @@ public class MemberServiceImpl {
 		if (optMember.isEmpty()) {
 			return new MemberDTO.DuplicateLoginIdRes(false, null, null);
 		}
-		
-		Member member = optMember.get();
-		
 		// 기본값: 중복은 맞지만 업체 정보는 안 실어보냄(업체정보가 아예 없는 의미라면 빈 문자열 보다는 null이 의미에 가까움)
 		String name = null;
 		String addr = null;

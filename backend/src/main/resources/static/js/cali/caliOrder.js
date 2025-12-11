@@ -22,12 +22,16 @@ $(function () {
 	$modal.data_source = {
 		api: {
 			readData: {
-				url: '/api/cali/getOrderList',
-				// 'serializer'는 토스트 그리드에서 제공
+				url: '/api/caliOrder/getOrderList',
 				serializer: (grid_param) => {
-					// grid_param.isClose = $('form.searchForm .isClose', $modal).val();
-					// grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? '';
-					// grid_param.keyword = $('form.searchForm', $modal).find('#keyword').val() ?? '';
+					// 접수시작/종료일, 세금계산서, 접수유형, 진행상태, 검색타입, 검색키워드를 넘긴다.
+					grid_param.orderStartDate = $('form.searchForm .orderStartDate', $modal).val() ?? ''; // 접수일(시작일)
+					grid_param.orderEndDate = $('form.searchForm .orderEndDate', $modal).val() ?? ''; // 접수일(마지막)
+					grid_param.isTax = $('form.searchForm .isTax', $modal).val() ?? ''; // 세금계산서 발행여부
+					grid_param.caliType = $('form.searchForm .caliType', $modal).val() ?? ''; // 교정유형(고정표준실/현장교정)
+					grid_param.statusType = $('form.searchForm .statusType', $modal).val() ?? ''; // 진행상태
+					grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? ''; // 검색타입
+					grid_param.keyword = $('form.searchForm', $modal).find('#keyword').val() ?? ''; // 검색키워드
 					return $.param(grid_param);
 				},
 				method: 'GET',
@@ -50,43 +54,148 @@ $(function () {
 				},
 			},
 			{
-                // DB상에서는 datetime이지만, 화면에는 date타입으로 표현
+				// DB상에서는 datetime이지만, 화면에는 date타입으로 표현
 				header: '접수일',
 				name: 'orderDatetime',
 				className: 'cursor_pointer',
 				align: 'center',
-				sortable: true,
+				width: '80',
 				formatter: function (data) {
+					// 값은 기본적으로 date 형시긍로 표기
 					return !data.value ? '' : data.value.slice(0, 10);
 				},
 			},
 			{
 				header: '접수번호',
-				name: 'order_num',
+				name: 'orderNum',
 				className: 'cursor_pointer',
-				width: '150',
+				width: '120',
 				align: 'center',
 			},
 			{
 				header: '신청업체',
-				name: 'cust_agent',
-                with: '200',
+				name: 'custAgent',
+				with: '120',
 				className: 'cursor_pointer',
 				align: 'center',
 			},
 			{
-				header: '신청업체 주소',
-				name: 'cust_agent_addr',
+				header: '성적서발행처',
+				name: 'reportAgent',
 				className: 'cursor_pointer',
-				width: '250',
+				width: '120',
 				align: 'center',
+			},
+			{
+				header: '성적서발행처 주소',
+				name: 'reportAgentAddr',
+				className: 'cursor_pointer',
+				align: 'center',
+			},
+			{
+				header: '출장일',
+				className: 'cursor_pointer',
+				width: '100',
+				align: 'center',
+				formatter: function (data) {
+					// 출장시작일 ~ 종료일 형태로 작게 보여줄 것
+					return '';
+				},
+			},
+			{
+				header: '요청사항',
+				name: 'remark',
+				className: 'cursor_pointer',
+				width: '70',
+				align: 'center',
+				formatter: function (data) {
+					// 모달을 통해서 볼 수 있도록 할 것
+					let btnClass = data.remark ? 'btn-info' : 'btn-secondary';
+					return `
+							<button type='button' class='btn ${btnClass} checkRemark w-100 h-100 p-0 rounded-0' ><i class='bi bi-chat-left-text'></i></button>
+					`;
+				},
+			},
+			{
+				header: '세금계산서',
+				name: 'isTax',
+				className: 'cursor_pointer',
+				width: '80',
+				align: 'center',
+				formatter: function (data) {
+					// data.isCheck == 'y'라면, checked 속성값 삽입
+					let checked = data.isTax == 'y' ? 'checked' : '';
+					// FIX toggle을 활용해서 보여주도록 한다.
+					return `
+							<input class="bs_toggle" type="checkbox" data-toggle="toggle" data-on="발행" data-off="미발행" data-width="100%" data-size="xs" ${checked}>
+					`;
+				},
 			},
 			{
 				header: '접수내역',
 				className: 'cursor_pointer',
 				align: 'center',
+				width: '70',
 				formatter: function (data) {
-					return '<button type="button" class="btn btn-info">접수내역</button>';
+					let cntText = '';
+					let btnClass = 'btn-secondary';
+					if (data.reportCnt != undefined && data.reportCnt > 0) {
+						cntText = '1개 이상 존재';
+						btnClass = 'default p-0';
+					}
+					// FIX 성적서가 존재하는 경우, 성적서의 개수를 표기한다.
+					return `
+							<button class="btn ${btnClass} w-100 h-100 rounded-0 checkReport">${cntText}</button>
+					`;
+				},
+			},
+			{
+				header: '대행',
+				className: 'cursor_pointer',
+				width: '70',
+				align: 'center',
+				formatter: function (data) {
+					// FIX 대행 작업 시 진행.   접수내역과 같이 개수를 표기하도록 한다.
+					return '';
+				},
+			},
+			{
+				header: '복사',
+				className: 'cursor_pointer',
+				width: '70',
+				align: 'center',
+				formatter: function (data) {
+					// FIX 자체+대행 포함하여 성적서 개수가 1개 이상이어야 표기
+					return '';
+				},
+			},
+			{
+				header: '교정신청서',
+				className: 'cursor_pointer',
+				width: '120',
+				align: 'center',
+				formatter: function (data) {
+					// 버튼 2개로 구성할 것
+					return `
+								<div class="btn-group btn-group-sm w-100 h-100" role="group" aria-label="Basic example">
+									<button type="button" class="h-100 rounded-0 btn btn-info downCaliOrder" data-type="excel"><i class="bi bi-download"></i></button>
+									<button type="button" class="h-100 rounded-0 btn sendCaliOrder btn-secondary" data-type="mail"><i class="bi bi-envelope"></i></button>
+								</div>
+							`;
+				},
+			},
+			{
+				header: '완료통보서',
+				className: 'cursor_pointer',
+				width: '80',
+				align: 'center',
+				formatter: function (data) {
+					// 모달을 통해서 볼 수 있도록 할 것
+					return `
+								'<button type="button" class="btn w-100 h-100 rounded-0 checkCpt">
+									<i class="bi bi-pencil-square"></i>
+								</button>
+							`;
 				},
 			},
 		],
@@ -97,7 +206,7 @@ $(function () {
 		rowHeaders: ['checkbox'],
 		minBodyHeight: 663,
 		bodyHeight: 663,
-		// data: $modal.data_source,
+		data: $modal.data_source,
 	});
 
 	// 페이지 내 이벤트
@@ -105,6 +214,20 @@ $(function () {
 		// 검색
 		.on('submit', '.searchForm', function (e) {
 			e.preventDefault();
+
+			// 1. 검색 전, 시작일/종료일 체크하도록 하기
+			// 2. 종료일이 빠른 경우 체크
+			// 3. 조회기간이 6개월을 넘어가는 경우, 느려질 수 있다고 할 것
+			const orderStartDate = $('.orderStartDate', $modal).val();
+			console.log('🚀 ~ orderStartDate:', orderStartDate);
+			const orderEndDate = $('.orderEndDate', $modal).val();
+			console.log('🚀 ~ orderEndDate:', orderEndDate);
+
+			if (!orderStartDate || !orderEndDate) {
+				g_toast('접수일 조회 기간을 선택해주세요.', 'warning');
+				return false;
+			}
+
 			$modal.grid.getPagination().movePageTo(1);
 		})
 		// 등록
