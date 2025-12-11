@@ -90,6 +90,7 @@ $(function () {
 				if (resUpdate?.code > 0) {
 					await g_message('그룹명 수정', '그룹명이 수정되었습니다.', 'success');
 					$modal_root.modal('hide');
+					return true;
 				} else {
 					await g_message('그룹명 수정', '그룹명 수정에 실패했습니다.', 'warning');
 					return false;

@@ -40,7 +40,6 @@ public class ApiMemberController {
 	 */
 	@PostMapping(value = "/chkDuplicateLoginId")
 	public ResponseEntity<ResMessage<MemberDTO.DuplicateLoginIdRes>> chkDuplicateLoginId(@RequestParam String loginId, @RequestParam(required = false) String refPage) {
-		log.info("loginId= {}, refPage= {}", loginId, refPage);
 		
 		// loginId 중복여부 조회 (서비스 계층에선 중복여부 + 업체정보만 책임)
 		MemberDTO.DuplicateLoginIdRes duplicateLoginIdRes = memberService.chkDuplicateLoginId(loginId, refPage);

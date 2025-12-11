@@ -115,14 +115,9 @@ public class FileServiceImpl {
 				
 				
 				try (InputStream is = file.getInputStream()) {
-					log.info("bucket={}", bucket);
-					log.info("objectKey={}", objectKey);
-					log.info("contentType={}, size={}", file.getContentType(), file.getSize());
-					log.info("metadata={}", metadata);
 					
 					try {
 						ncloudS3Client.putObject(bucket, objectKey, is, metadata);
-						log.info("===== putObject 성공 =====");
 					} catch (com.amazonaws.services.s3.model.AmazonS3Exception e) {
 						log.error("S3 API 에러: status={}, code={}, message={}",
 								e.getStatusCode(), e.getErrorCode(), e.getMessage(), e);
