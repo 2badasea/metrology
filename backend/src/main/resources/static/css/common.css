@@ -6,9 +6,10 @@
 a {
 	text-decoration: none;
 }
-ul, ol {
-  list-style: none;
-  padding-left: 0; /* 기본 들여쓰기 제거 */
+ul,
+ol {
+	list-style: none;
+	padding-left: 0; /* 기본 들여쓰기 제거 */
 }
 /** 레이아웃 관련 스타일 설정 **/
 
@@ -22,60 +23,59 @@ ul, ol {
 /* 사이드바: 화면의 15% 고정 + 너무 좁아지는 것 방지 */
 /* 사이드바 전체 */
 .sidebar {
-  background-color: #212529;   /* 어두운 회색 (bootstrap bg-dark 느낌) */
-  color: #f8f9fa;
-  min-height: 100vh;
-  width: 230px;
+	background-color: #212529; /* 어두운 회색 (bootstrap bg-dark 느낌) */
+	color: #f8f9fa;
+	min-height: 100vh;
+	width: 230px;
 }
 
 /* 상단 로고 이미지 */
 .sidebar-logo {
-  width: 100%;
-  height: 100%;
-  border-radius: 4px;
-  object-fit: cover;
+	width: 100%;
+	height: 100%;
+	border-radius: 4px;
+	object-fit: cover;
 }
 
 /* 메뉴 기본 스타일 */
 .sidebar-menu .nav-link {
-  color: #ced4da;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.35rem;
-  font-size: 0.95rem;
+	color: #ced4da;
+	padding: 0.5rem 0.75rem;
+	border-radius: 0.35rem;
+	font-size: 0.95rem;
 }
 
 .sidebar-menu .nav-link:hover {
-  background-color: #343a40;
-  color: #ffffff;
+	background-color: #343a40;
+	color: #ffffff;
 }
 
 /* 부모 메뉴(접고/펴기 버튼) */
 .sidebar-parent {
-  font-weight: 600;
+	font-weight: 600;
 }
 
 /* 하위 메뉴 영역 */
 .sidebar-submenu {
-  margin-top: 0.15rem;
-  margin-bottom: 0.5rem;
+	margin-top: 0.15rem;
+	margin-bottom: 0.5rem;
 }
 
 .sidebar-sublink {
-  font-size: 0.9rem;
-  padding: 0.4rem 0.75rem;
+	font-size: 0.9rem;
+	padding: 0.4rem 0.75rem;
 }
 
 /* 활성화된 메뉴 강조 (나중에 viewName 기준으로 active 붙여도 됨) */
 .sidebar-menu .nav-link.active {
-  background-color: #0d6efd;
-  color: #ffffff;
+	background-color: #0d6efd;
+	color: #ffffff;
 }
 
 /* caret 아이콘 약간 작게 */
 .caret-icon {
-  font-size: 0.7rem;
+	font-size: 0.7rem;
 }
-
 
 /* ==============================  End sidebar ===================================== */
 /* 우측 컬럼: 상단툴바 + 본문 */
@@ -138,7 +138,8 @@ div {
 }
 
 /* 테이블 내 padding값 없애기 */
-.table td, .table th {
+.table td,
+.table th {
 	padding: 0 !important;
 	vertical-align: middle !important;
 	height: 40px !important;
@@ -214,7 +215,17 @@ i.close:hover {
 
 /* END 모달 스타일 조정 */
 
-
 /* .input-group {
 	height: 33px;
 } */
+
+/* 사이즈 (높이/너비) 커스텀 */
+.w75 {
+	width: 75px !important;
+}
+
+
+/* 사이즈 (높이/너비) 커스텀 */
+.w140 {
+	width: 140px !important;
+}

@@ -83,8 +83,9 @@ public class CaliOrder {
 	@Column(name = "doc_type", nullable = false, length = 10)
 	private String docType;            // ISO / B
 	
+	// 대기/ 완료/ 취소/ 보류 선에서 모두 구분
 	@Column(name = "status_type", nullable = false, length = 20)
-	private String statusType;         // wait / progress / complete / cancel / hold
+	private String statusType;         // wait / complete / cancel / hold
 	
 	/**
 	 * 'columnDefinition' 속성은 JPA가 DDL을 생성할 때만 쓰는 힌트. (이미 DB에서 미리 만들어두고 entity를 정의하는 입장에선 의미가 없음)
