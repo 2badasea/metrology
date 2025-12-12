@@ -4,7 +4,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjuster;
@@ -36,5 +38,13 @@ public class CaliController {
 		model.addAttribute("orderEndDate", orderEndDate);
 		
 		return "cali/caliOrder";
+	}
+	
+	// 교정접수 등록/수정 페이지 [모달]
+	@PostMapping(value = "/caliOrderModify")
+	public String caliOrderModify(Model model, @RequestParam(required = false) Long caliOrderId) {
+		boolean isModify = (caliOrderId != null && caliOrderId > 0);
+		model.addAttribute("isModify", isModify);
+		return "cali/caliOrderModify";
 	}
 }

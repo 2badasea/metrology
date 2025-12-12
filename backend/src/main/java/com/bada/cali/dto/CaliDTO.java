@@ -48,11 +48,16 @@ public class CaliDTO {
 		private YnType isTax;                    // 세금계산서 발행여부
 		private Long completionId;                // 완료통보서id
 		private String statusType;            // 진행상태 (wait, complete, hold, cancel)
+		private String orderDate;                // 접수일
 		
 		// 추가적으로 가져올 것
 		private Long reportTotalCnt;            // 전체성적서 개수
 		private Long selfReportCount;            // 자체성적서 개수
 		private Long outReportCount;            // 대행성적서 개수
+		
+		// 접수등록/수정에 모달 데이터
+		private String custAgentTel;			// 신청업체 대표번호
+		private String custAgentFax;			// 신청업체 FAX
 		
 		
 	}

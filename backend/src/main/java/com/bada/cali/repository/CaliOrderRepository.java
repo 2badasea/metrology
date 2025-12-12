@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Repository
@@ -19,8 +20,8 @@ public interface CaliOrderRepository extends JpaRepository<CaliOrder, Long> {
 				select o
 				from CaliOrder o
 				where o.isVisible = :isVisible
-					and (:startDateTime IS NULL OR o.orderDatetime >= :startDateTime)
-					and (:endDateTime IS NULL OR o.orderDatetime <= :endDateTime)
+					and (:startDate IS NULL OR o.orderDate >= :startDate)
+					and (:endDate IS NULL OR o.orderDate <= :endDate)
 					and (:isTax IS NULL OR o.isTax = :isTax)
 					and (:caliType IS  NULL OR o.caliType = :caliType)
 					and (:statusType IS NULL OR o.statusType = :statusType)
@@ -45,8 +46,8 @@ public interface CaliOrderRepository extends JpaRepository<CaliOrder, Long> {
 			""")
 	Page<CaliOrder> searchOrders(
 			@Param("isVisible") YnType isVisible,
-			@Param("startDateTime") LocalDateTime startDateTime,
-			@Param("endDateTime") LocalDateTime endDateTime,
+			@Param("startDate") LocalDate startDate,
+			@Param("endDate") LocalDate endDate,
 			@Param("isTax") YnType isTax,
 			@Param("caliType") String caliType,
 			@Param("statusType") String statusType,
@@ -56,6 +57,5 @@ public interface CaliOrderRepository extends JpaRepository<CaliOrder, Long> {
 	);
 	
 	
-	// isVisible, startData, endDate, isTax, caliType, statusType, searchType, keyword, pageable);
 	
 }
