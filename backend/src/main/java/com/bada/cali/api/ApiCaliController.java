@@ -32,7 +32,7 @@ public class ApiCaliController {
 			) {
 		log.info("============ getOrderList");
 		// 리스트 데이터 및 페이지 정보를 담은 데이터 가져옴
-		TuiGridDTO.ResData<CaliDTO.OrderRowData> resGridData = caliOrderService.getOrderList(req, user);
+		TuiGridDTO.ResData<CaliDTO.OrderRowData> resGridData = caliOrderService.getOrderList(req);
 		log.info("============ 데이터 리턴");
 		// tui grid api 형식에 맞춘 형태로 리턴
 		TuiGridDTO.Res<TuiGridDTO.ResData<CaliDTO.OrderRowData>> body = new TuiGridDTO.Res<>(true, resGridData);
