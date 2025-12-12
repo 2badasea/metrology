@@ -441,16 +441,10 @@ async function g_modal(url, param = {}, options = {}) {
 				confirm_button_class_name: 'btn btn-primary btn_save btn-sm', //확인 버튼 클래스
 				confirm_button_text: '확인', //확인 버튼 텍스트
 				click_confirm_button: async function () {
-					console.log("sss");
 					let $modal = $(`#${uuid}`).find('.modal-view').data('modal-data');
 					if (typeof $modal == 'object' && typeof $modal.confirm_modal == 'function') {
-						console.log("체크");
 						let value = await $modal.confirm_modal();
-						console.log("🚀 ~ g_modal ~ value:", value)
-						console.log('최후체크');
-						console.log(value);
 						if (value !== false) {
-							console.log('원피스');
 							resolve(value);
 						}
 					} else {
@@ -632,9 +626,10 @@ async function g_modal(url, param = {}, options = {}) {
 		});
 		$(`#${uuid}`)
 			.modal('show')
-			// .draggable({
-			// 	handle: '.modal-header',
-			// })
+			// 모달창 드래그 이동 활성화
+			.draggable({
+				handle: '.modal-header',
+			})
 			.on('hidden.bs.modal', function () {
 				$(this).remove();
 				if ($('.modal-stack').length) {
