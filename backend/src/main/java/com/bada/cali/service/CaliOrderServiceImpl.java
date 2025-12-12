@@ -30,8 +30,9 @@ public class CaliOrderServiceImpl {
 	private final CaliOrderRepository caliOrderRepository;
 	private final CaliOrderMapper caliOrderMapper;
 	
-	@Transactional
-	public TuiGridDTO.ResData<CaliDTO.OrderRowData> getOrderList(CaliDTO.GetOrderListReq request, CustomUserDetails user) {
+	// 교정접수 리스트 가져오기
+	@Transactional(readOnly = true)		// 조회 전용이기에 readonly = true 명시
+	public TuiGridDTO.ResData<CaliDTO.OrderRowData> getOrderList(CaliDTO.GetOrderListReq request) {
 		
 		int pageIndex = request.getPage() - 1;
 		int pageSize = request.getPerPage();
@@ -51,9 +52,6 @@ public class CaliOrderServiceImpl {
 			LocalDate endDate = LocalDate.parse(request.getOrderEndDate());
 			endDateTime = endDate.atStartOfDay();
 		}
-		
-		log.info("============ 중간체크1");
-		
 		
 		// 세금계산서 발행여부
 		YnType isTax = null;
@@ -98,15 +96,12 @@ public class CaliOrderServiceImpl {
 		keyword = (keyword == null) ? "" : keyword.trim();
 		
 		YnType isVisible = YnType.y;        // 기본적으로 삭제된 건 노출하지 않음.
-		log.info("============ 중간체크222");
 		// 분기처리 없이 데이터 가져오기
 		Page<CaliOrder> pageResult = caliOrderRepository.searchOrders(isVisible, startDateTime, endDateTime, isTax, caliType, statusType, searchType, keyword, pageable);
 		
-		log.info("============ 중간체크33");
 		
 		// entity -> DTO 변환
 		List<CaliDTO.OrderRowData> rows = pageResult.getContent().stream().map(caliOrderMapper::toOrderDataFromEntity).toList();
-		log.info("============ 중간체크44");
 		
 		// 페이지네이션
 		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
@@ -114,7 +109,6 @@ public class CaliOrderServiceImpl {
 				.totalCount((int) pageResult.getTotalElements())
 				.build();
 		
-		log.info("============ 중간체크55");
 		// 최종 return
 		return TuiGridDTO.ResData.<CaliDTO.OrderRowData>builder()
 				.contents(rows)
