@@ -215,16 +215,34 @@ $(function () {
 		.on('submit', '.searchForm', function (e) {
 			e.preventDefault();
 
-			// 1. 검색 전, 시작일/종료일 체크하도록 하기
-			// 2. 종료일이 빠른 경우 체크
-			// 3. 조회기간이 6개월을 넘어가는 경우, 느려질 수 있다고 할 것
+			// // 1. 검색 전, 시작일/종료일 체크하도록 하기
 			const orderStartDate = $('.orderStartDate', $modal).val();
-			console.log('🚀 ~ orderStartDate:', orderStartDate);
 			const orderEndDate = $('.orderEndDate', $modal).val();
-			console.log('🚀 ~ orderEndDate:', orderEndDate);
 
+			// 1. 날짜가 없는 경우 체크
 			if (!orderStartDate || !orderEndDate) {
 				g_toast('접수일 조회 기간을 선택해주세요.', 'warning');
+				return false;
+			}
+
+			// 2. 앞뒤 순서 체크 (YYYY-MM-DD 문자열 비교로도 충분)
+			if (orderStartDate > orderEndDate) {
+				g_toast('조회 종료일이 시작일보다 빠를 수 없습니다.', 'warning');
+				return false;
+			}
+
+			// 3. 조회기간 1년 이내로 제한
+			const startDate = new Date(orderStartDate);
+			const endDate = new Date(orderEndDate);
+
+			// 두 날짜 차이(ms) → 일(day) 단위로 변환
+			const DAY_MS = 1000 * 60 * 60 * 24;
+			const diffTime = endDate.getTime() - startDate.getTime(); // ms 차이
+			const diffDays = diffTime / DAY_MS;
+
+			// 365일 초과면 막기 (<= 365일까지만 허용)
+			if (diffDays > 365) {
+				g_toast('조회 기간은 최대 1년까지만 설정할 수 있습니다.', 'warning');
 				return false;
 			}
 
@@ -240,7 +258,7 @@ $(function () {
 					{},
 					{
 						title: '교정접수 등록',
-						size: 'xxxl',
+						size: 'xl',
 						show_close_button: true,
 						show_confirm_button: true,
 						confirm_button_text: '저장',

@@ -113,8 +113,8 @@ public class CaliOrder {
 	@Column(name = "btrip_end_date")
 	private LocalDateTime btripEndDate;    // 출장 종료일시 (nullable)
 	
-	@Column(name = "order_datetime", nullable = false)
-	private LocalDateTime orderDatetime;   // 접수일시
+	@Column(name = "order_date", nullable = false)
+	private LocalDate orderDate;   // 접수일시
 	
 	@Column(name = "complete_date")
 	private LocalDate completeDate;        // 완료일자 (nullable)
@@ -140,6 +140,12 @@ public class CaliOrder {
 	
 	@Column(name = "cust_agent", length = 200)
 	private String custAgent;              // 신청업체명
+	
+	@Column(name = "cust_agent_tel", length = 100)
+	private String custAgentTel;              // 신청업체 대표 연락처
+	
+	@Column(name = "cust_agent_fax", length = 100)
+	private String custAgentFax;              // 신청업체 FAX
 	
 	@Column(name = "cust_agent_en", length = 200)
 	private String custAgentEn;           // 신청업체 영문명

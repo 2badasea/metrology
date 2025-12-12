@@ -40,17 +40,15 @@ public class CaliOrderServiceImpl {
 		Pageable pageable = PageRequest.of(pageIndex, pageSize);    // Pageable 객체
 		
 		// 날짜 데이터는 문자열로 넘어오더라도 datetime으로 변경해서 리파지토리에 보내기 (JPQL에서 function 사용 방지 - DB종속적인 구조 방지)
-		LocalDateTime startDateTime = null;
-		LocalDateTime endDateTime = null;
+		LocalDate startDate = null;
+		LocalDate endDate = null;
 		
-		// 값이 존재하는지 파악 후 datetime 값으로 변경
+		// 값이 존재하는지 파악 후 date타입으로 변경
 		if (request.getOrderStartDate() != null && !request.getOrderStartDate().isBlank()) {
-			LocalDate startDate = LocalDate.parse(request.getOrderStartDate());
-			startDateTime = startDate.atStartOfDay();
+			startDate = LocalDate.parse(request.getOrderStartDate());
 		}
 		if (request.getOrderEndDate() != null && !request.getOrderEndDate().isBlank()) {
-			LocalDate endDate = LocalDate.parse(request.getOrderEndDate());
-			endDateTime = endDate.atStartOfDay();
+			endDate = LocalDate.parse(request.getOrderEndDate());
 		}
 		
 		// 세금계산서 발행여부
@@ -97,7 +95,7 @@ public class CaliOrderServiceImpl {
 		
 		YnType isVisible = YnType.y;        // 기본적으로 삭제된 건 노출하지 않음.
 		// 분기처리 없이 데이터 가져오기
-		Page<CaliOrder> pageResult = caliOrderRepository.searchOrders(isVisible, startDateTime, endDateTime, isTax, caliType, statusType, searchType, keyword, pageable);
+		Page<CaliOrder> pageResult = caliOrderRepository.searchOrders(isVisible, startDate, endDate, isTax, caliType, statusType, searchType, keyword, pageable);
 		
 		
 		// entity -> DTO 변환
