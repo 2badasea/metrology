@@ -59,7 +59,9 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'                            // 롬복 어노테이션 처리기
 
     // 네이버클라우드 오브젝트 스토리지 관련
-    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.794'
+//    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.794'
+    implementation(platform("software.amazon.awssdk:bom:2.27.21"))
+    implementation("software.amazon.awssdk:s3")
 
     // Spring Security 기본 스타터
     // NOTE: 스프링시큐리티의 경우, 코드를 통한 설정 조정 많음. => 별도의 클래스 활용 (CustomSecurityConfig.class)

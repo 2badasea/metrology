@@ -1,14 +1,12 @@
 package com.bada.cali.service;
 
-import com.bada.cali.common.YnType;
-import com.bada.cali.dto.AgentDTO;
+import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.CaliDTO;
 import com.bada.cali.dto.TuiGridDTO;
 import com.bada.cali.entity.CaliOrder;
 import com.bada.cali.mapper.CaliOrderMapper;
 import com.bada.cali.repository.CaliOrderRepository;
 import com.bada.cali.repository.LogRepository;
-import com.bada.cali.security.CustomUserDetails;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service

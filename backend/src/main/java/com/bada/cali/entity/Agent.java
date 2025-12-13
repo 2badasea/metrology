@@ -1,6 +1,7 @@
 package com.bada.cali.entity;
 
-import com.bada.cali.common.YnType;
+import com.bada.cali.common.enums.CalibrationCycleType;
+import com.bada.cali.common.enums.YnType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -134,10 +135,5 @@ public class Agent {
 	
 	@Column(name = "delete_member_id")
 	private Long deleteMemberId;   // 삭제자
-	
-	// calibration_cycle ENUM 매핑 (DB 값과 맞추려고 소문자 사용)
-	public enum CalibrationCycleType {
-		self_cycle, next_cycle, none
-	}
 	
 }

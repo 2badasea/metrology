@@ -2,26 +2,36 @@
     xmlns:th="http://www.thymeleaf.org">
 
 <div layout:fragment="content">
-    <div class="input-group mb-1">
-        <div class="input-group-prepend">
-            <button class="btn btn-success" type="button" id="refresh"><i class="bi bi-arrow-clockwise"></i></button>
+    <form class="searchForm">
+        <div class="input-group mb-1">
+            <div class="input-group-append">
+                <button class="btn btn-success" type="button" id="refresh"><i
+                        class="bi bi-arrow-clockwise"></i></button>
+            </div>
+            <!-- 타임리프를 이용해서 업체형태 전체 표시 -->
+            <select class="form-control searchAgentFlag">
+                <option value="0" th:selected="${agentFlag} == null or agentFlag == ''">업체형태</option>
+                <option value="1" th:selected="${agentFlag} == 1 or agentFlag == '1'">신청업체</option>
+                <option value="2" th:selected="${agentFlag} == 2 or agentFlag == '2'">대리점</option>
+                <option value="4" th:selected="${agentFlag} == 4 or agentFlag == '4'">성적서발행처</option>
+                <option value="8" th:selected="${agentFlag} == 8 or agentFlag == '8'">교정기관</option>
+                <option value="16" th:selected="${agentFlag} == 16 or agentFlag == '16'">판매기관</option>
+            </select>
+            <select class="form-control searchType" name="searchType" id="searchType">
+                <!-- 전체선택의 경우 빈 문자열을 보낸다. -->
+                <option value="">전체선택</option>
+                <option value="name" selected>업체명</option>
+                <option value="agentNum">사업자번호</option>
+                <option value="addr">주소</option>
+            </select>
+            <div class="input-group-append">
+                <input type="input" class="form-control" name="keyword" th:value="${agentName}" />
+            </div>
+            <div class="input-group-append">
+                <button class="btn btn-info searchAgent" type="button">조회</button>
+            </div>
         </div>
-        <!-- 타임리프를 이용해서 업체형태 전체 표시 -->
-        <select class="form-control">
-            <option value="" th:selected="${agentFlag} == null or agentFlag == ''">업체형태</option>
-            <option value="1" th:selected="${agentFlag} == 1 or agentFlag == '1'">신청업체</option>
-            <option value="2" th:selected="${agentFlag} == 2 or agentFlag == '2'">대리점</option>
-            <option value="4" th:selected="${agentFlag} == 4 or agentFlag == '4'">성적서발행처</option>
-            <option value="8" th:selected="${agentFlag} == 8 or agentFlag == '8'">교정기관</option>
-            <option value="16" th:selected="${agentFlag} == 16 or agentFlag == '16'">판매기관</option>
-        </select>
-        <input type="text" class="form-control inputAgentName" th:value="${agentName}" placeholder="업체명">
-        <input type="text" class="form-control inputAgentAddr" placeholder="주소">
-        <input type="text" class="form-control inputAgentNum" placeholder="사업자등록번호">
-        <div class="input-group-append">
-            <button class="btn btn-info searchAgent" type="button">조회</button>
-        </div>
-    </div>
+    </form>
     <div class="searchAgentList"></div>
 </div>
 

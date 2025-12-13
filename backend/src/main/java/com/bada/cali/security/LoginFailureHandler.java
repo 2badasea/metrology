@@ -2,7 +2,7 @@ package com.bada.cali.security;
 
 import com.bada.cali.common.ResMessage;
 import com.bada.cali.entity.Log;
-import com.bada.cali.common.YnType;
+import com.bada.cali.common.enums.YnType;
 import com.bada.cali.entity.Member;
 import com.bada.cali.repository.LogRepository;
 import com.bada.cali.repository.MemberRepository;
@@ -13,11 +13,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
 

@@ -1,6 +1,6 @@
 package com.bada.cali.entity;
 
-import com.bada.cali.common.YnType;
+import com.bada.cali.common.enums.YnType;
 import jakarta.persistence.*;
 import lombok.*;
 

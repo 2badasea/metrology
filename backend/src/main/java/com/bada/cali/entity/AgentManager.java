@@ -1,6 +1,6 @@
 package com.bada.cali.entity;
 
-import com.bada.cali.common.YnType;
+import com.bada.cali.common.enums.YnType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -62,6 +62,5 @@ public class AgentManager {
 	
 	@Column(name = "delete_member_id")
 	private Long deleteMemberId;			// 삭제자id
-	
 	
 }

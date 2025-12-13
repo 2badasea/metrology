@@ -1,6 +1,6 @@
 package com.bada.cali.repository;
 
-import com.bada.cali.common.YnType;
+import com.bada.cali.common.enums.YnType;
 import com.bada.cali.entity.CaliOrder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,7 +10,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Repository
 public interface CaliOrderRepository extends JpaRepository<CaliOrder, Long> {

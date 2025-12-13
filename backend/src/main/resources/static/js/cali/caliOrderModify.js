@@ -1,17 +1,15 @@
 $(function () {
 	console.log('++ cali/caliOrderModify.js');
 
-	// 1) 아직 modal-view-applied 안 된 애들 중에서
-	const $notModalViewAppliedEle = $('.modal-view:not(.modal-view-applied)');
-	// 2) 모달 안에서 뜨는 경우: .modal-body.modal-view 우선 선택
-	const $hasModalBodyEle = $notModalViewAppliedEle.filter('.modal-body');
-	if ($hasModalBodyEle.length) {
-		$modal = $hasModalBodyEle.first();
+	const $candidates = $('.modal-view:not(.modal-view-applied)');
+	let $modal;
+	const $bodyCandidate = $candidates.filter('.modal-body');
+	if ($bodyCandidate.length) {
+		$modal = $bodyCandidate.first();
 	} else {
 		// 페이지로 직접 열렸을 수도 있으니, 그때는 그냥 첫 번째 modal-view 사용
-		$modal = $notModalViewAppliedEle.first();
+		$modal = $candidates.first();
 	}
-	// let $modal = $('.modal-view:not(.modal-view-applied)');
 	let $modal_root = $modal.closest('.modal');
 
 	let caliOrderId = null; // 업체id
@@ -77,6 +75,37 @@ $(function () {
 		// 		perPage: 15
 		// 	},
 		// });
+
+		// 업체조회 함수 정의
+		$modal.searchAgent = async (type, agentName) => {
+			const agentFlag = type == 'custAgent' ? 1 : 4;
+			console.log('🚀 ~ agentFlag:', agentFlag);
+
+			// g_modal 호출
+			const resModal = await g_modal(
+				'/agent/searchAgentModify',
+				{
+					agentFlag: agentFlag,
+					agentName: agentName,
+				},
+				{
+					title: '업체 조회',
+					size: 'xxl',
+					show_close_button: true,
+					show_confirm_button: false,
+					confirm_button_text: '저장',
+					custom_btn_html_arr: [
+						`<button type="button" class="btn btn-primary addAgent btn-sm"><i class="bi bi-plus-square"></i>업체등록</button>`,
+					],
+				}
+			);
+
+			// 리턴값 확인
+			console.log('🚀 ~ resModal:', resModal);
+			if (resModal) {
+				// 업체 데이터 갱신하기
+			}
+		};
 	};
 
 	// 모달 내 이벤트 정의
@@ -85,15 +114,15 @@ $(function () {
 		.on('click', '.searchAgent', function () {
 			const $btn = $(this);
 			const type = $btn.data('type');
-			const agnetName = $(`input[name=${type}`, $modal).val().trim();
-            $modal.searchAgent(type, agnetName);
+			const agnetName = $(`input[name=${type}`, $modal).val();
+			$modal.searchAgent(type, agnetName);
 		})
 		// 업체명 항목에 enter클릭 시, 업체조회 모달 호출
 		.on('keyup', '.searchAgentInput', function (e) {
 			if (e.key === 'Enter' || e.keyCode === 13) {
 				const type = $(this).data('type');
 				const agentName = $(this).val();
-                $modal.searchAgent(type, agentName);
+				$modal.searchAgent(type, agentName);
 			}
 		});
 	// 업체조회 모달 호출
@@ -111,37 +140,6 @@ $(function () {
 	// 저장
 	$modal.confirm_modal = async function (e) {
 		console.log('저장클릭!!');
-	};
-
-	// 업체조회 함수 정의
-	$modal.searchAgent = async (type, agentName) => {
-		const agentFlag = type == 'custAgent' ? 1 : 4;
-		console.log('🚀 ~ agentFlag:', agentFlag);
-
-		// g_modal 호출
-		const resModal = await g_modal(
-			'/agent/searchAgentModify',
-			{
-				agentFlag: agentFlag,
-				agentName: agentName,
-			},
-			{
-				title: '업체 조회',
-				size: 'xxl',
-				show_close_button: true,
-				show_confirm_button: false,
-				confirm_button_text: '저장',
-				custom_btn_html_arr: [
-					`<button type="button" class="btn btn-primary addAgent btn-sm"><i class="bi bi-plus-square"></i>업체등록</button>`,
-				],
-			}
-		);
-
-		// 리턴값 확인
-		console.log('🚀 ~ resModal:', resModal);
-		if (resModal) {
-			// 업체 데이터 갱신하기
-		}
 	};
 
 	$modal.data('modal-data', $modal);

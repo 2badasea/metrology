@@ -229,3 +229,20 @@ i.close:hover {
 .w140 {
 	width: 140px !important;
 }
+
+
+
+td[data-column-name*="grid_btn_"] .tui-grid-cell-content {
+	padding: 0px !important;
+	height: 33.5px !important;
+
+	.btn > i {
+		margin: 0px !important;
+	}
+}
+
+
+/* 단, i 태그만 제외 */
+.tui-grid-container button {
+  box-sizing: border-box !important;
+}

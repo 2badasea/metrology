@@ -1,6 +1,6 @@
 package com.bada.cali.repository;
 
-import com.bada.cali.common.YnType;
+import com.bada.cali.common.enums.YnType;
 import com.bada.cali.entity.Menu;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

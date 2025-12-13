@@ -1,17 +1,15 @@
 $(function () {
 	console.log('++ basic/agentModify.js');
 
-	// 1) 아직 modal-view-applied 안 된 애들 중에서
-	const $notModalViewAppliedEle = $('.modal-view:not(.modal-view-applied)');
-	// 2) 모달 안에서 뜨는 경우: .modal-body.modal-view 우선 선택
-	const $hasModalBodyEle = $notModalViewAppliedEle.filter('.modal-body');
-	if ($hasModalBodyEle.length) {
-		$modal = $hasModalBodyEle.first();
+	const $candidates = $('.modal-view:not(.modal-view-applied)');
+	let $modal;
+	const $bodyCandidate = $candidates.filter('.modal-body');
+	if ($bodyCandidate.length) {
+		$modal = $bodyCandidate.first();
 	} else {
 		// 페이지로 직접 열렸을 수도 있으니, 그때는 그냥 첫 번째 modal-view 사용
-		$modal = $notModalViewAppliedEle.first();
+		$modal = $candidates.first();
 	}
-	// let $modal = $('.modal-view:not(.modal-view-applied)');
 	let $modal_root = $modal.closest('.modal');
 
 	let agentId = null; // 업체id

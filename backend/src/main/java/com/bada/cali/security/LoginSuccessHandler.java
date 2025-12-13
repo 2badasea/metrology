@@ -2,7 +2,7 @@ package com.bada.cali.security;
 
 import com.bada.cali.common.ResMessage;
 import com.bada.cali.entity.Log;
-import com.bada.cali.common.YnType;
+import com.bada.cali.common.enums.YnType;
 import com.bada.cali.entity.Member;
 import com.bada.cali.repository.LogRepository;
 import com.bada.cali.repository.MemberRepository;
