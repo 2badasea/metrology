@@ -44,7 +44,7 @@ public class AgentServiceImpl {
 	private final PasswordEncoder passwordEncoder;
 	
 	// 업체관리 리스트 가져오기
-	@Transactional
+	@Transactional(readOnly = true)
 	public TuiGridDTO.ResData<AgentDTO.AgentRowData> getAgentList(AgentDTO.GetListReq req) {
 		
 		int pageIndex = req.getPage() - 1;     // JPA는 0-based
