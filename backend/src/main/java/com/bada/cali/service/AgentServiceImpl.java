@@ -1,6 +1,6 @@
 package com.bada.cali.service;
 
-import com.bada.cali.common.YnType;
+import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.AgentDTO;
 import com.bada.cali.dto.AgentManagerDTO;
 import com.bada.cali.dto.TuiGridDTO;
@@ -15,7 +15,6 @@ import com.bada.cali.security.CustomUserDetails;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -62,6 +61,13 @@ public class AgentServiceImpl {
 			isClose = YnType.n;
 		}
 		
+		// 업체형태
+		Integer agentFlag = req.getAgentFlag();
+		// 없으면 기본적으로 0으로 주기
+		if (agentFlag == null) {
+			agentFlag = 0;
+		}
+		
 		// searchType: ""(전체선택) -> null(조건제외)
 		String searchType = req.getSearchType();    // 검색타입
 		if (searchType == null || searchType.isBlank()) {
@@ -75,11 +81,13 @@ public class AgentServiceImpl {
 		keyword = (keyword == null) ? "" : keyword.trim();
 		
 		// 분기 없이 1회 호출
-		Page<Agent> pageResult = agentRepository.searchAgents(isVisible, isClose, searchType, keyword, pageable);
+		Page<AgentDTO.AgentRowData> pageResult = agentRepository.searchAgents(isVisible, isClose, searchType, keyword, agentFlag, YnType.y ,pageable);
 		
-		// entity -> DTO 변환
-		List<AgentDTO.AgentRowData> rows = pageResult.getContent().stream()
-				.map(agentMapper::toAgentRowDataFromEntity).toList();	// toList로 불변객체 생성
+		// NOTE 쿼리 한 번에 업체 담당자까지 가져옴으로 바로 dto타입으로 조회한다.
+		List<AgentDTO.AgentRowData> rows = pageResult.getContent();
+		// // entity -> DTO 변환
+		// List<AgentDTO.AgentRowData> rows = pageResult.getContent().stream()
+		// 		.map(agentMapper::toAgentRowDataFromEntity).toList();    // toList로 불변객체 생성
 		
 		// 페이지네이션
 		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
@@ -89,7 +97,7 @@ public class AgentServiceImpl {
 		
 		// 최종 return
 		return TuiGridDTO.ResData.<AgentDTO.AgentRowData>builder()
-				.contents(rows)		// entity -> dto로 변환된 데이터 모두
+				.contents(rows)        // entity -> dto로 변환된 데이터 모두
 				.pagination(pagination)
 				.build();
 	}
@@ -105,7 +113,7 @@ public class AgentServiceImpl {
 		
 		// 첨부파일 존재하는지 확인 (refTableName, refTableId)
 		int fileCount = fileServiceImpl.getFileInfos("agent", id).size();
-		agentRowData.setFileCnt(fileCount);    // 첨부파일 개수 추가
+		agentRowData.setFileCnt((long) fileCount);    // 첨부파일 개수 추가
 		
 		return agentRowData;
 	}

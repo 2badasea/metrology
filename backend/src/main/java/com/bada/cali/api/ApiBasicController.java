@@ -5,8 +5,6 @@ import com.bada.cali.dto.AgentDTO;
 import com.bada.cali.dto.AgentManagerDTO;
 import com.bada.cali.dto.TuiGridDTO;
 import com.bada.cali.repository.AgentManagerRepository;
-import com.bada.cali.repository.MemberRepository;
-import com.bada.cali.security.CustomUserDetailService;
 import com.bada.cali.security.CustomUserDetails;
 import com.bada.cali.service.AgentServiceImpl;
 import lombok.RequiredArgsConstructor;

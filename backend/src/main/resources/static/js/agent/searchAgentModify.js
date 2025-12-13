@@ -1,69 +1,40 @@
 $(function () {
 	console.log('++ agent/searchAgentModify.js');
 
-	// 1) 아직 modal-view-applied 안 된 애들 중에서
-	const $notModalViewAppliedEle = $('.modal-view:not(.modal-view-applied)');
-	// 2) 모달 안에서 뜨는 경우: .modal-body.modal-view 우선 선택
-	const $hasModalBodyEle = $notModalViewAppliedEle.filter('.modal-body');
-	if ($hasModalBodyEle.length) {
-		$modal = $hasModalBodyEle.first();
+	const $candidates = $('.modal-view:not(.modal-view-applied)');
+	let $modal;
+	const $bodyCandidate = $candidates.filter('.modal-body');
+	if ($bodyCandidate.length) {
+		$modal = $bodyCandidate.first();
 	} else {
 		// 페이지로 직접 열렸을 수도 있으니, 그때는 그냥 첫 번째 modal-view 사용
-		$modal = $notModalViewAppliedEle.first();
+		$modal = $candidates.first();
 	}
-	// let $modal = $('.modal-view:not(.modal-view-applied)');
 	let $modal_root = $modal.closest('.modal');
 
 	$modal.init_modal = async (param) => {
 		$modal.param = param;
 
-		// $modal.data_source = {
-		// 	api: {
-		// 		readData: {
-		// 			url: '/api/basic/getAgentList',
-		// 			// 'serializer'는 토스트 그리드에서 제공
-		// 			serializer: (grid_param) => {
-		// 				grid_param.inputAgentName = $('.inputAgentName', $modal).val() ?? '';
-		// 				grid_param.inputAgentAddr = $('.inputAgentAddr', $modal).val() ?? '';
-		// 				grid_param.inputAgentNum = $('.inputAgentNum', $modal).val() ?? '';
-		// 				return $.param(grid_param);
-		// 			},
-		// 			method: 'GET',
-		// 		},
-		// 	},
+		$modal.data_source = {
+			api: {
+				readData: {
+					url: '/api/basic/getAgentList',
+					// 'serializer'는 토스트 그리드에서 제공
+					serializer: (grid_param) => {
+						grid_param.agentFlag = $('.searchAgentFlag', $modal).val() ?? 0;
+						grid_param.searchType = $('.searchType', $modal).val() ?? '';
+						grid_param.keyword = $('input[name=keyword]', $modal).val() ?? '';
+						return $.param(grid_param);
+					},
+					method: 'GET',
+				},
+			},
 		};
-
-		console.log('ss');
 
 		// 그리드 정의
 		$modal.grid = new Grid({
 			el: document.querySelector('.searchAgentList'),
 			columns: [
-				{
-					header: '가입방식',
-					name: 'createType',
-					className: 'cursor_pointer',
-					width: '80',
-					align: 'center',
-					formatter: function (data) {
-						let html = '';
-						if (data.value == 'join') {
-							html = '가입';
-						} else if (data.value == 'basic') {
-							html = '등록';
-						} else if (data.value == 'auto') {
-							html = '접수';
-						}
-						return html;
-					},
-				},
-				{
-					header: '그룹명',
-					name: 'groupName',
-					className: 'cursor_pointer',
-					width: '100',
-					align: 'center',
-				},
 				{
 					header: '업체명',
 					name: 'name',
@@ -118,19 +89,70 @@ $(function () {
 					className: 'cursor_pointer',
 					align: 'center',
 				},
+				{
+					header: '업체조회',
+					name: 'grid_btn_modify',
+					className: 'cursor_pointer',
+					width: '100',
+					formatter: function (data) {
+						return `<button type='button' class='btn btn-info w-100 h-100 rounded-0' ><i class='bi bi-search'></i></button>`;
+					},
+				},
 			],
 			pageOptions: {
 				useClient: false, // 서버 페이징
 				perPage: 15,
 			},
-			minBodyHeight: 663,
-			bodyHeight: 663,
-			// data: $modal.data_source
+			rowHeight: 'auto',
+			minRowHeight: 36,
+			minBodyHeight: 600,
+			bodyHeight: 600,
+			data: $modal.data_source,
 		});
-	};
 
-	// 모달 내 이벤트 정의
-	// $modal;
+		// 모달 내 그리드에 대한 이벤트
+		$modal.grid.on('click', async function (e) {
+			const row = $modal.grid.getRow(e.rowKey);
+			if (row) {
+				// 업체조회 버튼
+				if (e.columnName == 'grid_btn_modify') {
+					const resModal = await g_modal(
+						'/basic/agentModify',
+						{
+							id: row.id,
+						},
+						{
+							size: 'xxl',
+							title: '업체 수정',
+							show_close_button: true,
+							show_confirm_button: true,
+							confirm_button_text: '저장',
+						}
+					);
+
+					// 모달이 성공적으로 닫히는 경우, 그리드 갱신
+					console.log('모달리턴');
+					console.log("🚀 ~ resModal:", resModal)
+					if (resModal) {
+						$modal.grid.reloadData();
+					}
+				}
+				// 그외 클릭 시, 업체정보를 반환한다.
+				else {
+					console.log("🚀 ~ row:", row);
+				
+				}
+			}
+		});
+
+		// 페이지 내 이벤트
+		$modal
+			// 검색
+			.on('submit', '.searchForm', function (e) {
+				e.preventDefault();
+				$modal.grid.getPagination().movePageTo(1);
+			});
+	}; // End of init_modal
 
 	// 저장
 	$modal.confirm_modal = async function (e) {};

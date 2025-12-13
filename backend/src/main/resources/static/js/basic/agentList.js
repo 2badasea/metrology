@@ -45,6 +45,8 @@ $(function () {
 				width: '80',
 				align: 'center',
 				formatter: function (data) {
+					console.log('데이터 확인');
+					console.log(data);
 					let html = '';
 					if (data.value == 'join') {
 						html = '가입';
@@ -81,20 +83,22 @@ $(function () {
 			{
 				header: '사업자번호',
 				name: 'agentNum',
+				width: '100',
 				className: 'cursor_pointer',
 				align: 'center',
 			},
 			{
-				header: '대표',
+				header: '대표명',
 				name: 'ceo',
 				className: 'cursor_pointer',
-				width: '80',
+				width: '70',
 				align: 'center',
 			},
 
 			{
 				header: '전화번호',
 				name: 'agnetTel',
+				width: '100',
 				className: 'cursor_pointer',
 				align: 'center',
 			},
@@ -106,14 +110,20 @@ $(function () {
 			},
 			{
 				header: '담당자',
-				name: 'manager',
+				name: 'mainManagerName',
 				className: 'cursor_pointer',
 				width: '80',
 				align: 'center',
 			},
 			{
 				header: '담당자 연락처',
-				name: 'managerTel',
+				name: 'mainManagerTel',
+				className: 'cursor_pointer',
+				align: 'center',
+			},
+			{
+				header: '담당자 이메일',
+				name: 'mainManagerEmail',
 				className: 'cursor_pointer',
 				align: 'center',
 			},

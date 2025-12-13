@@ -1,6 +1,6 @@
 package com.bada.cali.dto;
 
-import com.bada.cali.common.YnType;
+import com.bada.cali.common.enums.YnType;
 import lombok.Getter;
 import lombok.Setter;
 

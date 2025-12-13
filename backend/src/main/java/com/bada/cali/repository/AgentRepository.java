@@ -1,6 +1,7 @@
 package com.bada.cali.repository;
 
-import com.bada.cali.common.YnType;
+import com.bada.cali.common.enums.YnType;
+import com.bada.cali.dto.AgentDTO;
 import com.bada.cali.entity.Agent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,10 +19,57 @@ import java.util.List;
 public interface AgentRepository extends JpaRepository<Agent, Long> {
 	
 	@Query("""
-			SELECT a
+			SELECT new com.bada.cali.dto.AgentDTO$AgentRowData(
+			      a.id,
+			      a.createType,
+			      a.groupName,
+			      a.name,
+			      a.ceo,
+			      a.agentNum,
+			      a.addr,
+			      a.agentTel,
+			      a.email,
+			      a.manager,
+			      a.managerTel,
+			      a.remark,
+			
+			      a.nameEn,
+			      a.agentFlag,
+			      a.agentZipCode,
+			      a.businessType,
+			      a.businessKind,
+			      a.addrEn,
+			      a.phone,
+			      a.managerEmail,
+			      a.fax,
+			      a.accountNumber,
+			      a.calibrationCycle,
+			      a.selfDiscount,
+			      a.outDiscount,
+			      a.isClose,
+			
+			      am.id,
+			      am.name,
+			      am.tel,
+			      am.email,
+			
+			     (SELECT COUNT(f.id)
+			      FROM FileInfo f
+			      WHERE f.refTableName = 'agent'
+			        AND f.refTableId = a.id
+			        AND f.isVisible = :isVisible)
+			)
 			FROM Agent a
+			LEFT JOIN AgentManager am
+				  ON am.agentId = a.id
+				  AND am.isVisible = :isVisible
+				  AND am.mainYn = :mainYn
 			WHERE a.isVisible = :isVisible
 			  AND (:isClose IS NULL OR a.isClose = :isClose)
+			  AND (
+					  :agentFlag = 0
+					  OR MOD(a.agentFlag / :agentFlag, 2) = 1
+			  )
 			  AND (
 			        :keyword = '' OR
 			        (
@@ -36,11 +84,13 @@ public interface AgentRepository extends JpaRepository<Agent, Long> {
 			        )
 			  )
 			""")
-	Page<Agent> searchAgents(
+	Page<AgentDTO.AgentRowData> searchAgents(
 			@Param("isVisible") YnType isVisible,
 			@Param("isClose") YnType isClose,          // null이면 필터 미적용(전체선택)
 			@Param("searchType") String searchType,    // all/name/agentNum/addr
 			@Param("keyword") String keyword,          // ""이면 검색조건 미적용
+			@Param("agentFlag") Integer agentFlag,		// 업체형태
+			@Param("mainYn") YnType mainYn,			// 대표
 			Pageable pageable
 	);
 	

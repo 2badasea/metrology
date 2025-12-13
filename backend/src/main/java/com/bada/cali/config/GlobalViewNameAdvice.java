@@ -1,6 +1,6 @@
 package com.bada.cali.config;
 
-import com.bada.cali.common.YnType;
+import com.bada.cali.common.enums.YnType;
 import com.bada.cali.entity.Menu;
 import com.bada.cali.repository.MenuRepository;
 import com.bada.cali.security.CustomUserDetails;

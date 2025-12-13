@@ -1,11 +1,6 @@
 package com.bada.cali.service;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import com.bada.cali.common.YnType;
+import com.bada.cali.common.enums.YnType;
 import com.bada.cali.config.NcpStorageProperties;
 import com.bada.cali.dto.FileInfoDTO;
 import com.bada.cali.entity.FileInfo;
@@ -23,12 +18,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Log4j2
@@ -36,9 +42,8 @@ import java.util.List;
 public class FileServiceImpl {
 	
 	private final FileInfoRepository fileInfoRepository;
-	private final AmazonS3 ncloudS3Client;
+	private final S3Client ncloudS3Client;
 	private final NcpStorageProperties storageProps; // endpoint, bucketName 등
-	private final NcpStorageProperties ncpStorageProperties;
 	
 	@Transactional
 	public void saveFiles(String refTableName,
@@ -106,23 +111,33 @@ public class FileServiceImpl {
 				if (extension != null && !extension.isEmpty()) {
 					objectKey = objectKey + "." + extension;
 				}
+				
 				// 스토리지 업로드
-				ObjectMetadata metadata = new ObjectMetadata();
-				metadata.setContentLength(file.getSize());
-				if (file.getContentType() != null) {
-					metadata.setContentType(file.getContentType());
-				}
+				// ★ v2: ObjectMetadata 대신 PutObjectRequest 사용
+				PutObjectRequest putReq = PutObjectRequest.builder()
+						.bucket(bucket)
+						.key(objectKey)
+						.contentType(file.getContentType())
+						// 필요 시 사용자 metadata를 여기에 추가 가능
+						.metadata(Map.of(
+								"origin-name", originName == null ? "" : originName
+						))
+						.build();
 				
 				
 				try (InputStream is = file.getInputStream()) {
 					
 					try {
-						ncloudS3Client.putObject(bucket, objectKey, is, metadata);
-					} catch (com.amazonaws.services.s3.model.AmazonS3Exception e) {
-						log.error("S3 API 에러: status={}, code={}, message={}",
-								e.getStatusCode(), e.getErrorCode(), e.getMessage(), e);
+						ncloudS3Client.putObject(putReq, RequestBody.fromInputStream(is, file.getSize()));
+					} catch (S3Exception e) {
+						log.error("S3 API 에러: status={}, awsMessage={}, requestId={}",
+								e.statusCode(),
+								(e.awsErrorDetails() != null ? e.awsErrorDetails().errorMessage() : null),
+								e.requestId(),
+								e);
 						throw e;
-					} catch (com.amazonaws.SdkClientException e) {
+					} catch (SdkClientException e) {
+						// 네트워크/클라이언트 단 오류
 						log.error("S3 클라이언트 에러: {}", e.getMessage(), e);
 						throw e;
 					}
@@ -135,7 +150,8 @@ public class FileServiceImpl {
 			// 필요 시 보상 트랜잭션: 이미 업로드된 파일 삭제
 			for (String key : uploadedKeys) {
 				try {
-					ncloudS3Client.deleteObject(bucket, key);
+					ncloudS3Client.deleteObject(
+							DeleteObjectRequest.builder().bucket(bucket).key(key).build());
 				} catch (Exception ex) {
 					log.error("스토리지 롤백 실패 - key: {}", key, ex);
 				}
@@ -168,11 +184,17 @@ public class FileServiceImpl {
 		
 		try {
 			// NCP Object Storage에서 파일 가져오기 (스트리밍 방식)
-			S3Object s3Object = ncloudS3Client.getObject(bucket, objectKey);
-			S3ObjectInputStream s3ObjectInputStream = s3Object.getObjectContent();
-			Long contentLength = s3Object.getObjectMetadata().getContentLength();
+			GetObjectRequest getReq = GetObjectRequest.builder()
+					.bucket(bucket)
+					.key(objectKey)
+					.build();
 			
-			Resource resource = new InputStreamResource(s3ObjectInputStream);
+			// 주의: 여기서 try-with-resources로 닫아버리면 응답 전에 스트림이 닫힘
+			ResponseInputStream<GetObjectResponse> s3is = ncloudS3Client.getObject(getReq);
+			GetObjectResponse resp = s3is.response();
+			long contentLength = resp.contentLength();
+			
+			Resource resource = new InputStreamResource(s3is);
 			
 			// 헤더용 파일명, 컨텐츠 타입 세팅
 			String originName = fileInfo.getOriginName();
@@ -196,8 +218,8 @@ public class FileServiceImpl {
 			// 다운로드 응답 생성
 			return ResponseEntity.ok().contentType(mediaType).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedName + "\"").contentLength(contentLength).body(resource);
 			
-		} catch (AmazonS3Exception e) {
-			if (e.getStatusCode() == 404) {
+		} catch (S3Exception e) {
+			if (e.statusCode() == 404) {
 				throw new IllegalArgumentException("스토리지에서 파일을 찾을 수 없습니다. key=" + objectKey, e);
 			}
 			throw new IllegalStateException("스토리지 파일 다운로드 중 오류 발생", e);

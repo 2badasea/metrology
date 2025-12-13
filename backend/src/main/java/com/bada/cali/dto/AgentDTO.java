@@ -1,6 +1,8 @@
 package com.bada.cali.dto;
 
-import com.bada.cali.common.YnType;
+import com.bada.cali.common.enums.CalibrationCycleType;
+import com.bada.cali.common.enums.YnType;
+import com.bada.cali.entity.Agent;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,13 +26,15 @@ public class AgentDTO {
 	@Setter
 	public static class GetListReq extends TuiGridDTO.Request {
 		// 검색창에서 넘어오는 값들
-		private String isClose;		// '', y, n
-		private String searchType;	// '', name, agentNum, addr
+		private String isClose;        // '', y, n
+		private Integer agentFlag;        // 업체조회 모달에서 넘어온 값 (2진수)
+		private String searchType;    // '', name, agentNum, addr
 		private String keyword;
 	}
 	
 	// 기본 개별 row 데이터 응답용. (유의미한 필드만 나열할 것)
 	// 불변 DTO + @Builder 스타일로 할 경우, @Builder 추가 후, setter는 없앤 상태로 private final 선언
+	
 	/**
 	 * NOTE 응답이지만 필요. mapstruct로 객체 생성 시, new로 기본생성자로 인스턴스를 생성하고
 	 * 각 필드에 set메서드를 호출해서 값을 세팅하기 때문. 별도 생성자, 빌더 설정이 없는 상태라면
@@ -38,6 +42,7 @@ public class AgentDTO {
 	 */
 	@Getter
 	@Setter
+	@NoArgsConstructor
 	public static class AgentRowData {
 		// 리스트에 데이터 출력할 때
 		private Long id;
@@ -55,8 +60,8 @@ public class AgentDTO {
 		
 		// 개별 업체정보(등록/수정)
 		private String nameEn;
-		private int agentFlag;
-		private String agentZipCode;	// 우편번호
+		private Integer agentFlag;
+		private String agentZipCode;    // 우편번호
 		private String businessType;
 		private String businessKind;
 		private String addrEn;
@@ -64,22 +69,102 @@ public class AgentDTO {
 		private String managerEmail;
 		private String fax;
 		private String accountNumber;
-		private String calibrationCycle;
 		private BigDecimal selfDiscount;
 		private BigDecimal outDiscount;
 		private YnType isClose;
+		private CalibrationCycleType calibrationCycle;
+		
+		// 각 업체별 대표 담당자 정보 (agent_manager)
+		private Long mainManagerId;
+		private String mainManagerName;
+		private String mainManagerTel;
+		private String mainManagerEmail;
 		
 		// 첨부파일 개수 (업체정보를 리턴할 때 같이 담아준다.
-		private Integer fileCnt;
+		private Long fileCnt;
+		
+		// 목록조회용 생성자(JPQL constructor expression 전용)
+		public AgentRowData(
+				Long id,
+				String createType,
+				String groupName,
+				String name,
+				String ceo,
+				String agentNum,
+				String addr,
+				String agentTel,
+				String email,
+				String manager,
+				String managerTel,
+				String remark,
+				
+				String nameEn,
+				Integer agentFlag,
+				String agentZipCode,
+				String businessType,
+				String businessKind,
+				String addrEn,
+				String phone,
+				String managerEmail,
+				String fax,
+				String accountNumber,
+				CalibrationCycleType calibrationCycle,
+				BigDecimal selfDiscount,
+				BigDecimal outDiscount,
+				YnType isClose,
+				
+				Long mainManagerId,
+				String mainManagerName,
+				String mainManagerTel,
+				String mainManagerEmail,
+				
+				Long fileCnt
+		) {
+			this.id = id;
+			this.createType = createType;
+			this.groupName = groupName;
+			this.name = name;
+			this.ceo = ceo;
+			this.agentNum = agentNum;
+			this.addr = addr;
+			this.agentTel = agentTel;
+			this.email = email;
+			this.manager = manager;
+			this.managerTel = managerTel;
+			this.remark = remark;
+			
+			this.nameEn = nameEn;
+			this.agentFlag = (agentFlag == null) ? 0 : agentFlag;
+			this.agentZipCode = agentZipCode;
+			this.businessType = businessType;
+			this.businessKind = businessKind;
+			this.addrEn = addrEn;
+			this.phone = phone;
+			this.managerEmail = managerEmail;
+			this.fax = fax;
+			this.accountNumber = accountNumber;
+			this.calibrationCycle = calibrationCycle;
+			this.selfDiscount = selfDiscount;
+			this.outDiscount = outDiscount;
+			this.isClose = isClose;
+			
+			this.mainManagerId = mainManagerId;
+			this.mainManagerName = mainManagerName;
+			this.mainManagerTel = mainManagerTel;
+			this.mainManagerEmail = mainManagerEmail;
+			
+			this.fileCnt = (fileCnt == null) ? 0 : fileCnt; // COUNT는 보통 null 안 나오지만 안전 처리
+		}
 	}
+	
 	
 	// 업체 삭제 요청 DTO
 	@Setter
-	@Getter		// 삭제대상 id값들을 객체에서 꺼내기 위해 선언
+	@Getter        // 삭제대상 id값들을 객체에서 꺼내기 위해 선언
 	@NoArgsConstructor
 	public static class DelAgentReq {
 		// 스크립트의 배열([]) 데이터는 java에서 List<Long>로 받을 수 있음.
-		private List<Long> ids;		// 브라우저에서 ids라는 key로 넘어옴
+		private List<Long> ids;        // 브라우저에서 ids라는 key로 넘어옴
 	}
 	
 	// 그룹관리 그룹명 변경 요청 DTO
@@ -91,39 +176,38 @@ public class AgentDTO {
 		@NotEmpty
 		private List<Long> ids;
 		
-		private String groupName;		// 빈 문자열 허용 가능
+		private String groupName;        // 빈 문자열 허용 가능
 	}
 	
 	// 업체 등록/수정 DTO 객체
-	@Setter @Getter
+	@Setter
+	@Getter
 	@NoArgsConstructor
 	public static class SaveAgentDataReq {
-		// 업체 정보
-		private Long id;		// 업체 고유 id
-		private Integer agentFlag;
-		private String name;		// 업체명
-		private String nameEn;		// 업체명(영문)
-		private YnType isClose;		// 폐업여부 y/n
-		private String calibrationCycle;	// 교정주기(자체, 차기, 표기안함)
-		private String agentNum;		// 사업자등록번호
-		private String ceo;				// 대표
-		private String addr;			// 주소
-		private String addrEn;			// 주소(영문)
-		private String agentZipCode;	// 우편번호
-		private BigDecimal selfDiscount;	// 자체할인율 (소수점 1자리까지 적용)
-		private BigDecimal outDiscount;		// 대행할인율 (소수점 1자리까지 적용)
-		private String businessType;		// 업태
-		private String businessKind;		// 종목
-		private String agentTel;		// 전화번호
-		private String fax;			// 팩스번호
-		private String email;		// 업체메일
-		private String remark;		// 비고 (LONGTEXT)
-		
 		// 삭제 대상 업체담당자 정보
 		List<Long> delManagerIds;
-		
 		// 업체 담당자 정보
 		List<AgentManagerDTO.AgentManagerRowData> managers;
+		// 업체 정보
+		private Long id;        // 업체 고유 id
+		private Integer agentFlag;
+		private String name;        // 업체명
+		private String nameEn;        // 업체명(영문)
+		private YnType isClose;        // 폐업여부 y/n
+		private CalibrationCycleType calibrationCycle;    // 교정주기(자체, 차기, 표기안함)
+		private String agentNum;        // 사업자등록번호
+		private String ceo;                // 대표
+		private String addr;            // 주소
+		private String addrEn;            // 주소(영문)
+		private String agentZipCode;    // 우편번호
+		private BigDecimal selfDiscount;    // 자체할인율 (소수점 1자리까지 적용)
+		private BigDecimal outDiscount;        // 대행할인율 (소수점 1자리까지 적용)
+		private String businessType;        // 업태
+		private String businessKind;        // 종목
+		private String agentTel;        // 전화번호
+		private String fax;            // 팩스번호
+		private String email;        // 업체메일
+		private String remark;        // 비고 (LONGTEXT)
 	}
 	
 	
