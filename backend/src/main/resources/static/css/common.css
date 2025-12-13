@@ -246,3 +246,7 @@ td[data-column-name*="grid_btn_"] .tui-grid-cell-content {
 .tui-grid-container button {
   box-sizing: border-box !important;
 }
+
+.modal-footer i{
+	margin-right: 5px !important;
+}

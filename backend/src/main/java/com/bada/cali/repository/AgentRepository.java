@@ -18,6 +18,7 @@ import java.util.List;
 @Repository
 public interface AgentRepository extends JpaRepository<Agent, Long> {
 	
+	// FIX 업체별 첨부파일 갯수를 확인하는 과정에서 목록 행 수만큼 (스칼라)서브쿼리가 도는 형태 -> 데이터가 커지면 성능 이슈 가능
 	@Query("""
 			SELECT new com.bada.cali.dto.AgentDTO$AgentRowData(
 			      a.id,
