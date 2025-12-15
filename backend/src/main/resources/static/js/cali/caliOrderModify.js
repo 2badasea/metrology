@@ -102,8 +102,15 @@ $(function () {
 
 			// 리턴값 확인
 			console.log('🚀 ~ resModal:', resModal);
-			if (resModal) {
-				// 업체 데이터 갱신하기
+			if (resModal && resModal.returnData != undefined) {
+				// 업체데이터를 세팅한다.
+				const searchAgentInfo = resModal.returnData;
+				
+				// 신청업체, 성적서업체 구분
+
+				// 고정표준실/ 현장교정에 따른 세팅.
+				
+
 			}
 		};
 	};

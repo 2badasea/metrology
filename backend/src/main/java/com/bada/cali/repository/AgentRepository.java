@@ -69,7 +69,7 @@ public interface AgentRepository extends JpaRepository<Agent, Long> {
 			  AND (:isClose IS NULL OR a.isClose = :isClose)
 			  AND (
 					  :agentFlag = 0
-					  OR MOD(a.agentFlag / :agentFlag, 2) = 1
+					  OR mod( cast( a.agentFlag / :agentFlag as Integer ), 2 ) = 1
 			  )
 			  AND (
 			        :keyword = '' OR

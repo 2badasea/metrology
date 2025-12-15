@@ -150,7 +150,29 @@ $(function () {
 				}
 				// 그외 클릭 시, 업체정보를 반환한다.
 				else {
+					// 업체명, 업체명(영문), 업체주소(국문/영문), 대표번호, FAX, 교정주기, 신청업체 담당자, 담당자 이메일, 담당자 연락처, 신청업체/성적서발행처 flag
 					console.log("🚀 ~ row:", row);
+					const returnData = {
+						name: row.name ?? '',
+						nameEn: row.nameEn ?? '',
+						addr: row.addr ?? '',
+						addrEn: row.addrEn ?? '',
+						fax: row.fax ?? '',
+						tel: row.agentTel ?? '',
+						calibrationCycle: row.calibrationCycle ?? 'next_cycle',
+						managerName: row.mainManagerName ?? '',
+						managerTel: row.mainManagerTel ?? '',
+						managerEmail: row.mainManagerEmail,
+						agentFlag: $modal.param.agentFlag ?? 1 // 조회한 업체형태
+					};
+
+					console.log('데이터 확인');
+					console.log(returnData);
+					
+					$modal.returnData = returnData;
+					$modal_root.modal('hide');
+					$modal_root.data('modal-data').click_confirm_button();
+
 				
 				}
 			}
@@ -166,7 +188,10 @@ $(function () {
 	}; // End of init_modal
 
 	// 저장
-	$modal.confirm_modal = async function (e) {};
+	$modal.confirm_modal = async function (e) {
+		$modal_root.modal('hide');
+		return $modal;
+	};
 
 	// 담당자 그리드 초기화
 
