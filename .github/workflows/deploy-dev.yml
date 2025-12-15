@@ -39,6 +39,16 @@ jobs:
         run: |
           npm ci
           npm run build
+          
+      - name: Prepare remote temp dirs
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          port: ${{ secrets.DEV_PORT }}
+          script: |
+            mkdir -p /tmp/cali /tmp/cali-admin          
 
       # Upload artifacts to server
       - name: Copy backend jar
@@ -50,6 +60,7 @@ jobs:
           port: ${{ secrets.DEV_PORT }}
           source: "backend/build/libs/*.jar"
           target: "/tmp/cali/"
+          strip_components: 3
 
       - name: Copy frontend dist
         uses: appleboy/scp-action@v0.1.7
@@ -60,6 +71,7 @@ jobs:
           port: ${{ secrets.DEV_PORT }}
           source: "frontend/dist/*"
           target: "/tmp/cali-admin/"
+          strip_components: 2
 
       # Deploy on server
       - name: Deploy + restart
