@@ -1,0 +1,87 @@
+name: Deploy Dev
+
+on:
+  push:
+    branches: ["cali-dev"]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Backend build (Gradle)
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build Backend JAR
+        working-directory: backend
+        run: |
+          chmod +x gradlew
+          ./gradlew clean bootJar
+
+      # Frontend build (Vite)
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build Frontend dist
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      # Upload artifacts to server
+      - name: Copy backend jar
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          port: ${{ secrets.DEV_PORT }}
+          source: "backend/build/libs/*.jar"
+          target: "/tmp/cali/"
+
+      - name: Copy frontend dist
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          port: ${{ secrets.DEV_PORT }}
+          source: "frontend/dist/*"
+          target: "/tmp/cali-admin/"
+
+      # Deploy on server
+      - name: Deploy + restart
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          port: ${{ secrets.DEV_PORT }}
+          script: |
+            set -e
+
+            # 1) backend jar 교체
+            sudo mkdir -p /opt/cali
+            JAR_PATH=$(ls -1 /tmp/cali/*.jar | head -n 1)
+            sudo cp "$JAR_PATH" /opt/cali/backend.jar
+            sudo chown www-data:www-data /opt/cali/backend.jar
+
+            # 2) frontend dist 반영
+            sudo mkdir -p /var/www/cali/admin
+            sudo rsync -av --delete /tmp/cali-admin/ /var/www/cali/admin/
+            sudo chown -R www-data:www-data /var/www/cali/admin
+
+            # 3) restart/reload
+            sudo systemctl restart cali-dev
+            sudo systemctl reload nginx
