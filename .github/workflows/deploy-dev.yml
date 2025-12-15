@@ -85,3 +85,9 @@ jobs:
             # 3) restart/reload
             sudo systemctl restart cali-dev
             sudo systemctl reload nginx
+
+
+on:
+  push:
+    branches: ["cali-dev"]
+  workflow_dispatch:
