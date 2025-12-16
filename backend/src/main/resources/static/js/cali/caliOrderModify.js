@@ -79,7 +79,6 @@ $(function () {
 		// 업체조회 함수 정의
 		$modal.searchAgent = async (type, agentName) => {
 			const agentFlag = type == 'custAgent' ? 1 : 4;
-			console.log('🚀 ~ agentFlag:', agentFlag);
 
 			// g_modal 호출
 			const resModal = await g_modal(
@@ -101,16 +100,46 @@ $(function () {
 			);
 
 			// 리턴값 확인
-			console.log('🚀 ~ resModal:', resModal);
 			if (resModal && resModal.returnData != undefined) {
 				// 업체데이터를 세팅한다.
 				const searchAgentInfo = resModal.returnData;
-				
+
 				// 신청업체, 성적서업체 구분
-
-				// 고정표준실/ 현장교정에 따른 세팅.
-				
-
+				if (agentFlag == 1) {
+					// 업체명, 업체명(영문), fax, 연락처, fx, 교정주기, 주소(국/영문), 담당자(이름, 연락처, 이메일)
+					$('input[name=custAgent]', $modal).val(searchAgentInfo.name);
+					$('input[name=custAgentIdx]', $modal).val(searchAgentInfo.id);
+					$('input[name=custAgentEn]', $modal).val(searchAgentInfo.nameEn);
+					$('input[name=custAgentAddr]', $modal).val(searchAgentInfo.addr);
+					$('input[name=custAgentAddrEn]', $modal).val(searchAgentInfo.addrEn);
+					$('input[name=custAgentTel]', $modal).val(searchAgentInfo.tel);
+					$('input[name=custAgentFax]', $modal).val(searchAgentInfo.fax);
+					$('input[name=custManager]', $modal).val(searchAgentInfo.managerName);
+					$('input[name=custManagerTel]', $modal).val(searchAgentInfo.managerTel);
+					$('input[name=custManagerEmail]', $modal).val(searchAgentInfo.managerEmail);
+					if (searchAgentInfo.calibrationCycle == 'self_cycle') {
+						$('input[name=custAgentCaliCycle]').val('self_cycle');
+					} else {
+						$('input[name=custAgentCaliCycle]').val('next_cycle');
+					}
+				}
+				// 성적서발행처 조회 시
+				else if (agentFlag == 4) {
+					// 발행처 (국/영), 주소(국/영), 담당자 (이름, 연락처, 이메일), 소재지주소?
+					$('input[name=reportAgentIdx]', $modal).val(searchAgentInfo.id);
+					$('input[name=reportAgent]', $modal).val(searchAgentInfo.name);
+					$('input[name=reportAgentEn]', $modal).val(searchAgentInfo.nameEn);
+					$('input[name=reportAgentAddr]', $modal).val(searchAgentInfo.addr);
+					$('input[name=reportAgentAddrEn]', $modal).val(searchAgentInfo.addrEn);
+					$('input[name=reportManager]', $modal).val(searchAgentInfo.managerName);
+					$('input[name=reportManagerTel]', $modal).val(searchAgentInfo.managerTel);
+					$('input[name=reportManagerEmail]', $modal).val(searchAgentInfo.managerEmail);
+					// 교정유형이 '현장교정(site)'인 경우, 성적서발행처 주소와 동일하게 소재지 주소 삽입
+					if ($('input[name=caliType]:checked', $modal).val() == 'site') {
+						$('input[name=siteAddr]', $modal).val(searchAgentInfo.addr);
+						$('input[name=siteAddrEn]', $modal).val(searchAgentInfo.addrEn);
+					}
+				}
 			}
 		};
 	};
@@ -131,18 +160,49 @@ $(function () {
 				const agentName = $(this).val();
 				$modal.searchAgent(type, agentName);
 			}
-		});
-	// 업체조회 모달 호출
-	// .on('click', '.searchAddr')
-	// .on('keyup', 'input[name=agentNum]', function (e) {
-	// 	// 엔터키 -> 중복체크
-	// 	if (e.key === 'Enter' || e.keyCode === 13) {
-	// 		$('button.chkAgentNum', $modal).trigger('click'); // 중복확인 요청
-	// 		return false;
-	// 	} else {
-	// 		$modal.agentNumKeyupHandler.call(this, e);
-	// 	}
-	// })
+		})
+		// 업체담당자 조회
+		.on('click', '.agentManagerSearch', async function () {
+			const agentType = $(this).data('type');
+			let agentId = 0;
+			let agentTypeKr = "";
+			if (agentType == 'custManager') {
+				agentId = $('input[name=custAgentIdx]', $modal).val();
+				agentTypeKr = '신청업체';
+			} else {
+				agentId = $('input[name=reportAgentIdx]', $modal).val();
+				agentTypeKr = '성적서발행처';
+			}
+
+			if (agentId == 0) {
+				g_toast(`${agentTypeKr}가 조회되지 않았습니다.<br>업체부터 선택해주세요.`, 'warning');
+				return false;
+			} else {
+				const resModal = await g_modal('/agent/searchAgentManager', {
+					agentId: agentId
+				}, {
+					// '닫기'버튼만 표시
+					title: `${agentTypeKr} 조회`,
+					size: 'lg',
+					show_close_button: true,
+					show_confirm_button: false,
+					confirm_button_text: '저장',
+				});
+
+				if (resModal && resModal.managerInfo != undefined) {
+					const managerInfo = resModal.managerInfo;
+					console.log("🚀 ~ managerInfo:", managerInfo);
+					
+				}
+
+
+
+
+			}
+
+
+		})
+		;
 
 	// 저장
 	$modal.confirm_modal = async function (e) {
