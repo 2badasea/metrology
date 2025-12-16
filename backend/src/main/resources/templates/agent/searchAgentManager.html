@@ -7,10 +7,10 @@
     <form class="agentManagerForm">
         <table class="table table-bordered text-center mb-0">
             <colgroup>
+                <col width="100px" />
                 <col width="*" />
                 <col width="150px" />
-                <col width="90px" />
-                <col width="50px">
+                <col width="80px">
             </colgroup>
             <thead>
                 <tr>
@@ -25,19 +25,19 @@
         <div style="min-height: 200px; max-height: 600px;" class="scroll scroll-y">
             <table class="table table-bordered text-center table-hover agentManagerTb" style="table-layout: fixed;">
                 <colgroup>
+                    <col width="100px" />
                     <col width="*" />
                     <col width="150px" />
-                    <col width="90px" />
-                    <col width="50px">
+                    <col width="80px">
                 </colgroup>
                 <tbody>
                     <!-- 타임리프 반복문을 통해 생성 -->
                     <tr class="cursor_pointer" th:each="m : ${managerList}">
-                        <td th:text="${m.name}">이름</td>
-                        <td th:text="${m.email}">이메일</td>
-                        <td th:text="${m.tel}">연락처</td>
+                        <td class="name" th:text="${m.name}">이름</td>
+                        <td class="email" th:text="${m.email}">이메일</td>
+                        <td class="tel" th:text="${m.tel}">연락처</td>
                         <!-- if문으로 구분하여 표시 -->
-                        <td th:text="${}">대표여부</td>
+                        <td th:text="${m.mainYn.name() == 'y' ? '대표' : '일반'}">대표여부</td>
                     </tr>
                 </tbody>
             </table>

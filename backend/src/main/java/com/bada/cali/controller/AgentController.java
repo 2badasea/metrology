@@ -40,7 +40,6 @@ public class AgentController {
 		// 업체담당자의 정보를 바로 가져온다(네이티브 쿼리 사용)
 		// @Query 애너테이션을 이용하여 DTO반환을 하기 위해서는 select절에서 생성자를 통해 객체 반환
 		List<AgentManagerDTO.AgentManagerRowData> managerList = agentManagerRepository.getManagerListOrderByMainYn(agentId);
-		log.info(managerList.toString());
 		model.addAttribute("managerList", managerList);
 		
 		return "agent/searchAgentManager";

@@ -191,13 +191,17 @@ $(function () {
 
 				if (resModal && resModal.managerInfo != undefined) {
 					const managerInfo = resModal.managerInfo;
-					console.log("🚀 ~ managerInfo:", managerInfo);
-					
+
+					if (agentType == 'custManager') {
+						$('input[name=custManager]', $modal).val(managerInfo.name);
+						$('input[name=custManagerTel]', $modal).val(managerInfo.tel);
+						$('input[name=custManagerEmail]', $modal).val(managerInfo.email);
+					} else {
+						$('input[name=reportManager]', $modal).val(managerInfo.name);
+						$('input[name=reportManagerTel]', $modal).val(managerInfo.tel);
+						$('input[name=reportManagerEmail]', $modal).val(managerInfo.email);
+					}
 				}
-
-
-
-
 			}
 
 
