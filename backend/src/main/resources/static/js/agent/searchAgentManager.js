@@ -12,11 +12,21 @@ $(function () {
 
 	$modal.init_modal = (param) => {
 		$modal.param = param;
-		console.log('🚀 ~ $modal.param:', $modal.param);
 	};
 
 	// 모달 내 이벤트 정의
-	$modal;
+	$modal
+		// 행 클릭 시, 해당 담당자의 정보가 세팅된다.
+		.on('click', '.agentManagerTb tr', function () {
+			const $tr = $(this);
+			const managerInfo = {
+				name: $tr.find('td.name').text(),
+				tel: $tr.find('td.tel').text(),
+				email: $tr.find('td.email').text(),
+			};
+			$modal.param.managerInfo = managerInfo;
+			$modal_root.data('modal-data').click_confirm_button();
+		});
 
 	// 저장
 	$modal.confirm_modal = async function (e) {
