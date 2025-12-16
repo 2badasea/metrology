@@ -118,10 +118,6 @@ public class FileServiceImpl {
 						.bucket(bucket)
 						.key(objectKey)
 						.contentType(file.getContentType())
-						// 필요 시 사용자 metadata를 여기에 추가 가능
-						.metadata(Map.of(
-								"origin-name", originName == null ? "" : originName
-						))
 						.build();
 				
 				
