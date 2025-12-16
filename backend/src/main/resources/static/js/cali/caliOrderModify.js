@@ -161,6 +161,47 @@ $(function () {
 				$modal.searchAgent(type, agentName);
 			}
 		})
+		// 업체담당자 조회
+		.on('click', '.agentManagerSearch', async function () {
+			const agentType = $(this).data('type');
+			let agentId = 0;
+			let agentTypeKr = "";
+			if (agentType == 'custManager') {
+				agentId = $('input[name=custAgentIdx]', $modal).val();
+				agentTypeKr = '신청업체';
+			} else {
+				agentId = $('input[name=reportAgentIdx]', $modal).val();
+				agentTypeKr = '성적서발행처';
+			}
+
+			if (agentId == 0) {
+				g_toast(`${agentTypeKr}가 조회되지 않았습니다.<br>업체부터 선택해주세요.`, 'warning');
+				return false;
+			} else {
+				const resModal = await g_modal('/agent/searchAgentManager', {
+					agentId: agentId
+				}, {
+					// '닫기'버튼만 표시
+					title: `${agentTypeKr} 조회`,
+					size: 'lg',
+					show_close_button: true,
+					show_confirm_button: false,
+					confirm_button_text: '저장',
+				});
+
+				if (resModal && resModal.managerInfo != undefined) {
+					const managerInfo = resModal.managerInfo;
+					console.log("🚀 ~ managerInfo:", managerInfo);
+					
+				}
+
+
+
+
+			}
+
+
+		})
 		;
 
 	// 저장

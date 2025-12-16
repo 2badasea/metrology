@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<div layout:fragment="content">
+
+    <form class="agentManagerForm">
+        <table class="table table-bordered text-center mb-0">
+            <colgroup>
+                <col width="*" />
+                <col width="150px" />
+                <col width="90px" />
+                <col width="50px">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>이름</th>
+                    <th>이메일</th>
+                    <th>연락처</th>
+                    <th>대표여부</th>
+                </tr>
+            </thead>
+        </table>
+        <!-- 담당자 리스트 출력되는 부분 -->
+        <div style="min-height: 200px; max-height: 600px;" class="scroll scroll-y">
+            <table class="table table-bordered text-center table-hover agentManagerTb" style="table-layout: fixed;">
+                <colgroup>
+                    <col width="*" />
+                    <col width="150px" />
+                    <col width="90px" />
+                    <col width="50px">
+                </colgroup>
+                <tbody>
+                    <!-- 타임리프 반복문을 통해 생성 -->
+                    <tr class="cursor_pointer" th:each="m : ${managerList}">
+                        <td th:text="${m.name}">이름</td>
+                        <td th:text="${m.email}">이메일</td>
+                        <td th:text="${m.tel}">연락처</td>
+                        <!-- if문으로 구분하여 표시 -->
+                        <td th:text="${}">대표여부</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </form>
+</div>
+
+</html>
