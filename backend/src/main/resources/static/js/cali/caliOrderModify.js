@@ -165,7 +165,7 @@ $(function () {
 		.on('click', '.agentManagerSearch', async function () {
 			const agentType = $(this).data('type');
 			let agentId = 0;
-			let agentTypeKr = "";
+			let agentTypeKr = '';
 			if (agentType == 'custManager') {
 				agentId = $('input[name=custAgentIdx]', $modal).val();
 				agentTypeKr = '신청업체';
@@ -178,16 +178,20 @@ $(function () {
 				g_toast(`${agentTypeKr}가 조회되지 않았습니다.<br>업체부터 선택해주세요.`, 'warning');
 				return false;
 			} else {
-				const resModal = await g_modal('/agent/searchAgentManager', {
-					agentId: agentId
-				}, {
-					// '닫기'버튼만 표시
-					title: `${agentTypeKr} 조회`,
-					size: 'lg',
-					show_close_button: true,
-					show_confirm_button: false,
-					confirm_button_text: '저장',
-				});
+				const resModal = await g_modal(
+					'/agent/searchAgentManager',
+					{
+						agentId: agentId,
+					},
+					{
+						// '닫기'버튼만 표시
+						title: `${agentTypeKr} 조회`,
+						size: 'lg',
+						show_close_button: true,
+						show_confirm_button: false,
+						confirm_button_text: '저장',
+					}
+				);
 
 				if (resModal && resModal.managerInfo != undefined) {
 					const managerInfo = resModal.managerInfo;
@@ -203,14 +207,81 @@ $(function () {
 					}
 				}
 			}
-
-
+		})
+		// 주소정보조회
+		.on('click', '.searchAddr', async function () {
+			const agentType = $(this).data('type');
+			let addrClass = '';
+			let addrEnClass = '';
+			// 신청업체 주소
+			if (agentType === 'custAgent') {
+				addrClass = 'custAgentAddr';
+				addrEnClass = 'custAgentAddrEn';
+			}
+			// 성적서발행처 주소
+			else {
+				addrClass = 'reportAgentAddr';
+				addrEnClass = 'reportAgentAddrEn';
+			}
+			// 프로미스 처리 (함수호출 즉시 아래 코드가 실행되는 것 방지)
+			const resPost = await sample4_execDaumPostcode((zipCode = ''), (addr = addrClass), (addrEn = addrEnClass));
+			// 성적서발행처 주소의 경우, 교정유형이 '현장교정'인 경우, 소재지주소에도 할당
+			const caliType = $('input[name=caliType]:checked', $modal).val();
+			if (caliType == 'site' && agentType == 'reportAgent') {
+				const addr = $(`.${addrClass}`, $modal).val();
+				const addrEn = $(`.${addrEnClass}`, $modal).val();
+				$('input[name=siteAddr]', $modal).val(addr);
+				$('input[name=siteAddrEn]', $modal).val(addrEn);
+			}
+		})
+		// 교정유형에 따른 접수유형 변경
+		.on('change', 'input[name=caliType]', function () {
+			const caliType = $(this).val();
+			$modal.setCaliType(caliType);
 		})
 		;
 
+	// 고정표준실, 접수유형에 따른 변경
+	$modal.setCaliType = (caliType = '', caliTakeType = '') => {
+		const $siteDiv = $('div.site_div', $modal);
+		const $standardDiv = $('div.standard_div', $modal);
+		// 고정표준실인 경우
+		if (caliType == 'standard') {
+			$siteDiv.addClass('d-none');
+			$standardDiv.removeClass('d-none');
+		} 
+		// 현장교정인 경우
+		else {
+			$siteDiv.removeClass('d-none');
+			$standardDiv.addClass('d-none');
+		}
+		// 접수유형 값이 존재하는 경우
+		if (caliTakeType != '') {
+			$(`input[name=caliTakeType][value=${caliTakeType}]`, $modal).prop('checked', true);
+		} 
+		// 없는 경우엔 기본값
+		else {
+			if (caliType == 'standard') {
+				$('input[name=caliTakeType][value=self]', $modal).prop('checked', true);
+			} else {
+				$('input[name=caliTakeType][value=site_calbr]', $modal).prop('checked', true)	// 현장교정
+			}
+		}
+
+	}
+
 	// 저장
 	$modal.confirm_modal = async function (e) {
-		console.log('저장클릭!!');
+
+		const $form = $('.caliOrderModifyForm', $modal);
+		const orderData = $form.serialize_object();
+		console.log("🚀 ~ orderData:", orderData);
+
+		// 필수값 확인
+
+		// 신청업체, 성적서업체의 경우, 조회된 건지 직접입력한 건지 구분해서 확인 필요
+
+
 	};
 
 	$modal.data('modal-data', $modal);

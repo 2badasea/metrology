@@ -75,7 +75,7 @@ public class CaliOrder {
 	private String caliTakeType;       // send / self / site / pickup
 	
 	@Column(name = "cust_agent_cali_cycle", nullable = false, length = 20)
-	private String custAgentCaliCycle; // self / next
+	private String custAgentCaliCycle; // self_cycle / next_cycle
 	
 	@Column(name = "report_lang", nullable = false, length = 10)
 	private String reportLang;         // kr / en / both

@@ -330,7 +330,8 @@ $(function () {
 		const row = $modal.grid.getRow(e.rowKey);
 
 		if (row && e.columnName != '_checked') {
-			// 업체수정 모달 띄우기
+			// 접수수정 모달 띄우기
+			// TODO 수정의 경우 title에 접수번호 표시할 것
 			try {
 				const resModal = await g_modal(
 					'/cali/caliOrderModify',
