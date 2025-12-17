@@ -63,11 +63,11 @@ $(function () {
 						let return_url = '';
 						// 일반 user
 						if (res.code == 1) {
-							return_url = '/basic/home';
+							return_url = '/cali/caliOrder';
 						}
 						// admin 권한을 가진 유저 (admin페이지 개발 이후 경로 변경할 것)
 						else {
-							return_url = '/basic/home';
+							return_url = '/cali/caliOrder';
 						}
 						location.href = return_url;
 					});
