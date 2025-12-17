@@ -7,7 +7,7 @@
 	<!-- 상단 로고/정보 영역 -->
 	<div class="top_info d-flex align-items-center mb-4">
 		<a href="/basic/home" class="d-inline-block">
-			<img src="/images/springboot.jpg" alt="springboot.jpg" class="sidebar-logo mr-2">
+			<img src="/images/cali_logo.png" alt="springboot.jpg" class="sidebar-logo mr-2">
 		</a>
 	</div>
 	<div class="menu_wrapper flex-grow-1">
@@ -15,7 +15,7 @@
 		<th:block th:if="${renderMode != 'modal'}">
 			
 			<ul class="nav nav-pills flex-column sidebar-menu">
-				<li class="nav-item" th:each="m1 : ${sideMenus}">
+				<li class="nav-item sidebar-parent-li" th:each="m1 : ${sideMenus}">
 					
 					<!-- 자식 있는 상위메뉴 -->
 					<a th:if="${!m1.children.isEmpty()}"
@@ -57,9 +57,9 @@
 		
 		</th:block>
 	</div>
-	<!-- 하단 로그아웃 버튼 -->
+	<!-- TODO 하단 -> 버전정보 표시할 것 -->
 	<div class="bottom_info mt-auto">
-		<button class="btn btn-warning w-100 logoutBtn">로그아웃</button>
+		<!-- <button class="btn btn-warning w-100 logoutBtn">로그아웃</button> -->
 	</div>
 </nav>
 </body>

@@ -53,12 +53,27 @@
                                 </div>
                             </td>
                         </tr>
-                        <!-- 접수번호 & 접수일 -->
+                        <!-- 발행타입 & 접수일 -->
                         <tr>
-                            <th>접수번호</th>
-                            <td>
-                                <input type="text" class="form-control" name="orderNum" placeholder="접수 등록시 자동생성됩니다."
-                                    readonly />
+                            <th>성적서발행</th>
+                            <td class="text-left">
+                                <div class="ml-2">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" id="report_lang_kr100"
+                                            name="reportLang" value="kr" checked>
+                                        <label class="form-check-label" for="report_lang_kr100">국문</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" id="report_lang_en100"
+                                            name="reportLang" value="en">
+                                        <label class="form-check-label" for="report_lang_en100">영문</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" id="report_lang_both100"
+                                            name="reportLang" value="both">
+                                        <label class="form-check-label" for="report_lang_both100">국문+영문</label>
+                                    </div>
+                                </div>
                             </td>
                             <th class="required">접수일</th>
                             <td>
@@ -189,8 +204,8 @@
                             <td>
                                 <div class="input-group">
                                     <input type="hidden" name="custAgentIdx" />
-                                    <input type="text" class="form-control searchAgentInput" name="custAgent" data-type="custAgent"
-                                        placeholder="업체를 검색하세요.">
+                                    <input type="text" class="form-control searchAgentInput" name="custAgent"
+                                        data-type="custAgent" placeholder="업체를 검색하세요.">
                                     <input type="hidden" name="custAgentEn">
                                     <div class="input-group-append">
                                         <button class="btn btn-secondary searchAgent" data-type="custAgent"
@@ -227,9 +242,11 @@
                             <th>신청업체 주소(국문)</th>
                             <td colspan="3">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" name="custAgentAddr" readonly />
+                                    <input type="text" class="form-control custAgentAddr" name="custAgentAddr"
+                                        readonly />
                                     <div class="input-group-append">
-                                        <button class="btn btn-secondary searchAddr" type="button" data-type="cust">우편번호
+                                        <button class="btn btn-secondary searchAddr" type="button"
+                                            data-type="custAgent">우편번호
                                             검색</button>
                                     </div>
                                     <div class="input-group-append">
@@ -244,7 +261,8 @@
                         <tr>
                             <th>신청업체 주소(영문)</th>
                             <td colspan="3">
-                                <input type="text" class="form-control" name="custAgentAddrEn" readonly />
+                                <input type="text" class="form-control custAgentAddrEn" name="custAgentAddrEn"
+                                    readonly />
                             </td>
                         </tr>
                         <!-- 신청업체 담당자 & 담당자 연락처 -->
@@ -255,8 +273,8 @@
                                     <input type="text" class="form-control" id="custManager" name="custManager"
                                         readonly />
                                     <div class="input-group-append">
-                                        <button class="btn btn-secondary agentManagerSearch"
-                                            data-type="custManager" type="button" value="">조회</button>
+                                        <button class="btn btn-secondary agentManagerSearch" data-type="custManager"
+                                            type="button" value="">조회</button>
                                     </div>
 
                                 </div>
@@ -286,9 +304,6 @@
                                         <button class="btn btn-secondary searchAgent" data-type="reportAgent"
                                             type="button">조회</button>
                                     </div>
-                                    <div class="input-group-append">
-                                        <button class="btn btn-danger resetReportInput" type="button">리셋</button>
-                                    </div>
                                 </div>
                             </td>
                             <th>성적서 발행처(영문)</th>
@@ -302,11 +317,11 @@
                             <th>성적서발행처 주소(국문)</th>
                             <td colspan="3">
                                 <div class="input-group">
-                                    <input type="text" class="form-control reportAgentInput" name="reportAgentAddr"
-                                        readonly />
+                                    <input type="text" class="form-control reportAgentAddr reportAgentInput"
+                                        name="reportAgentAddr" readonly />
                                     <div class="input-group-append">
                                         <button class="btn btn-secondary searchAddr" type="button"
-                                            data-type="report">우편번호 검색</button>
+                                            data-type="reportAgent">우편번호 검색</button>
                                     </div>
                                     <div class="input-group-append">
                                         <button type="button" class="btn btn-info w-100 rounded-0 viewRoadMap"
@@ -320,8 +335,8 @@
                         <tr>
                             <th>성적서발행처 주소(영문)</th>
                             <td colspan="3">
-                                <input type="text" class="form-control reportAgentInput" name="reportAgentAddrEn"
-                                    readonly />
+                                <input type="text" class="form-control reportAgentInput reportAgentAddrEn"
+                                    name="reportAgentAddrEn" readonly />
                             </td>
                         </tr>
                         <!-- 소재지 주소(국문) -->

@@ -25,8 +25,6 @@ public class AgentController {
 								  @RequestParam(value = "agentFlag", required = false) Integer agentFlag,
 								  @RequestParam(value = "agentName", required = false) String agentName
 	) {
-		log.info("agentFlag: {}", agentFlag);
-		log.info("agentName: {}", agentName);
 		model.addAttribute("agentFlag", agentFlag);
 		model.addAttribute("agentName", agentName);
 		return "agent/searchAgentModify";
@@ -35,8 +33,6 @@ public class AgentController {
 	// 업체 담당자 조회 [모달]
 	@PostMapping(value = "/searchAgentManager")
 	public String searchAgentManager(Model model, @RequestParam Long agentId) {
-		log.info("agentId: {}", agentId);
-		
 		// 업체담당자의 정보를 바로 가져온다(네이티브 쿼리 사용)
 		// @Query 애너테이션을 이용하여 DTO반환을 하기 위해서는 select절에서 생성자를 통해 객체 반환
 		List<AgentManagerDTO.AgentManagerRowData> managerList = agentManagerRepository.getManagerListOrderByMainYn(agentId);

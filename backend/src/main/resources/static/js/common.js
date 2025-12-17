@@ -23,6 +23,18 @@ $(function () {
 
 	$('input[type=text]').attr('autocomplete', 'off'); // input창 자동완성 제거
 	$('input[type=password]').attr('autocomplete', 'new-password'); // 비밀번호 항목 자동완성 제거
+
+	// breadcumb 내 메뉴명 표시
+	const flagMenuActive = $('.sidebar-menu a').hasClass('active');
+	if (flagMenuActive) {
+		const $activeMenu = $('.sidebar-menu').find('a.active');
+		const childMenuName = $activeMenu.text();
+		const parentMenuName = $activeMenu.closest('.sidebar-parent-li').find('span').eq(0).text();
+		// 부모노드가 있는 경우엔 같이 표시. 없는 경우엔 현재 active 상태의 메뉴명만 표시
+		const menuPath = (parentMenuName != '') ? `${parentMenuName} > ${childMenuName}` : childMenuName;
+		$('.topbar-inner .customBreadcrumb').text(menuPath);
+	}
+
 })
 	// 0이상의 정수만 입력 가능
 	.on('input', 'input.number_integer', function () {
@@ -674,15 +686,27 @@ function modal_draggable() {
  *
  * @return  {[type]}                  [return description]
  */
-function sample4_execDaumPostcode(zipCodeColName, addrColname) {
-	new daum.Postcode({
-		oncomplete: function (data) {
-			// 우편번호
-			$(`input[name=${zipCodeColName}]`).val(data.zonecode);
-			// 도로명 및 지번주소
-			$(`.${addrColname}`).val(data.roadAddress);
-		},
-	}).open();
+function sample4_execDaumPostcode(zipCodeColName, addrColname, addrEnColname = '') {
+	return new Promise((resolve) => {
+		new daum.Postcode({
+			oncomplete: function (data) {
+				// 우편번호
+				if (zipCodeColName) {
+					$(`input[name=${zipCodeColName}]`).val(data.zonecode);
+				}
+				// 도로명 및 지번주소
+				if (addrColname) {
+					$(`.${addrColname}`).val(data.roadAddress);
+				}
+				if (addrEnColname) {
+					$(`.${addrEnColname}`).val(data.roadAddressEnglish);
+				}
+
+				resolve();
+			},
+		}).open();
+
+	})
 }
 
 // 입력값 체크
