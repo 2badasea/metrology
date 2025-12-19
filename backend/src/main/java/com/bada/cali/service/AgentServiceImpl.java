@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -418,6 +419,23 @@ public class AgentServiceImpl {
 		
 		// 예외가 터지지 않았다면 성공이므로 1 리턴
 		return 1;
+	}
+	
+	// 업체명을 통해서 업체 정보 확인 후 리턴
+	@Transactional(readOnly = true)
+	public Map<String, String> chkAgentInfo(String agentName) {
+		agentName = agentName.replaceAll(" ", "");	// 공백제거
+		List<AgentDTO.AgentRowView> agentDatas = agentRepository.chkAgentInfos(agentName);
+		
+		// 데이터가 존재하는 경우
+		if (!agentDatas.isEmpty()) {
+			String agentInfosStr = agentDatas.stream().map(a -> "업체명: " + a.getName()
+					+ ", 업체주소: " + a.getAddr()
+					+ ", 사업자등록번호: " + a.getAgentNum()).collect(Collectors.joining("<br>"));
+			return Map.of("code", "1", "data", agentInfosStr);
+		} else {
+			return Map.of("code", "-1");
+		}
 	}
 	
 }

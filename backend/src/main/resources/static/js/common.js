@@ -31,10 +31,9 @@ $(function () {
 		const childMenuName = $activeMenu.text();
 		const parentMenuName = $activeMenu.closest('.sidebar-parent-li').find('span').eq(0).text();
 		// 부모노드가 있는 경우엔 같이 표시. 없는 경우엔 현재 active 상태의 메뉴명만 표시
-		const menuPath = (parentMenuName != '') ? `${parentMenuName} > ${childMenuName}` : childMenuName;
+		const menuPath = parentMenuName != '' ? `${parentMenuName} > ${childMenuName}` : childMenuName;
 		$('.topbar-inner .customBreadcrumb').text(menuPath);
 	}
-
 })
 	// 0이상의 정수만 입력 가능
 	.on('input', 'input.number_integer', function () {
@@ -705,8 +704,7 @@ function sample4_execDaumPostcode(zipCodeColName, addrColname, addrEnColname = '
 				resolve();
 			},
 		}).open();
-
-	})
+	});
 }
 
 // 입력값 체크
@@ -1310,3 +1308,30 @@ const debounce = (fn, wait = 250) => {
 		timer = setTimeout(() => fn.apply(this, args), wait);
 	};
 };
+
+// 날짜 전후 비교
+function isValidateDate(start = '', end = '') {
+	console.log("🚀 ~ isValidateDate ~ end:", end)
+	console.log("🚀 ~ isValidateDate ~ start:", start)
+	let result = {
+		flag: true,
+		msg: ''
+	};
+	if (!start && !end) {
+		console.log('??');
+		result.flag = true;
+		return result;
+	}
+	if ((start && !end) || (!start && end)) {
+		console.log('23425');
+		result.flag = false;
+		result.msg = '기간 설정을 해주세요.';
+		return result;
+	}
+	if (start > end) {
+		console.log('44444');
+		result.flag = false;
+		result.msg = '시작일자(일시)가 종료일자(일시)보다 최근일 수 없습니다.';
+		return result;
+	}
+}

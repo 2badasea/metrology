@@ -211,5 +211,13 @@ public class AgentDTO {
 		private String remark;        // 비고 (LONGTEXT)
 	}
 	
+	// 업체 검증 관련 응답 데이터
+	public interface AgentRowView {
+		Long getId();
+		String getName();
+		String getAddr();
+		String getAgentNum();
+	}
+	
 	
 }
