@@ -12,7 +12,7 @@ $(function () {
 	}
 	let $modal_root = $modal.closest('.modal');
 
-	let caliOrderId = null; // 업체id
+	let caliOrderId = null; // 접수id (수정시에만 존재)
 
 	$modal.init_modal = async (param) => {
 		$modal.param = param;
@@ -238,8 +238,7 @@ $(function () {
 		.on('change', 'input[name=caliType]', function () {
 			const caliType = $(this).val();
 			$modal.setCaliType(caliType);
-		})
-		;
+		});
 
 	// 고정표준실, 접수유형에 따른 변경
 	$modal.setCaliType = (caliType = '', caliTakeType = '') => {
@@ -249,7 +248,7 @@ $(function () {
 		if (caliType == 'standard') {
 			$siteDiv.addClass('d-none');
 			$standardDiv.removeClass('d-none');
-		} 
+		}
 		// 현장교정인 경우
 		else {
 			$siteDiv.removeClass('d-none');
@@ -258,30 +257,79 @@ $(function () {
 		// 접수유형 값이 존재하는 경우
 		if (caliTakeType != '') {
 			$(`input[name=caliTakeType][value=${caliTakeType}]`, $modal).prop('checked', true);
-		} 
+		}
 		// 없는 경우엔 기본값
 		else {
 			if (caliType == 'standard') {
 				$('input[name=caliTakeType][value=self]', $modal).prop('checked', true);
 			} else {
-				$('input[name=caliTakeType][value=site_calbr]', $modal).prop('checked', true)	// 현장교정
+				$('input[name=caliTakeType][value=site_calbr]', $modal).prop('checked', true); // 현장교정
 			}
 		}
-
-	}
+	};
 
 	// 저장
 	$modal.confirm_modal = async function (e) {
-
 		const $form = $('.caliOrderModifyForm', $modal);
 		const orderData = $form.serialize_object();
-		console.log("🚀 ~ orderData:", orderData);
+		console.log('🚀 ~ orderData:', orderData);
 
-		// 필수값 확인
+		// 1. 필수값 확인
+		if (!orderData.orderDate) {
+			g_toast('접수일을 선택해주세요', 'warning');
+			return false;
+		}
+		// 신청업체, 성적서발행처 확인
+		if (!check_input(orderData.custAgent)) {
+			g_toast('신청업체 정보를<br>조회 또는 입력해주세요.', 'warning');
+			return false;
+		}
+		if (!check_input(orderData.reportAgent)) {
+			g_toast('성적서발행처 정보를<br>조회 또는 입력해주세요.', 'warning');
+			return false;
+		}
+		// 출장일시 정보가 있는 경우, 체크
+		const resCheckDate = isValidateDate(orderData.btripStartDate, orderData.btripEndDate);
+		if (!resCheckDate.flag) {
+			const resMsg = resCheckDate.msg ?? '정보가 올바르지 않습니다.';
+			g_toast(`출장일시 ${resMsg}`, 'warning');
+			return false;
+		}
+
+		// 업체데이터의 경우, keyin입력인 경우, 자동으로 등록된다고 안내할 것(최초 등록시에만)
+		if (!caliOrderId) {
+			if (!orderData.custAgentIdx) {
+				const custFetchOption = {
+					method: 'POST',
+					headers: {
+					  'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({agentName: orderData.custAgent}),
+				};
+				console.log('호출전');
+				const resChk = await fetch('/api/agent/chkAgentInfo', custFetchOption);
+				const resData = await resChk.json();
+				console.log("🚀 ~ resData:", resData)
+				console.log(resData?.code);
+				if (resData?.code > 0) {
+					const custData = resData.data ?? '';
+					console.log('조회확인');
+					console.log("🚀 ~ custData:", custData);
+					// sweet alert 표시하기
+				}
+			}
+
+			// if (!orderData.reportAgentIdx) {
+			// }
+		}
+		
+		return false;
+
+		// 저장 시, 저장되는 정보들에 대해서 요약한 뒤 알려주기 =>
+
+		// 업체조회가 입력인 경우, 비슷한 명의 업체가 존재하는지 알려주고 선택하도록 하기
 
 		// 신청업체, 성적서업체의 경우, 조회된 건지 직접입력한 건지 구분해서 확인 필요
-
-
 	};
 
 	$modal.data('modal-data', $modal);

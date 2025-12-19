@@ -144,5 +144,18 @@ public interface AgentRepository extends JpaRepository<Agent, Long> {
 			@Param("groupName") String groupName
 	);
 	
+	// 업체명 기준으로 업체정보 조회하기
+	@Query("""
+			select
+				  a.id as id,
+			      a.name as name,
+			      a.addr as addr,
+			      a.agentNum as agentNum
+			from Agent a
+			where a.isVisible = 'y'
+			and replace(a.name, ' ', '') like concat('%', :agentName, '%')
+			""")
+	List<AgentDTO.AgentRowView> chkAgentInfos(@Param("agentName") String agentName);
+	
 	
 }
