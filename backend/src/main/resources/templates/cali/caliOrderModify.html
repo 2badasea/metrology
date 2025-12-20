@@ -203,7 +203,7 @@
                             <th class="required">신청업체</th>
                             <td>
                                 <div class="input-group">
-                                    <input type="hidden" name="custAgentIdx" />
+                                    <input type="hidden" name="custAgentId" value="0" />
                                     <input type="text" class="form-control searchAgentInput" name="custAgent"
                                         data-type="custAgent" placeholder="업체를 검색하세요.">
                                     <input type="hidden" name="custAgentEn">
@@ -242,8 +242,7 @@
                             <th>신청업체 주소(국문)</th>
                             <td colspan="3">
                                 <div class="input-group">
-                                    <input type="text" class="form-control custAgentAddr" name="custAgentAddr"
-                                        readonly />
+                                    <input type="text" class="form-control custAgentAddr" name="custAgentAddr" />
                                     <div class="input-group-append">
                                         <button class="btn btn-secondary searchAddr" type="button"
                                             data-type="custAgent">우편번호
@@ -261,8 +260,7 @@
                         <tr>
                             <th>신청업체 주소(영문)</th>
                             <td colspan="3">
-                                <input type="text" class="form-control custAgentAddrEn" name="custAgentAddrEn"
-                                    readonly />
+                                <input type="text" class="form-control custAgentAddrEn" name="custAgentAddrEn" />
                             </td>
                         </tr>
                         <!-- 신청업체 담당자 & 담당자 연락처 -->
@@ -295,7 +293,7 @@
                             <th class="required">성적서 발행처(국문)</th>
                             <td>
                                 <div class="input-group">
-                                    <input type="hidden" id="reportAgentIdx" name="reportAgentIdx" />
+                                    <input type="hidden" id="reportAgentId" name="reportAgentId" value="0" />
                                     <input type="text" class="form-control searchAgentInput" data-type="reportAgent"
                                         name="reportAgent" placeholder="업체를 검색하세요." />
                                     <div class="input-group-append">
@@ -307,7 +305,7 @@
                             <th>성적서 발행처(영문)</th>
                             <td>
                                 <input type="text" class="form-control reportAgentInput" id="reportAgentEn"
-                                    name="reportAgentEn" readonly />
+                                    name="reportAgentEn" />
                             </td>
                         </tr>
                         <!-- 성적서발행처 주소 -->
@@ -316,7 +314,7 @@
                             <td colspan="3">
                                 <div class="input-group">
                                     <input type="text" class="form-control reportAgentAddr reportAgentInput"
-                                        name="reportAgentAddr" readonly />
+                                        name="reportAgentAddr" />
                                     <div class="input-group-append">
                                         <button class="btn btn-secondary searchAddr" type="button"
                                             data-type="reportAgent">우편번호 검색</button>
@@ -334,7 +332,7 @@
                             <th>성적서발행처 주소(영문)</th>
                             <td colspan="3">
                                 <input type="text" class="form-control reportAgentInput reportAgentAddrEn"
-                                    name="reportAgentAddrEn" readonly />
+                                    name="reportAgentAddrEn" />
                             </td>
                         </tr>
                         <!-- 소재지 주소(국문) -->
@@ -342,8 +340,7 @@
                             <th>소재지 주소(국문)</th>
                             <td colspan="3">
                                 <div class="input-group">
-                                    <input type="text" class="form-control report_agent_input" name="siteAddr"
-                                        readonly />
+                                    <input type="text" class="form-control report_agent_input" name="siteAddr" />
                                     <div class="input-group-append">
                                         <button type="button" class="btn btn-info w-100 rounded-0 viewRoadMap"
                                             data-target="siteAddr" data-title="소재지"><i
@@ -356,7 +353,7 @@
                         <tr>
                             <th>소재지 주소(영문)</th>
                             <td colspan="3">
-                                <input type="text" class="form-control" name="siteAddrEn" readonly />
+                                <input type="text" class="form-control" name="siteAddrEn" />
                             </td>
 
                         </tr>

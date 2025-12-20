@@ -463,6 +463,19 @@ async function g_modal(url, param = {}, options = {}) {
 						resolve();
 					}
 				},
+				// 모달이 닫힐 때, 데이터를 반환하는 이벤트
+				click_return_button: async function () {
+					let $modal = $(`#${uuid}`).find('.modal-view').data('modal-data');
+					if (typeof $modal == 'object' && typeof $modal.confirm_modal == 'function') {
+						let value = await $modal.return_modal();
+						if (value !== false) {
+							resolve(value);
+						}
+					} else {
+						$(`#${uuid}`).modal('hide');
+						resolve();
+					}
+				},				
 				show_reset_button: false, //초기화 버튼을 보여줄지
 				reset_button_text: '초기화', //초기화 버튼 텍스트
 				click_reset_button: function () {
@@ -1311,27 +1324,23 @@ const debounce = (fn, wait = 250) => {
 
 // 날짜 전후 비교
 function isValidateDate(start = '', end = '') {
-	console.log("🚀 ~ isValidateDate ~ end:", end)
-	console.log("🚀 ~ isValidateDate ~ start:", start)
 	let result = {
 		flag: true,
 		msg: ''
 	};
 	if (!start && !end) {
-		console.log('??');
 		result.flag = true;
 		return result;
 	}
 	if ((start && !end) || (!start && end)) {
-		console.log('23425');
 		result.flag = false;
 		result.msg = '기간 설정을 해주세요.';
 		return result;
 	}
 	if (start > end) {
-		console.log('44444');
 		result.flag = false;
 		result.msg = '시작일자(일시)가 종료일자(일시)보다 최근일 수 없습니다.';
 		return result;
 	}
+	return result;
 }

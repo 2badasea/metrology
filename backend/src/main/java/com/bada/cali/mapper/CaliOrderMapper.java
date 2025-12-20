@@ -15,4 +15,7 @@ import org.mapstruct.ReportingPolicy;
 public interface CaliOrderMapper {
 	
 	CaliDTO.OrderRowData toOrderDataFromEntity(CaliOrder caliOrder);
+	
+	// entity로 변환
+	CaliOrder toSaveEntity(CaliDTO.saveCaliOrder saveCaliOrder);
 }

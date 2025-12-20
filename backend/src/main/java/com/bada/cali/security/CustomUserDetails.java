@@ -12,7 +12,7 @@ import java.util.Set;
 @Getter
 public class CustomUserDetails implements UserDetails {
 	private final Long id;
-	private final String username;
+	private final String username;	// 로그인id
 	private final String password;
 	private final String name;
 	private final Collection<? extends GrantedAuthority> authorities;

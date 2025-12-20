@@ -265,6 +265,8 @@ $(function () {
 				);
 
 				// 모달이 성공적으로 종료되었을 때만 그리드 갱신
+				console.log('리스트에서 확인');
+				console.log(resModal)
 				if (resModal) {
 					$modal.grid.reloadData();
 				}

@@ -1,8 +1,14 @@
 package com.bada.cali.dto;
 
+import com.bada.cali.common.enums.CalibrationCycleType;
 import com.bada.cali.common.enums.YnType;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDateTime;
 
 // 교정관련 DTO 클래스
 public class CaliDTO {
@@ -56,9 +62,58 @@ public class CaliDTO {
 		private Long outReportCount;            // 대행성적서 개수
 		
 		// 접수등록/수정에 모달 데이터
-		private String custAgentTel;			// 신청업체 대표번호
-		private String custAgentFax;			// 신청업체 FAX
+		private String custAgentTel;            // 신청업체 대표번호
+		private String custAgentFax;            // 신청업체 FAX
 		
+		
+	}
+	
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@ToString
+	public static class saveCaliOrder {
+		
+		private Long id;                        // 접수id
+		
+		@DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+		private LocalDateTime btripStartDate;            // 출장시작일
+		@DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+		private LocalDateTime btripEndDate;            // 출장종료일
+		
+		private String caliTakeType;            // 접수유형
+		private String caliType;                // 교정유형 (고정표준실/ 현장교정)
+		private String custAgent;                // 신청업체
+		private String custAgentAddr;            // 신청업체 주소 (국문)
+		private String custAgentAddrEn;            // 신청업체 주소 (영문)
+		private CalibrationCycleType custAgentCaliCycle;        // 신청업체 교정주기
+		private String custAgentEn;                // 신청업체 영문명
+		private String custAgentFax;            // 신청업체 FAX
+		private Long custAgentId;                // 신청업체 id
+		private String custAgentTel;            // 신청업체 연락처
+		private String custManager;                // 신청업체 담당자
+		private String custManagerEmail;        // 신청업체 담당자 이메일
+		private String custManagerTel;            // 신청업체 담당자 연락처
+		private YnType isTax;                    // 세금계산서 발행여부
+		private String orderDate;                // 접수일
+		private Long orderManagerId;            // 접수자
+		private String orderType;                // 접수구분 (공인/비공인/시험 등)
+		private String priorityType;            // 긴급여부
+		private String remark;                    // 요청사항
+		private String reportAgent;                // 성적서발행처
+		private String reportAgentAddr;            // 성적서발행처 주소
+		private String reportAgentAddrEn;        // 성적서발행처 주소 (영문)
+		private String reportAgentEn;            // 성적서발행처 영문명
+		private Long reportAgentId;            // 성적서발행처 id
+		private String reportLang;                // 성적서 발행타입
+		private String reportManager;            // 성적서발행처 담당자
+		private String reportManagerEmail;        // 성적서발행처 담당자 이메일
+		private String reportManagerTel;        // 성적서발행처 담당자 연락처
+		private String responsibleManagerId;    // 책임담당자 id
+		private String siteAddr;                // 소재지 주소
+		private String siteAddrEn;                // 소재지 주소 (영문)
+		
+		private String orderNum;                // 접수번호
 		
 	}
 	
