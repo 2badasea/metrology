@@ -108,7 +108,7 @@ $(function () {
 				if (agentFlag == 1) {
 					// 업체명, 업체명(영문), fax, 연락처, fx, 교정주기, 주소(국/영문), 담당자(이름, 연락처, 이메일)
 					$('input[name=custAgent]', $modal).val(searchAgentInfo.name);
-					$('input[name=custAgentIdx]', $modal).val(searchAgentInfo.id);
+					$('input[name=custAgentId]', $modal).val(searchAgentInfo.id);
 					$('input[name=custAgentEn]', $modal).val(searchAgentInfo.nameEn);
 					$('input[name=custAgentAddr]', $modal).val(searchAgentInfo.addr);
 					$('input[name=custAgentAddrEn]', $modal).val(searchAgentInfo.addrEn);
@@ -126,7 +126,7 @@ $(function () {
 				// 성적서발행처 조회 시
 				else if (agentFlag == 4) {
 					// 발행처 (국/영), 주소(국/영), 담당자 (이름, 연락처, 이메일), 소재지주소?
-					$('input[name=reportAgentIdx]', $modal).val(searchAgentInfo.id);
+					$('input[name=reportAgentId]', $modal).val(searchAgentInfo.id);
 					$('input[name=reportAgent]', $modal).val(searchAgentInfo.name);
 					$('input[name=reportAgentEn]', $modal).val(searchAgentInfo.nameEn);
 					$('input[name=reportAgentAddr]', $modal).val(searchAgentInfo.addr);
@@ -150,8 +150,8 @@ $(function () {
 		.on('click', '.searchAgent', function () {
 			const $btn = $(this);
 			const type = $btn.data('type');
-			const agnetName = $(`input[name=${type}`, $modal).val();
-			$modal.searchAgent(type, agnetName);
+			const agentName = $(`input[name=${type}`, $modal).val() ?? '';
+			$modal.searchAgent(type, agentName);
 		})
 		// 업체명 항목에 enter클릭 시, 업체조회 모달 호출
 		.on('keyup', '.searchAgentInput', function (e) {
@@ -167,10 +167,10 @@ $(function () {
 			let agentId = 0;
 			let agentTypeKr = '';
 			if (agentType == 'custManager') {
-				agentId = $('input[name=custAgentIdx]', $modal).val();
+				agentId = $('input[name=custAgentId]', $modal).val();
 				agentTypeKr = '신청업체';
 			} else {
-				agentId = $('input[name=reportAgentIdx]', $modal).val();
+				agentId = $('input[name=reportAgentId]', $modal).val();
 				agentTypeKr = '성적서발행처';
 			}
 
@@ -298,38 +298,132 @@ $(function () {
 
 		// 업체데이터의 경우, keyin입력인 경우, 자동으로 등록된다고 안내할 것(최초 등록시에만)
 		if (!caliOrderId) {
-			if (!orderData.custAgentIdx) {
+			if (!orderData.custAgentId) {
 				const custFetchOption = {
 					method: 'POST',
 					headers: {
-					  'Content-Type': 'application/json',
+						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({agentName: orderData.custAgent}),
+					body: JSON.stringify({ agentName: orderData.custAgent }),
 				};
-				console.log('호출전');
-				const resChk = await fetch('/api/agent/chkAgentInfo', custFetchOption);
-				const resData = await resChk.json();
-				console.log("🚀 ~ resData:", resData)
-				console.log(resData?.code);
-				if (resData?.code > 0) {
-					const custData = resData.data ?? '';
-					console.log('조회확인');
-					console.log("🚀 ~ custData:", custData);
-					// sweet alert 표시하기
+				// fetch api의 경우, 응답헤더까지 받고, Response객체를 만들 수 있는 시점에 resolve됨
+				// resolve가 된 직후엔 본문(body)는 아직 읽지 않은 스트림 -> .json()을 통해 스트림을 끝까지 읽고
+				// 최종 JS객체로 반환해야 하므로, 이 작업도 비동기. 그래서 json()도 promise를 리턴
+				// await을 명시하지 않으면 파싱이 끝나지 않은 프로미스가 리턴된다.
+				const resChk1 = await fetch('/api/agent/chkAgentInfo', custFetchOption);
+				const resData1 = await resChk1.json();
+				// 유사 업체명이 존재함
+				if (resData1?.code > 0) {
+					const custData = resData1.data ?? '';
+					await g_message(
+						'업체명 확인',
+						`'${orderData.custAgent}'이 포함된 업체목록입니다.<br>'조회'가 아닌 직접 입력을 통해서 선택한 경우, 업체정보가<br>자동으로 등록되지만 중복이 발생할 수 있습니다. <br><br>${custData}`,
+						'warning'
+					);
 				}
 			}
 
-			// if (!orderData.reportAgentIdx) {
-			// }
+			if (!orderData.reportAgentId) {
+				const reportFetchOption = {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ agentName: orderData.reportAgent }),
+				};
+				const resChk2 = await fetch('/api/agent/chkAgentInfo', reportFetchOption);
+				const resData2 = await resChk2.json();
+				// 유사 업체명이 존재함
+				if (resData2?.code > 0) {
+					const reportData = resData2.data ?? '';
+					await g_message(
+						'업체명 확인',
+						`'${orderData.reportAgent}'이 포함된 업체목록입니다.<br>'조회'가 아닌 직접 입력을 통해서 선택한 경우, 업체정보가 자동으로 등록되지만 중복이 발생할 수 있습니다. <br><br>${reportData}`,
+						'warning'
+					);
+				}
+			}
 		}
-		
-		return false;
+
+		// return false;
+		const saveInfoKv = {
+			'orderType': {
+				'accredited': '공인',
+				'non_accredited': '비공인',
+				'testing': '시험',
+			},
+			'reportLang': {
+				'kr': '국문',
+				'en': '영문',
+				'both': '국문+영문',
+			},
+		};
+
+		const saveConfirmMsg = `접수구분: ${saveInfoKv.orderType[orderData.orderType]}<br>발행타입: ${
+			saveInfoKv.reportLang[orderData.reportLang]
+		}<br>신청업체: ${orderData.custAgent}<br>성적서발행처: ${orderData.reportAgent}`;
+
+		// 저장버튼 비활성화 후 진행
+		const $btn = $('button.btn_save', $modal_root);
+		$btn.prop('disabled', true);
+
+		const saveConfirm = await g_message('저장하시겠습니까?', saveConfirmMsg, 'info', 'confirm');
+		if (saveConfirm.isConfirmed === true) {
+			orderData.id = caliOrderId;
+			try {
+				const saveFetchOption = {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify(orderData),
+				};
+				console.log('요청전송');
+				const resSave = await fetch('/api/caliOrder/saveCaliOrder', saveFetchOption);
+				console.log(resSave);
+				if (resSave.ok) {
+					console.log('ok??');
+					const resCode = await resSave.json();
+					if (resCode?.code > 0) {
+						await g_message('저장 성공', `${resCode.msg ?? '저장에 성공했습니다.'}`, 'success', 'alert').then((d) => {
+							console.log('d');
+							console.log(d);
+							$modal_root.data('modal-data').click_return_button();
+						});
+					} else {
+						await g_message('저장 실패', `${resCode.msg ?? '저장에 실패했습니다.'}`, 'error', 'alert');
+					}
+				} else {
+					console.log('오류가 여기로 넘어오니?');
+					throw new Error("에러발생~");
+				}
+
+				// 저장이 정상적으로 이루어지면, 모달을 닫는다.
+			} catch (err) {
+				console.log('🚀 ~ err:', err);
+				console.log('여기로떨어지니?');
+				custom_ajax_handler(err);
+			} finally {
+				$btn.prop('disabled', false);
+				return false;
+			}
+		} else {
+			$btn.prop('disabled', false);
+			return false;
+		}
 
 		// 저장 시, 저장되는 정보들에 대해서 요약한 뒤 알려주기 =>
 
 		// 업체조회가 입력인 경우, 비슷한 명의 업체가 존재하는지 알려주고 선택하도록 하기
 
 		// 신청업체, 성적서업체의 경우, 조회된 건지 직접입력한 건지 구분해서 확인 필요
+	};
+
+	// 리턴 모달 이벤트
+	$modal.return_modal = async function (e) {
+		$modal.param.res = true;
+		$modal_root.modal('hide');
+		return $modal.param;
 	};
 
 	$modal.data('modal-data', $modal);

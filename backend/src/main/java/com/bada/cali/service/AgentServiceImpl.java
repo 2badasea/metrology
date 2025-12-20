@@ -431,7 +431,7 @@ public class AgentServiceImpl {
 		if (!agentDatas.isEmpty()) {
 			String agentInfosStr = agentDatas.stream().map(a -> "업체명: " + a.getName()
 					+ ", 업체주소: " + a.getAddr()
-					+ ", 사업자등록번호: " + a.getAgentNum()).collect(Collectors.joining("<br>"));
+					+ ", 사업자등록번호: " + a.getAgentNum()).collect(Collectors.joining("<br><br>"));
 			return Map.of("code", "1", "data", agentInfosStr);
 		} else {
 			return Map.of("code", "-1");
