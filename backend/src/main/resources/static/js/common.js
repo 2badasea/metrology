@@ -1294,7 +1294,7 @@ function g_message(title = '', html = '', icon = 'info', type = 'alert', options
 	} else if (type == 'loading') {
 	} else {
 		settings = $.extend(settings, {
-			timer: 7000,
+			timer: 10000,
 			timerProgressBar: true,
 		});
 	}

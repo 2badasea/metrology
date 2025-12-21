@@ -8,10 +8,10 @@
             <form class="caliOrderModifyForm">
                 <table class="table table-bordered text-center mb-0">
                     <colgroup>
-                        <col width="155px" />
-                        <col width="325px" />
-                        <col width="120px" />
-                        <col width="300px" />
+                        <col width="160px" />
+                        <col width="335px" />
+                        <col width="140px" />
+                        <col width="240px" />
                     </colgroup>
                     <tbody>
                         <tr>
@@ -31,9 +31,13 @@
                                 </div>
                             </td>
                             <th>
-                                접수구분
+                                접수번호
                             </th>
-                            <td class="text-left">
+                            <td>
+                                <input type="text" class="form-control" name="orderNum" placeholder="등록 시 자동으로 생성됩니다."
+                                    readonly>
+                            </td>
+                            <!-- <td class="text-left">
                                 <div class="ml-2 text-left rsi_type_div">
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="orderType" id="orderType100"
@@ -51,7 +55,7 @@
                                         <label class="form-check-label" for="orderType300">시험</label>
                                     </div>
                                 </div>
-                            </td>
+                            </td> -->
                         </tr>
                         <!-- 발행타입 & 접수일 -->
                         <tr>
@@ -211,6 +215,10 @@
                                         <button class="btn btn-secondary searchAgent" data-type="custAgent"
                                             type="button">조회</button>
                                     </div>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-danger agentReset" data-type="custAgent"
+                                            type="button">리셋</button>
+                                    </div>
                                 </div>
                             </td>
                             <th>대표전화번호</th>
@@ -299,6 +307,10 @@
                                     <div class="input-group-append">
                                         <button class="btn btn-secondary searchAgent" data-type="reportAgent"
                                             type="button">조회</button>
+                                    </div>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-danger agentReset" data-type="reportAgent"
+                                            type="button">리셋</button>
                                     </div>
                                 </div>
                             </td>
@@ -401,7 +413,12 @@
         </div>
         <!-- 수정일 때만 표시되도록 할 것 -->
         <div class="col-lg-6 col-md-6 pl-0 pr-0" th:if="${isModify}">
-            <div class="reportList"></div>
+            <div class="card">
+                <div class="card-header p-2">
+                    <h7 class="font-weight-bold">성적서리스트</h7>
+                </div>
+                <div class="reportList"></div>
+            </div>
         </div>
     </div>
 </div>

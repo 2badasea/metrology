@@ -5,8 +5,7 @@ import com.bada.cali.dto.AgentDTO;
 import com.bada.cali.dto.CaliDTO;
 import com.bada.cali.entity.Agent;
 import com.bada.cali.entity.CaliOrder;
-import org.mapstruct.Mapper;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 
 @Mapper(
 		componentModel = "spring",
@@ -18,4 +17,7 @@ public interface CaliOrderMapper {
 	
 	// entity로 변환
 	CaliOrder toSaveEntity(CaliDTO.saveCaliOrder saveCaliOrder);
+	
+	@BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+	void updateEntityFromDto(CaliDTO.saveCaliOrder dto, @MappingTarget CaliOrder entity);
 }

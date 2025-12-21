@@ -28,8 +28,7 @@ public class ApiCaliController {
 	// NOTE 리턴타입 제네릭 제대로 명시할 것
 	@GetMapping("/getOrderList")
 	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<CaliDTO.OrderRowData>>> getOrderList(
-			@ModelAttribute CaliDTO.GetOrderListReq req,
-			@AuthenticationPrincipal CustomUserDetails user
+			@ModelAttribute CaliDTO.GetOrderListReq req
 	) {
 		// 리스트 데이터 및 페이지 정보를 담은 데이터 가져옴
 		TuiGridDTO.ResData<CaliDTO.OrderRowData> resGridData = caliOrderService.getOrderList(req);
