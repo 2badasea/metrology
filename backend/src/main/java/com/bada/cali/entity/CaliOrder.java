@@ -10,10 +10,10 @@ import java.time.LocalDateTime;
 @Entity
 @Table(
 		name = "cali_order",
-		uniqueConstraints = {		// 접수번호 유니크 제약
+		uniqueConstraints = {        // 접수번호 유니크 제약
 				@UniqueConstraint(name = "order_num", columnNames = "order_num")
 		},
-		indexes = {		// where조건으로 자주 사용되는 필드에 대해서 인덱스 생성
+		indexes = {        // where조건으로 자주 사용되는 필드에 대해서 인덱스 생성
 				@Index(name = "is_visible", columnList = "is_visible")
 		}
 )
@@ -62,8 +62,10 @@ public class CaliOrder {
 	
 	// ============ ENUM / 코드값 컬럼들 (String 매핑) ============
 	
+	// ! 접수구분을 성적서 단위에서 구분할 수 있도록 정책 변경 (일단 기본값 명시)
 	@Column(name = "order_type", nullable = false, length = 50)
-	private String orderType;          // accredited / non_accredited / testing
+	@Builder.Default
+	private String orderType = "accredited";	// accredited(공인)/ non_accredited(비공인)/ testing(시험)
 	
 	@Column(name = "priority_type", nullable = false, length = 20)
 	private String priorityType;       // normal / emergency
@@ -80,9 +82,10 @@ public class CaliOrder {
 	@Column(name = "report_lang", nullable = false, length = 10)
 	private String reportLang;         // kr / en / both
 	
+	// 문서타입. 사용 보류 -> 일단은 기본값으로 ISO로 저장되도록 함
 	@Column(name = "doc_type", nullable = false, length = 10)
 	@Builder.Default
-	private String docType = "B";            // ISO / B
+	private String docType = "ISO";
 	
 	// 대기/ 완료/ 취소/ 보류 선에서 모두 구분
 	@Column(name = "status_type", nullable = false, length = 20)
@@ -92,7 +95,8 @@ public class CaliOrder {
 	/**
 	 * 'columnDefinition' 속성은 JPA가 DDL을 생성할 때만 쓰는 힌트. (이미 DB에서 미리 만들어두고 entity를 정의하는 입장에선 의미가 없음)
 	 */
-	@Enumerated(EnumType.STRING)	// EnumType.ORDINAL이 기본. JPA가 enum을 DB에 어떻게 저장할지 옵션. 기본상태라면 TINYINT/INT 타입의 1, 0 숫자로 들어가게 됨.
+	@Enumerated(EnumType.STRING)
+	// EnumType.ORDINAL이 기본. JPA가 enum을 DB에 어떻게 저장할지 옵션. 기본상태라면 TINYINT/INT 타입의 1, 0 숫자로 들어가게 됨.
 	@Column(name = "is_tax", nullable = false, columnDefinition = "ENUM('y','n') default 'n'")
 	@Builder.Default
 	private YnType isTax = YnType.n;              // y / n

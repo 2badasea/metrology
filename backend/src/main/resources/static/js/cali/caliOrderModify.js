@@ -13,68 +13,104 @@ $(function () {
 	let $modal_root = $modal.closest('.modal');
 
 	let caliOrderId = null; // 접수id (수정시에만 존재)
+	// TODO 어드민페이지에서 본사정보를 수정할 수 있는 경우, 고정표준실<->현자교정 변경 시 소재지 주소도 변겨되도록하기
 
 	$modal.init_modal = async (param) => {
 		$modal.param = param;
+		console.log("🚀 ~ $modal.param:", $modal.param);
 
-		let gridBodyHeight = Math.floor($modal.find('.caliOrderModifyForm').height() - 88);
+		let gridBodyHeight = Math.floor($modal.find('.caliOrderModifyForm').height() - 145);
 
 		// 업체id로 초기화 하기(수정)
-		if ($modal.param?.caliOrderId > 0) {
+		if ($modal.param?.id > 0) {
 			// 옵셔널체이닝으로 체크
-			caliOrderId = Number($modal.param.caliOrderId);
+			caliOrderId = Number($modal.param.id);
 
 			// NOTE async, await으로도 가능한지 확인
 			try {
+				// 접수정보를 가져와서 세팅한다.
+
+				// TODO 신청업체 & 성적서업체 정보는 기본적으로 readonly 처리
+				$('input[name=custAgent]', $modal).prop('readonly', true);
+				$('input[name=reportAgent]', $modal).prop('readonly', true);
 			} catch (err) {
 				custom_ajax_handler(err);
 			} finally {
 			}
+
+			// 수정인 경우, 담당자 리스트 정보 세팅
+			// $modal.dataSource = {
+			// 	api: {
+			// 		readData: {
+			// 			url: '/api/basic/getAgentManagerList',
+			// 			serializer: (grid_param) => {
+			// 				grid_param.agentId = agentId;
+			// 				grid_param.isVisible = 'y';
+			// 				return $.param(grid_param);
+			// 			},
+			// 			method: 'GET',
+			// 		},
+			// 	},
+			// };
+
+			// 업체 담당자 그리드
+			$modal.grid = new Grid({
+				el: document.querySelector('.reportList'),
+				columns: [
+					{
+						header: '구분',
+						name: 'certType',
+						className: 'cursor_pointer',
+						width: '',
+						align: 'center',
+					},
+					{
+						header: '성적서번호',
+						name: 'reportNum',
+						className: 'cursor_pointer',
+						width: '',
+						align: 'center',
+					},
+					{
+						header: '기기명',
+						name: 'itemName',
+						className: 'cursor_pointer',
+						width: '',
+						align: 'center',
+					},
+					{
+						header: '기기번호',
+						name: 'itemNum',
+						className: 'cursor_pointer',
+						width: '',
+						align: 'center',
+					},
+					{
+						header: '형식',
+						name: 'itemFormat',
+						className: 'cursor_pointer',
+						width: '',
+						align: 'center',
+					},
+				],
+				minBodyHeight: gridBodyHeight,
+				bodyHeight: gridBodyHeight,
+				editingEvent: 'click', // 원클릭으로 수정할 수 있도록 변경. 기본값은 'dblclick'
+				// data: $modal.dataSource,
+				data: [
+					{
+						'certType': 'self',
+						'reportNum': 'BD25-0001-001',
+						'itemName': '테스트 기기',
+						'itemNum': '2025122101',
+						'itemFormat': '25 ~ 45(kg)',
+					},
+				],
+				pageOptions: {
+					perPage: 15,
+				},
+			});
 		}
-
-		// 수정인 경우, 담당자 리스트 정보 세팅
-		// $modal.dataSource = {
-		// 	api: {
-		// 		readData: {
-		// 			url: '/api/basic/getAgentManagerList',
-		// 			serializer: (grid_param) => {
-		// 				grid_param.agentId = agentId;
-		// 				grid_param.isVisible = 'y';
-		// 				return $.param(grid_param);
-		// 			},
-		// 			method: 'GET',
-		// 		},
-		// 	},
-		// };
-
-		// 업체 담당자 그리드
-		// $modal.grid = new Grid({
-		// 	el: document.querySelector('.reportList'),
-		// 	columns: [
-		// 		{
-		// 			header: '담당자명',
-		// 			name: 'name',
-		// 			className: 'cursor_pointer',
-		// 			editor: 'text',
-		// 			width: '150',
-		// 			align: 'center',
-		// 		},
-		// 		{
-		// 			header: '담당자 이메일',
-		// 			name: 'email',
-		// 			editor: 'text',
-		// 			className: 'cursor_pointer',
-		// 			align: 'center',
-		// 		},
-		// 	],
-		// 	minBodyHeight: gridBodyHeight,
-		// 	bodyHeight: gridBodyHeight,
-		// 	editingEvent: 'click', // 원클릭으로 수정할 수 있도록 변경. 기본값은 'dblclick'
-		// 	// data: $modal.dataSource,
-		// 	pageOptions: {
-		// 		perPage: 15
-		// 	},
-		// });
 
 		// 업체조회 함수 정의
 		$modal.searchAgent = async (type, agentName) => {
@@ -122,6 +158,8 @@ $(function () {
 					} else {
 						$('input[name=custAgentCaliCycle]').val('next_cycle');
 					}
+					// 신청업체명 readonly
+					$('input[name=custAgent]', $modal).prop('readonly', true);
 				}
 				// 성적서발행처 조회 시
 				else if (agentFlag == 4) {
@@ -139,6 +177,9 @@ $(function () {
 						$('input[name=siteAddr]', $modal).val(searchAgentInfo.addr);
 						$('input[name=siteAddrEn]', $modal).val(searchAgentInfo.addrEn);
 					}
+					// 성적서발행처 항목 readonly 처리|
+					$('input[name=reportAgent]', $modal).prop('readonly', true);
+					$('input[name=reportAgentEn]', $modal).prop('readonly', true);
 				}
 			}
 		};
@@ -238,6 +279,57 @@ $(function () {
 		.on('change', 'input[name=caliType]', function () {
 			const caliType = $(this).val();
 			$modal.setCaliType(caliType);
+		})
+		// 업체정보 리셋
+		.on('click', '.agentReset', function () {
+			const agentType = $(this).data('type'); // 'cust' or 'report'
+			let resetKeys = [];
+			// 신청업체
+			if (agentType == 'custAgent') {
+				// 관련 항목들을 초기화 후,
+				resetKeys = [
+					'custAgentId',
+					'custAgent',
+					'custAgentEn',
+					'custAgentTel',
+					'custAgentAddr',
+					'custAgentFax',
+					'custAgentAddrEn',
+					'custManager',
+					'custManagerTel',
+					'custManagerEmail',
+				];
+			}
+			// 성적서업체
+			else {
+				resetKeys = [
+					'reportAgentId',
+					'reportAgent',
+					'reportAgentEn',
+					'reportAgentAddr',
+					'reportAgentAddrEn',
+					'custAgentAddrEn',
+					'siteAddr',
+					'siteAddrEn',
+					'reportManager',
+					'reportManagerTel',
+					'reportManagerEmail',
+				];
+			}
+			// 각 항목들의 값을 모두 초기화시킨다.
+			for (const name of resetKeys) {
+				if (name.includes('Id')) {
+					$(`input[name=${name}]`, $modal).val(0);
+				} else {
+					$(`input[name=${name}]`, $modal).val('');
+				}
+			}
+			// readonly 해제
+			if (agentType == 'custAgent') {
+				$('input[name=custAgent]', $modal).prop('readonly', false);
+			} else {
+				$('input[name=reportAgent]', $modal).prop('readonly', false);
+			}
 		});
 
 	// 고정표준실, 접수유형에 따른 변경
@@ -296,62 +388,58 @@ $(function () {
 			return false;
 		}
 
-		// 업체데이터의 경우, keyin입력인 경우, 자동으로 등록된다고 안내할 것(최초 등록시에만)
-		if (!caliOrderId) {
-			if (!orderData.custAgentId) {
-				const custFetchOption = {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ agentName: orderData.custAgent }),
-				};
-				// fetch api의 경우, 응답헤더까지 받고, Response객체를 만들 수 있는 시점에 resolve됨
-				// resolve가 된 직후엔 본문(body)는 아직 읽지 않은 스트림 -> .json()을 통해 스트림을 끝까지 읽고
-				// 최종 JS객체로 반환해야 하므로, 이 작업도 비동기. 그래서 json()도 promise를 리턴
-				// await을 명시하지 않으면 파싱이 끝나지 않은 프로미스가 리턴된다.
-				const resChk1 = await fetch('/api/agent/chkAgentInfo', custFetchOption);
-				const resData1 = await resChk1.json();
-				// 유사 업체명이 존재함
-				if (resData1?.code > 0) {
-					const custData = resData1.data ?? '';
-					await g_message(
-						'업체명 확인',
-						`'${orderData.custAgent}'이 포함된 업체목록입니다.<br>'조회'가 아닌 직접 입력을 통해서 선택한 경우, 업체정보가<br>자동으로 등록되지만 중복이 발생할 수 있습니다. <br><br>${custData}`,
-						'warning'
-					);
-				}
-			}
-
-			if (!orderData.reportAgentId) {
-				const reportFetchOption = {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ agentName: orderData.reportAgent }),
-				};
-				const resChk2 = await fetch('/api/agent/chkAgentInfo', reportFetchOption);
-				const resData2 = await resChk2.json();
-				// 유사 업체명이 존재함
-				if (resData2?.code > 0) {
-					const reportData = resData2.data ?? '';
-					await g_message(
-						'업체명 확인',
-						`'${orderData.reportAgent}'이 포함된 업체목록입니다.<br>'조회'가 아닌 직접 입력을 통해서 선택한 경우, 업체정보가 자동으로 등록되지만 중복이 발생할 수 있습니다. <br><br>${reportData}`,
-						'warning'
-					);
-				}
+		// 업체데이터의 경우, keyin입력인 경우, 자동으로 등록된다고 안내할 것
+		let custAgentAutoChk = '';
+		if (!orderData.custAgentId || orderData.custAgentId == 0) {
+			custAgentAutoChk = `(<span style='color: red;'>자동등록예정</span>)`;
+			const custFetchOption = {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ agentName: orderData.custAgent }),
+			};
+			// fetch api의 경우, 응답헤더까지 받고, Response객체를 만들 수 있는 시점에 resolve됨
+			// resolve가 된 직후엔 본문(body)는 아직 읽지 않은 스트림 -> .json()을 통해 스트림을 끝까지 읽고
+			// 최종 JS객체로 반환해야 하므로, 이 작업도 비동기. 그래서 json()도 promise를 리턴
+			// await을 명시하지 않으면 파싱이 끝나지 않은 프로미스가 리턴된다.
+			const resChk1 = await fetch('/api/agent/chkAgentInfo', custFetchOption);
+			const resData1 = await resChk1.json();
+			// 유사 업체명이 존재함
+			if (resData1?.code > 0) {
+				const custData = resData1.data ?? '';
+				await g_message(
+					'업체명 확인',
+					`<div class='text-left'>'${orderData.custAgent}'이 포함된 업체목록입니다.<br><br>'조회'가 아닌 직접 입력을 통해서 선택한 경우, 업체정보가<br>자동으로 등록되지만 중복이 발생할 수 있습니다. <br><br>${custData}</div>`,
+					'warning'
+				);
 			}
 		}
 
+		let reportAgentAutoChk = '';
+		if (!orderData.reportAgentId || orderData.reportAgentId == 0) {
+			reportAgentAutoChk = `(<span style='color: red;'>자동등록예정</span>)`;
+			const reportFetchOption = {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ agentName: orderData.reportAgent }),
+			};
+			const resChk2 = await fetch('/api/agent/chkAgentInfo', reportFetchOption);
+			const resData2 = await resChk2.json();
+			// 유사 업체명이 존재함
+			if (resData2?.code > 0) {
+				const reportData = resData2.data ?? '';
+				await g_message(
+					'업체명 확인',
+					`<div class='text-left'>'${orderData.reportAgent}'이 포함된 업체목록입니다.<br><br>'조회'가 아닌 직접 입력을 통해서 선택한 경우, 업체정보가 자동으로 등록되지만 중복이 발생할 수 있습니다. <br><br>${reportData}</div>`,
+					'warning'
+				);
+			}
+		}
 		// return false;
 		const saveInfoKv = {
-			'orderType': {
-				'accredited': '공인',
-				'non_accredited': '비공인',
-				'testing': '시험',
-			},
 			'reportLang': {
 				'kr': '국문',
 				'en': '영문',
@@ -359,9 +447,9 @@ $(function () {
 			},
 		};
 
-		const saveConfirmMsg = `접수구분: ${saveInfoKv.orderType[orderData.orderType]}<br>발행타입: ${
-			saveInfoKv.reportLang[orderData.reportLang]
-		}<br>신청업체: ${orderData.custAgent}<br>성적서발행처: ${orderData.reportAgent}`;
+		const saveConfirmMsg = `<div class='text-left'>발행타입: ${saveInfoKv.reportLang[orderData.reportLang]}<br>신청업체${custAgentAutoChk}: ${
+			orderData.custAgent
+		}<br>성적서발행처${reportAgentAutoChk}: ${orderData.reportAgent}</div>`;
 
 		// 저장버튼 비활성화 후 진행
 		const $btn = $('button.btn_save', $modal_root);
@@ -395,13 +483,12 @@ $(function () {
 					}
 				} else {
 					console.log('오류가 여기로 넘어오니?');
-					throw new Error("에러발생~");
+					throw new Error('api 오류 발생');
 				}
 
 				// 저장이 정상적으로 이루어지면, 모달을 닫는다.
 			} catch (err) {
 				console.log('🚀 ~ err:', err);
-				console.log('여기로떨어지니?');
 				custom_ajax_handler(err);
 			} finally {
 				$btn.prop('disabled', false);

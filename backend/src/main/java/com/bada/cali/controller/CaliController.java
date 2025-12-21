@@ -42,8 +42,8 @@ public class CaliController {
 	
 	// 교정접수 등록/수정 페이지 [모달]
 	@PostMapping(value = "/caliOrderModify")
-	public String caliOrderModify(Model model, @RequestParam(required = false) Long caliOrderId) {
-		boolean isModify = (caliOrderId != null && caliOrderId > 0);
+	public String caliOrderModify(Model model, @RequestParam(required = false) Long id) {
+		boolean isModify = (id != null && id > 0);
 		model.addAttribute("isModify", isModify);
 		return "cali/caliOrderModify";
 	}

@@ -58,15 +58,14 @@ public interface CaliOrderRepository extends JpaRepository<CaliOrder, Long> {
 	
 	// 파라미터로 넘어온 연도를 기준으로 그해 마지막 접수번호를 가져온다.
 	@Query("""
-		select
-			o
-		from CaliOrder as o
-		where o.isVisible = 'y'
-			and o.orderNum like concat(:orderYear, '%')
-		order by o.id DESC
-	""")
-	List<CaliOrder> getLastOrderByYear(@Param("orderYear") String orderYear, Pageable pageable);
-	
+				select
+					o
+				from CaliOrder as o
+				where o.isVisible = 'y'
+					and o.orderNum like concat(:orderPrefix,																								 '%')
+				order by o.id DESC
+			""")
+	List<CaliOrder> getLastOrderByYear(@Param("orderPrefix") String orderPrefix, Pageable pageable);
 	
 	
 }
