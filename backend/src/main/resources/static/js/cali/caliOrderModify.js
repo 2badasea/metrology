@@ -330,7 +330,8 @@ $(function () {
 			} else {
 				$('input[name=reportAgent]', $modal).prop('readonly', false);
 			}
-		});
+		})
+		;
 
 	// 고정표준실, 접수유형에 따른 변경
 	$modal.setCaliType = (caliType = '', caliTakeType = '') => {

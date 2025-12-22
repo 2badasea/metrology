@@ -198,6 +198,18 @@ $(function () {
 			console.error(err);
 			g_toast('로그아웃에 실패했습니다.', 'error');
 		}
+	})
+	// 로드뷰 이벤트 정의
+	.on('click', '.viewRoadMap', function () {
+		const addrType = $(this).data('target');
+		const $form = $(this).closest('form');
+		const address = $(`input[name=${addrType}]`, $form).val(); // 주소정보 가져오기
+		if (!check_input(address)) {
+			g_toast('주소정보가 없습니다', 'warning');
+			return false;
+		} else {
+			showRoadMapView(address);
+		}
 	});
 
 /**
@@ -475,7 +487,7 @@ async function g_modal(url, param = {}, options = {}) {
 						$(`#${uuid}`).modal('hide');
 						resolve();
 					}
-				},				
+				},
 				show_reset_button: false, //초기화 버튼을 보여줄지
 				reset_button_text: '초기화', //초기화 버튼 텍스트
 				click_reset_button: function () {
@@ -1326,7 +1338,7 @@ const debounce = (fn, wait = 250) => {
 function isValidateDate(start = '', end = '') {
 	let result = {
 		flag: true,
-		msg: ''
+		msg: '',
 	};
 	if (!start && !end) {
 		result.flag = true;
@@ -1343,4 +1355,17 @@ function isValidateDate(start = '', end = '') {
 		return result;
 	}
 	return result;
+}
+
+// 주소 api 호출하기
+async function showRoadMapView(address = '') {
+	await g_modal('/basic/viewRoadMap', {
+		address: address,
+	}),
+		{
+			title: '로드뷰 조회',
+			size: 'xl',
+			show_close_button: true,
+			show_confirm_button: false,
+		};
 }
