@@ -206,6 +206,7 @@ $(function () {
 		minBodyHeight: 663,
 		bodyHeight: 663,
 		data: $modal.data_source,
+		rowHeight: 'auto'
 	});
 
 	// 페이지 내 이벤트
