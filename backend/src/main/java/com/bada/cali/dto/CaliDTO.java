@@ -97,7 +97,6 @@ public class CaliDTO {
 		private YnType isTax;                    // 세금계산서 발행여부
 		private String orderDate;                // 접수일
 		private Long orderManagerId;            // 접수자
-		private String orderType;                // 접수구분 (공인/비공인/시험 등)
 		private String priorityType;            // 긴급여부
 		private String remark;                    // 요청사항
 		private String reportAgent;                // 성적서발행처

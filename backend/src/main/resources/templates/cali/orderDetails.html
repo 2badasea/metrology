@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <div layout:fragment="content">
+        <div class="wrapper">
+            <input type="hidden" id="caliOrderId" th:value="${caliOrderId}">
+            <form class="searchForm mb-1" name="searchForm">
+                <div class="d-flex">
+                    <ul class="list-group list-group-horizontal font-weight-bold mr-auto">
+                        <li>
+                            <button type="button" class="btn btn-danger deleteReport">삭제</button>
+                            <button type="button" class="btn btn-primary addReport">등록</button>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+            <div class="grid reportList"></div>
+        </div>
+    </div>
+</body>
+
+</html>

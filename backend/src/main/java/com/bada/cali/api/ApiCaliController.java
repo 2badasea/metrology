@@ -51,4 +51,14 @@ public class ApiCaliController {
 		
 		return ResponseEntity.ok(resMap);
 	}
+	
+	// 접수 데이터 가져오기
+	@GetMapping(value = "/getCaliOrderInfo/{id}")
+	public ResponseEntity<ResMessage<CaliDTO.saveCaliOrder>> getCaliOrderInfo(@PathVariable Long id) {
+		
+		CaliDTO.saveCaliOrder caliOrderData = caliOrderService.getCaliOrderInfo(id);
+		int code = (caliOrderData == null) ? -1 : 1;
+		ResMessage<CaliDTO.saveCaliOrder> resMessage = new ResMessage<>(code, null, caliOrderData);
+		return ResponseEntity.ok(resMessage);
+	}
 }

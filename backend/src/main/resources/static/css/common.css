@@ -295,7 +295,9 @@ i.close:hover {
 
 td[data-column-name*="grid_btn_"] .tui-grid-cell-content {
 	padding: 0px !important;
-	height: 33.5px !important;
+	/* height: 33.5px !important; */
+	height: 46.5px !important;
+	/* height: 100% !important; */
 
 	.btn > i {
 		margin: 0px !important;

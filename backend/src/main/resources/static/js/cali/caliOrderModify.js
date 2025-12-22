@@ -80,7 +80,7 @@ $(function () {
 				columns: [
 					{
 						header: '구분',
-						name: 'certType',
+						name: 'reportType',
 						className: 'cursor_pointer',
 						width: '',
 						align: 'center',
@@ -120,7 +120,7 @@ $(function () {
 				// data: $modal.dataSource,
 				data: [
 					{
-						'certType': 'self',
+						'reportType': 'self',
 						'reportNum': 'BD25-0001-001',
 						'itemName': '테스트 기기',
 						'itemNum': '2025122101',

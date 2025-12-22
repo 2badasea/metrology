@@ -42,7 +42,7 @@ public interface CaliOrderRepository extends JpaRepository<CaliOrder, Long> {
 			             ))
 			            )
 			      )
-			
+				ORDER BY o.orderDate DESC, o.id DESC
 			""")
 	Page<CaliOrder> searchOrders(
 			@Param("isVisible") YnType isVisible,
