@@ -295,7 +295,7 @@ public class CaliOrderServiceImpl {
 		
 		// 등록일 경우에만 save()메서드를 호출한다. 수정의 경우 동일 영속성 내에서 set으로 실시간 업데이트가 되기 때문
 		String saveTypeKr;
-		String saveLogType = (caliOrderId == null) ? "i" : "u";	// 로그타입 i:insert, u: update
+		String saveLogType = (caliOrderId == null) ? "i" : "u";    // 로그타입 i:insert, u: update
 		
 		log.info("22_22");
 		log.info("caliOrderId: {}", caliOrderId);
@@ -360,6 +360,14 @@ public class CaliOrderServiceImpl {
 		}
 		
 		return newOrderNum;
+	}
+	
+	@Transactional(readOnly = true)
+	public CaliDTO.saveCaliOrder getCaliOrderInfo(Long id) {
+		
+		CaliOrder caliOrder = caliOrderRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("해당 접수 건이 존재하지 않습니다."));
+		
+		return caliOrderMapper.toDtoFromCaliOrderInfo(caliOrder);
 	}
 	
 }

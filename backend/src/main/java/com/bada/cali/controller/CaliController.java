@@ -3,10 +3,7 @@ package com.bada.cali.controller;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjuster;
@@ -46,5 +43,13 @@ public class CaliController {
 		boolean isModify = (id != null && id > 0);
 		model.addAttribute("isModify", isModify);
 		return "cali/caliOrderModify";
+	}
+	
+	// 접수상세내역
+	@GetMapping(value = "/orderDetails")
+	public String orderDetails(Model model, @RequestParam long caliOrderId) {
+		model.addAttribute("title", "교정접수내역");
+		model.addAttribute("caliOrderId", caliOrderId);
+		return "cali/orderDetails";
 	}
 }

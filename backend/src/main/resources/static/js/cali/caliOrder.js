@@ -55,13 +55,12 @@ $(function () {
 			{
 				// DB상에서는 datetime이지만, 화면에는 date타입으로 표현
 				header: '접수일',
-				name: 'orderDatetime',
+				name: 'orderDate',
 				className: 'cursor_pointer',
 				align: 'center',
 				width: '80',
 				formatter: function (data) {
-					// 값은 기본적으로 date 형시긍로 표기
-					return !data.value ? '' : data.value.slice(0, 10);
+					return !data.value ? '' : data.value;
 				},
 			},
 			{
@@ -74,15 +73,15 @@ $(function () {
 			{
 				header: '신청업체',
 				name: 'custAgent',
-				with: '120',
 				className: 'cursor_pointer',
+				with: '150',
 				align: 'center',
 			},
 			{
 				header: '성적서발행처',
 				name: 'reportAgent',
 				className: 'cursor_pointer',
-				width: '120',
+				width: '150',
 				align: 'center',
 			},
 			{
@@ -91,27 +90,34 @@ $(function () {
 				className: 'cursor_pointer',
 				align: 'center',
 			},
-			{
-				header: '출장일',
-				className: 'cursor_pointer',
-				width: '100',
-				align: 'center',
-				formatter: function (data) {
-					// 출장시작일 ~ 종료일 형태로 작게 보여줄 것
-					return '';
-				},
-			},
+			// {
+			// 	header: '출장일시',
+			// 	name: 'btripDate',
+			// 	className: 'cursor_pointer',
+			// 	width: '100',
+			// 	align: 'center',
+			// 	formatter: function (data) {
+			// 		console.log("🚀 ~ data:", data)
+			// 		let row = data.row;
+			// 		console.log("🚀 ~ row:", row)
+			// 		let html = '';
+			// 		if (row.btripStartDate && row.btripEndDate) {
+			// 			html = `${row.btripStartDate} / ${row.btripEndDate}`;
+			// 		}
+			// 		// 출장시작일 ~ 종료일 형태로 작게 보여줄 것
+			// 		return html;
+			// 	},
+			// },
 			{
 				header: '요청사항',
-				name: 'remark',
+				name: 'grid_btn_remark',
 				className: 'cursor_pointer',
 				width: '70',
 				align: 'center',
 				formatter: function (data) {
 					// 모달을 통해서 볼 수 있도록 할 것
 					let btnClass = data.remark ? 'btn-info' : 'btn-secondary';
-					return `
-							<button type='button' class='btn ${btnClass} checkRemark w-100 h-100 p-0 rounded-0' ><i class='bi bi-chat-left-text'></i></button>
+					return `<button type='button' class='btn ${btnClass} w-100 h-100 rounded-0' ><i class='bi bi-chat-left-text'></i></button>
 					`;
 				},
 			},
@@ -123,7 +129,7 @@ $(function () {
 				align: 'center',
 				formatter: function (data) {
 					// data.isCheck == 'y'라면, checked 속성값 삽입
-					let checked = data.isTax == 'y' ? 'checked' : '';
+					let checked = data.value == 'y' ? 'checked' : '';
 					// FIX toggle을 활용해서 보여주도록 한다.
 					return `
 							<input class="bs_toggle" type="checkbox" data-toggle="toggle" data-on="발행" data-off="미발행" data-width="100%" data-size="xs" ${checked}>
@@ -132,19 +138,23 @@ $(function () {
 			},
 			{
 				header: '접수내역',
+				name: 'grid_btn_orderDetails',
 				className: 'cursor_pointer',
 				align: 'center',
 				width: '70',
 				formatter: function (data) {
+					let row = data.row;
 					let cntText = '';
 					let btnClass = 'btn-secondary';
-					if (data.reportCnt != undefined && data.reportCnt > 0) {
+					if (row.reportCnt != undefined && row.reportCnt > 0) {
 						cntText = '1개 이상 존재';
 						btnClass = 'default p-0';
+					} else {
+						cntText = `<i class="bi bi-pencil-square"></i>`;
 					}
 					// FIX 성적서가 존재하는 경우, 성적서의 개수를 표기한다.
 					return `
-							<button class="btn ${btnClass} w-100 h-100 rounded-0 checkReport">${cntText}</button>
+							<button type='button' class='btn ${btnClass} w-100 h-100 rounded-0' >${cntText}</button>
 					`;
 				},
 			},
@@ -206,6 +216,8 @@ $(function () {
 		minBodyHeight: 663,
 		bodyHeight: 663,
 		data: $modal.data_source,
+		rowHeight: 'auto',
+		// minRowHeight: 36,
 	});
 
 	// 페이지 내 이벤트
@@ -265,8 +277,6 @@ $(function () {
 				);
 
 				// 모달이 성공적으로 종료되었을 때만 그리드 갱신
-				console.log('리스트에서 확인');
-				console.log(resModal)
 				if (resModal) {
 					$modal.grid.reloadData();
 				}
@@ -332,29 +342,34 @@ $(function () {
 		const row = $modal.grid.getRow(e.rowKey);
 
 		if (row && e.columnName != '_checked') {
-			// 접수수정 모달 띄우기
-			// TODO 수정의 경우 title에 접수번호 표시할 것
-			try {
-				const resModal = await g_modal(
-					'/cali/caliOrderModify',
-					{
-						id: row.id,
-					},
-					{
-						size: 'xxxl',
-						title: '교정접수 수정',
-						show_close_button: true,
-						show_confirm_button: true,
-						confirm_button_text: '저장',
+			// 접수내역 호출
+			if (e.columnName == 'grid_btn_orderDetails')  {
+				window.open(`/cali/orderDetails?caliOrderId=${row.id}`,'접수상세내역');
+			} 
+			// 접수수정
+			else {
+				try {
+					const resModal = await g_modal(
+						'/cali/caliOrderModify',
+						{
+							id: row.id,
+						},
+						{
+							size: 'xxxl',
+							title: '교정접수 수정',
+							show_close_button: true,
+							show_confirm_button: true,
+							confirm_button_text: '저장',
+						}
+					);
+	
+					// 모달이 성공적으로 종료되었을 때만 그리드 갱신
+					if (resModal) {
+						$modal.grid.reloadData();
 					}
-				);
-
-				// 모달이 성공적으로 종료되었을 때만 그리드 갱신
-				if (resModal) {
-					$modal.grid.reloadData();
+				} catch (err) {
+					console.error('g_modal 실행 중 에러', err);
 				}
-			} catch (err) {
-				console.error('g_modal 실행 중 에러', err);
 			}
 		}
 	});

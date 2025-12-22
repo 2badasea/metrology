@@ -17,7 +17,7 @@ $(function () {
 
 	$modal.init_modal = async (param) => {
 		$modal.param = param;
-		console.log("🚀 ~ $modal.param:", $modal.param);
+		console.log('🚀 ~ $modal.param:', $modal.param);
 
 		let gridBodyHeight = Math.floor($modal.find('.caliOrderModifyForm').height() - 145);
 
@@ -29,6 +29,27 @@ $(function () {
 			// NOTE async, await으로도 가능한지 확인
 			try {
 				// 접수정보를 가져와서 세팅한다.
+				const orderInfoFetchOption = {
+					method: 'GET',
+					// headers: {
+					// 	'Content-Type': 'application/json',
+					// },
+					// body: ""
+				};
+				const resGetInfo = await fetch(`/api/caliOrder/getCaliOrderInfo/${caliOrderId}`, orderInfoFetchOption);
+				if (resGetInfo.ok) {
+					const orderInfo = await resGetInfo.json();
+					console.log('🚀 ~ orderInfo:', orderInfo);
+					if (orderInfo.data != undefined) {
+						const data = orderInfo.data;
+						$modal.param.orderInfo = data;
+						$modal.find('form.caliOrderModifyForm input[name], textarea[name]').setupValues(data);
+						// 접수구분 세팅 호출
+						$modal.setCaliType(data.caliType, data.caliTakeType);
+					}
+				} else {
+					g_toast('접수 정보를 가져오지 못 했습니다.', 'error');
+				}
 
 				// TODO 신청업체 & 성적서업체 정보는 기본적으로 readonly 처리
 				$('input[name=custAgent]', $modal).prop('readonly', true);
@@ -59,7 +80,7 @@ $(function () {
 				columns: [
 					{
 						header: '구분',
-						name: 'certType',
+						name: 'reportType',
 						className: 'cursor_pointer',
 						width: '',
 						align: 'center',
@@ -99,7 +120,7 @@ $(function () {
 				// data: $modal.dataSource,
 				data: [
 					{
-						'certType': 'self',
+						'reportType': 'self',
 						'reportNum': 'BD25-0001-001',
 						'itemName': '테스트 기기',
 						'itemNum': '2025122101',
@@ -330,6 +351,18 @@ $(function () {
 			} else {
 				$('input[name=reportAgent]', $modal).prop('readonly', false);
 			}
+		})
+		// 접수일의 연도가 변경된 경우, 공지할 것
+		.on('change', 'input[name=orderDate]', function () {
+			const orderDate = $(this).val();
+			if (caliOrderId > 0 && $modal.param.orderInfo != undefined) {
+				const originOrderDate = $modal.param.orderInfo.orderDate;
+				const orderYear = orderDate.split('-')[0];
+				const originOrderYear = originOrderDate.split('-')[0];
+				if (orderYear != originOrderYear) {
+					g_toast('접수일의 연도가 변경될 경우, 접수번호가 수정됩니다.<br>(결재가 진행중인 성적서가 존재할 경우 접수연도 수정 불가)', 'warning');
+				}
+			}
 		});
 
 	// 고정표준실, 접수유형에 따른 변경
@@ -355,7 +388,7 @@ $(function () {
 			if (caliType == 'standard') {
 				$('input[name=caliTakeType][value=self]', $modal).prop('checked', true);
 			} else {
-				$('input[name=caliTakeType][value=site_calbr]', $modal).prop('checked', true); // 현장교정
+				$('input[name=caliTakeType][value=site_self]', $modal).prop('checked', true); // 현장교정
 			}
 		}
 	};
@@ -466,11 +499,8 @@ $(function () {
 					},
 					body: JSON.stringify(orderData),
 				};
-				console.log('요청전송');
 				const resSave = await fetch('/api/caliOrder/saveCaliOrder', saveFetchOption);
-				console.log(resSave);
 				if (resSave.ok) {
-					console.log('ok??');
 					const resCode = await resSave.json();
 					if (resCode?.code > 0) {
 						await g_message('저장 성공', `${resCode.msg ?? '저장에 성공했습니다.'}`, 'success', 'alert').then((d) => {

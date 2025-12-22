@@ -63,4 +63,10 @@ public class BasicController {
 		return "basic/fileList";
 	}
 	
+	// 로드뷰 모달 호출
+	@PostMapping(value = "/viewRoadMap")
+	public String viewRoadMap() {
+		return "basic/viewRoadMap";
+	}
+	
 }
