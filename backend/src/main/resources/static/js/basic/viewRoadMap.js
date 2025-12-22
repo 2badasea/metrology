@@ -12,15 +12,17 @@ $(function () {
 
 	$modal.init_modal = (param) => {
 		$modal.param = param;
-		console.log('🚀 ~ $modal.param:', $modal.param);
 		const address = $modal.param.address;
 
 		const geocoder = new kakao.maps.services.Geocoder();
 		geocoder.addressSearch(address, function (result, status) {
 			if (status !== kakao.maps.services.Status.OK || !result.length) {
 				// 로드뷰 표시 불가 시 지도 표시 등 fallback 권장
-				g_toast('로드뷰 표시가 불가한 주소입니다.');
-				$modal_root.modal('hide');
+				g_toast('로드뷰 표시가 불가한 주소입니다.', 'warning');
+                // 약간의 지연시간을 두고 진행할 것
+				setTimeout(() => {
+					$modal_root.modal('hide');
+				}, 500);
 				return false;
 			}
 

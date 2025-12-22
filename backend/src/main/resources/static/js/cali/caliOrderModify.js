@@ -17,7 +17,7 @@ $(function () {
 
 	$modal.init_modal = async (param) => {
 		$modal.param = param;
-		console.log("🚀 ~ $modal.param:", $modal.param);
+		console.log('🚀 ~ $modal.param:', $modal.param);
 
 		let gridBodyHeight = Math.floor($modal.find('.caliOrderModifyForm').height() - 145);
 
@@ -29,6 +29,27 @@ $(function () {
 			// NOTE async, await으로도 가능한지 확인
 			try {
 				// 접수정보를 가져와서 세팅한다.
+				const orderInfoFetchOption = {
+					method: 'GET',
+					// headers: {
+					// 	'Content-Type': 'application/json',
+					// },
+					// body: ""
+				};
+				const resGetInfo = await fetch(`/api/caliOrder/getCaliOrderInfo/${caliOrderId}`, orderInfoFetchOption);
+				if (resGetInfo.ok) {
+					const orderInfo = await resGetInfo.json();
+					console.log("🚀 ~ orderInfo:", orderInfo);
+					if (orderInfo.data != undefined) {
+						const data = orderInfo.data;
+						$modal.find('form.caliOrderModifyForm input[name], textarea[name]').setupValues(data);
+						// 접수구분 세팅 호출
+						$modal.setCaliType(data.caliType, data.caliTakeType);
+					}
+				} else {
+					g_toast('접수 정보를 가져오지 못 했습니다.', 'error');
+				}
+
 
 				// TODO 신청업체 & 성적서업체 정보는 기본적으로 readonly 처리
 				$('input[name=custAgent]', $modal).prop('readonly', true);
@@ -330,8 +351,7 @@ $(function () {
 			} else {
 				$('input[name=reportAgent]', $modal).prop('readonly', false);
 			}
-		})
-		;
+		});
 
 	// 고정표준실, 접수유형에 따른 변경
 	$modal.setCaliType = (caliType = '', caliTakeType = '') => {
