@@ -388,7 +388,7 @@ $(function () {
 			if (caliType == 'standard') {
 				$('input[name=caliTakeType][value=self]', $modal).prop('checked', true);
 			} else {
-				$('input[name=caliTakeType][value=site_calbr]', $modal).prop('checked', true); // 현장교정
+				$('input[name=caliTakeType][value=site_self]', $modal).prop('checked', true); // 현장교정
 			}
 		}
 	};
