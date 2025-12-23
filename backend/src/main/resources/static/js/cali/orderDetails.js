@@ -12,14 +12,13 @@ $(function () {
 	}
 	let $modal_root = $modal.closest('.modal');
 
-    let caliOrderId = null;
+	let caliOrderId = null;
 	$modal.init_modal = (param) => {
 		$modal.param = param;
 		console.log('🚀 ~ $modal.param:', $modal.param);
 
-        caliOrderId = document.getElementById('caliOrderId').value;
-        console.log("🚀 ~ caliOrderId:", caliOrderId);
-
+		caliOrderId = document.getElementById('caliOrderId').value;
+		console.log('🚀 ~ caliOrderId:', caliOrderId);
 	};
 
 	// 성적서 리스트 가져오기
@@ -40,37 +39,96 @@ $(function () {
 		el: document.querySelector('.reportList'),
 		columns: [
 			{
-				header: '긴급여부',
-				name: 'priority_type',
+				header: '구분',
+				name: 'reportType',
 				className: 'cursor_pointer',
-				width: '60',
+				width: '50',
 				align: 'center',
 				formatter: function (data) {
-					return data.value == 'emergency' ? '긴급' : '일반';
+					return data.value == 'SELF' ? '자체' : '대행';
 				},
 			},
 			{
-				// DB상에서는 datetime이지만, 화면에는 date타입으로 표현
-				header: '접수일',
-				name: 'orderDate',
+				header: '접수타입',
+				name: 'orderType',
 				className: 'cursor_pointer',
+				width: '70',
 				align: 'center',
-				width: '80',
 				formatter: function (data) {
-					return !data.value ? '' : data.value;
+					return data.value == 'ACCREDDIT' ? '공인' : data.value == 'UNACCREDDIT' ? '비공인' : '시험';
 				},
 			},
 			{
-				header: '접수번호',
-				name: 'orderNum',
+				header: '중분류코드',
+				name: 'middleItemCodeNum',
+				className: 'cursor_pointer',
+				width: '70',
+				align: 'center',
+			},
+			{
+				header: '소분류코드',
+				name: 'smallItemCodeNum',
+				className: 'cursor_pointer',
+				width: '70',
+				align: 'center',
+			},
+			{
+				header: '성적서번호',
+				name: 'reportNum',
+				className: 'cursor_pointer',
+				width: '100',
+				align: 'center',
+			},
+			{
+				header: '기기명',
+				name: 'itemName',
+				className: 'cursor_pointer',
+				// width: '120',
+				align: 'center',
+			},
+			{
+				header: '제작회사',
+				name: 'itemMakeAgent',
 				className: 'cursor_pointer',
 				width: '120',
 				align: 'center',
-			}
+			},
+			{
+				header: '형식',
+				name: 'itemFormat',
+				className: 'cursor_pointer',
+				width: '120',
+				align: 'center',
+			},
+			{
+				header: '기기번호',
+				name: 'itemNum',
+				className: 'cursor_pointer',
+				width: '120',
+				align: 'center',
+			},
+			{
+				header: '관리번호',
+				name: 'manageNo',
+				className: 'cursor_pointer',
+				width: '70',
+				align: 'center',
+			},
+			{
+				header: '진행상태',
+				name: 'statusTxt',
+				className: 'cursor_pointer',
+				width: '50',
+				align: 'center',
+				formatter: function (data) {
+					// TODO 별도로 상태값에 맞는 formatter 생성해서 이용할 것
+					return '';
+				}
+			},
 		],
 		pageOptions: {
 			useClient: false, // 서버 페이징
-			perPage: 20,
+			perPage: 20,		// 기본 20. 선택한 '행 수'에 따라 유동적으로 변경
 		},
 		rowHeaders: ['checkbox'],
 		minBodyHeight: 663,
@@ -84,7 +142,6 @@ $(function () {
 		const row = $modal.grid.getRow(e.rowKey);
 
 		if (row && e.columnName != '_checked') {
-
 		}
 	});
 

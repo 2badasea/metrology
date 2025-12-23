@@ -1,5 +1,7 @@
 package com.bada.cali.entity;
 
+import com.bada.cali.common.enums.DocType;
+import com.bada.cali.common.enums.ReportLang;
 import com.bada.cali.common.enums.YnType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -65,7 +67,7 @@ public class CaliOrder {
 	// ! 접수구분을 성적서 단위에서 구분할 수 있도록 정책 변경 (일단 기본값 명시)
 	@Column(name = "order_type", nullable = false, length = 50)
 	@Builder.Default
-	private String orderType = "accredited";	// accredited(공인)/ non_accredited(비공인)/ testing(시험)
+	private String orderType = "accredited";    // accredited(공인)/ non_accredited(비공인)/ testing(시험)
 	
 	@Column(name = "priority_type", nullable = false, length = 20)
 	private String priorityType;       // normal / emergency
@@ -80,12 +82,15 @@ public class CaliOrder {
 	private String custAgentCaliCycle; // self_cycle / next_cycle
 	
 	@Column(name = "report_lang", nullable = false, length = 10)
-	private String reportLang;         // kr / en / both
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private ReportLang reportLang = ReportLang.KR;         // kr / en / both
 	
 	// 문서타입. 사용 보류 -> 일단은 기본값으로 ISO로 저장되도록 함
 	@Column(name = "doc_type", nullable = false, length = 10)
 	@Builder.Default
-	private String docType = "ISO";
+	@Enumerated(EnumType.STRING)
+	private DocType docType = DocType.ISO;
 	
 	// 대기/ 완료/ 취소/ 보류 선에서 모두 구분
 	@Column(name = "status_type", nullable = false, length = 20)
@@ -128,7 +133,7 @@ public class CaliOrder {
 	@Column(name = "create_datetime", nullable = false)
 	private LocalDateTime createDatetime;  // 생성일시
 	
-	@Column(name = "update_datetime")
+	@Column(name = "update_datetime", insertable = false, updatable = false)
 	private LocalDateTime updateDatetime;  // 수정일시 (nullable)
 	
 	@Column(name = "delete_datetime")

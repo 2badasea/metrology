@@ -44,23 +44,23 @@ public class AgentManager {
 	private YnType isVisible = YnType.y;
 	
 	@Column(name = "create_datetime", nullable = false)
-	private LocalDateTime createDatetime;		// 생성일시
+	private LocalDateTime createDatetime;        // 생성일시
 	
 	// NOTE create_member_id의 경우, 값이 반드시 존재해야 하기 때문에 null을 허용하지 않는 대신
 	// 애플리케이션 단에서 반드시 값을 초기화 시키도록 한다.
 	@Column(name = "create_member_id", nullable = false)
-	private Long createMemberId;			// 생성자id
+	private Long createMemberId;            // 생성자id
 	
-	@Column(name = "update_datetime")
-	private LocalDateTime updateDatetime;		// 수정일시
+	@Column(name = "update_datetime", insertable = false, updatable = false)
+	private LocalDateTime updateDatetime;        // 수정일시
 	
 	@Column(name = "update_member_id")
-	private Long updateMemberId;			// 수정자id
+	private Long updateMemberId;            // 수정자id
 	
 	@Column(name = "delete_datetime")
-	private LocalDateTime deleteDatetime;		// 삭제일시
+	private LocalDateTime deleteDatetime;        // 삭제일시
 	
 	@Column(name = "delete_member_id")
-	private Long deleteMemberId;			// 삭제자id
+	private Long deleteMemberId;            // 삭제자id
 	
 }

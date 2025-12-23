@@ -474,9 +474,9 @@ $(function () {
 		// return false;
 		const saveInfoKv = {
 			'reportLang': {
-				'kr': '국문',
-				'en': '영문',
-				'both': '국문+영문',
+				'KR': '국문',
+				'EN': '영문',
+				'BOTH': '국문+영문',
 			},
 		};
 
