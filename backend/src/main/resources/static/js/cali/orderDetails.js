@@ -42,7 +42,7 @@ $(function () {
 				header: '구분',
 				name: 'reportType',
 				className: 'cursor_pointer',
-				width: '50',
+				width: '60',
 				align: 'center',
 				formatter: function (data) {
 					return data.value == 'SELF' ? '자체' : '대행';
@@ -52,7 +52,7 @@ $(function () {
 				header: '접수타입',
 				name: 'orderType',
 				className: 'cursor_pointer',
-				width: '70',
+				width: '80',
 				align: 'center',
 				formatter: function (data) {
 					return data.value == 'ACCREDDIT' ? '공인' : data.value == 'UNACCREDDIT' ? '비공인' : '시험';
@@ -62,21 +62,21 @@ $(function () {
 				header: '중분류코드',
 				name: 'middleItemCodeNum',
 				className: 'cursor_pointer',
-				width: '70',
+				width: '100',
 				align: 'center',
 			},
 			{
 				header: '소분류코드',
 				name: 'smallItemCodeNum',
 				className: 'cursor_pointer',
-				width: '70',
+				width: '100',
 				align: 'center',
 			},
 			{
 				header: '성적서번호',
 				name: 'reportNum',
 				className: 'cursor_pointer',
-				width: '100',
+				width: '120',
 				align: 'center',
 			},
 			{
@@ -90,45 +90,45 @@ $(function () {
 				header: '제작회사',
 				name: 'itemMakeAgent',
 				className: 'cursor_pointer',
-				width: '120',
+				width: '200',
 				align: 'center',
 			},
 			{
 				header: '형식',
 				name: 'itemFormat',
 				className: 'cursor_pointer',
-				width: '120',
+				width: '200',
 				align: 'center',
 			},
 			{
 				header: '기기번호',
 				name: 'itemNum',
 				className: 'cursor_pointer',
-				width: '120',
+				width: '150',
 				align: 'center',
 			},
 			{
 				header: '관리번호',
 				name: 'manageNo',
 				className: 'cursor_pointer',
-				width: '70',
+				width: '120',
 				align: 'center',
 			},
 			{
 				header: '진행상태',
 				name: 'statusTxt',
 				className: 'cursor_pointer',
-				width: '50',
+				width: '70',
 				align: 'center',
 				formatter: function (data) {
 					// TODO 별도로 상태값에 맞는 formatter 생성해서 이용할 것
 					return '';
-				}
+				},
 			},
 		],
 		pageOptions: {
 			useClient: false, // 서버 페이징
-			perPage: 20,		// 기본 20. 선택한 '행 수'에 따라 유동적으로 변경
+			perPage: 20, // 기본 20. 선택한 '행 수'에 따라 유동적으로 변경
 		},
 		rowHeaders: ['checkbox'],
 		minBodyHeight: 663,
@@ -144,6 +144,28 @@ $(function () {
 		if (row && e.columnName != '_checked') {
 		}
 	});
+
+	// 페이지 내 이벤트 정의
+	$modal
+		// 성적서 등록 모달 호출
+		.on('click', '.addReport', async function () {
+			const resModal = await g_modal(
+				'/cali/registerMultiReport',
+				{
+					caliOrderId: caliOrderId,
+				},
+				{
+					title: '성적서 등록',
+					size: 'xxxl',
+					show_close_button: true,
+					show_confirm_button: true,
+					confirm_button_text: '저장',
+					custom_btn_html_arr: [
+						`<button type="button" class="btn btn-success addReportExcel btn-sm"><i class="bi bi-file-excel"></i>EXCEL 등록</button>`,
+					],
+				}
+			);
+		});
 
 	$modal.data('modal-data', $modal);
 	$modal.addClass('modal-view-applied');

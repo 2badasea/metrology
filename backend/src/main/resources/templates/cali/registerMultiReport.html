@@ -1,0 +1,16 @@
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<div layout:fragment="content">
+    <div class="d-flex mb-1">
+        <ul class="list-group list-group-horizontal font-weight-bold mr-auto">
+            <li>
+                <button type="button" class="btn btn-danger deleteRows">행 삭제</button>
+                <button type="button" class="btn btn-primary insertRows">행 추가</button>
+            </li>
+        </ul>
+    </div>
+    <div class="addReportList"></div>
+</div>
+
+</html>
