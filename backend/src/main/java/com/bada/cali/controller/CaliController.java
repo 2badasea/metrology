@@ -52,4 +52,10 @@ public class CaliController {
 		model.addAttribute("caliOrderId", caliOrderId);
 		return "cali/orderDetails";
 	}
+	
+	// 성적서 등록 [모달]
+	@PostMapping(value = "/registerMultiReport")
+	public String registerMultiReport()  {
+		return "cali/registerMultiReport";
+	}
 }
