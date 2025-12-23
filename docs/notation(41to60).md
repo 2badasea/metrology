@@ -257,7 +257,72 @@ void updateEntity(AgentManagerDTO.AgentManagerRowData agentManagerRowData, @Mapp
 
 ---
 
-# 📌 45번. 
+# 📌 45번. MYSQL 컬레이션 정리
+
+## **부제: utf8mb3 → utf8mb4_0900_ai_ci 변경 시 차이**
+
+### 1) 문자셋(Character Set) 차이: utf8mb3 vs utf8mb4
+- utf8mb3
+  - UTF-8의 1~3바이트 문자만 저장 (4바이트 문자 저장 불가: 이모지/일부 확장문자 등)
+  - MySQL에서 deprecated(향후 제거 예정)
+- utf8mb4
+  - UTF-8의 1~4바이트 전체 저장 가능 (이모지 포함)
+  - 신규/현업 표준 선택지
+
+실무 영향
+- 사용자 입력/외부 데이터에서 이모지 등이 들어오면 utf8mb3는 저장 오류가 날 수 있음
+- utf8mb4는 이를 근본적으로 해소
+
+### 2) Collation(정렬/비교 규칙) 차이: … → utf8mb4_0900_ai_ci
+- utf8mb4_0900_ai_ci 의미
+  - 0900: Unicode Collation Algorithm(UCA) 9.0.0 기반 규칙
+  - ai_ci: accent-insensitive + case-insensitive (악센트/대소문자 구분 안 함)
+  - NO PAD: 문자열 끝(후행) 공백(trailing spaces)을 "의미 있는 문자"로 취급
+
+실무 영향(중요 포인트)
+1) UNIQUE/중복 판정 변화 가능
+   - ai_ci 특성상 악센트/대소문자를 구분하지 않으므로,
+     기존 데이터에 따라 유니크 충돌이 새로 발생할 수 있음
+2) 후행 공백 비교 변화(NO PAD)
+   - 'a' 와 'a '를 다르게 볼 수 있어
+     과거(PAD SPACE 기반)와 결과가 달라질 수 있음
+3) 호환성(버전/엔진) 이슈
+   - MySQL 8 계열 콜레이션이라
+     MySQL 5.7 또는 MariaDB로 덤프/이관 시 "Unknown collation" 문제가 생길 수 있음
+
+## MySQL 실무에서 자주 쓰는 collation 종류와 특징
+
+### A. 범용 기본값(신규/일반 업무 시스템)
+- utf8mb4_0900_ai_ci
+  - MySQL 8의 기본값(대부분 무난)
+  - ai_ci + NO PAD 특성 주의(유니크/후행공백)
+
+### B. 구분을 더 엄격히 하고 싶을 때
+- utf8mb4_0900_as_ci
+  - 악센트 구분(as), 대소문자는 미구분(ci)
+- utf8mb4_0900_as_cs
+  - 악센트(as) + 대소문자(cs) 모두 구분
+  - 아이디/닉네임 정책에서 "정확히 구분"이 필요할 때 고려
+
+### C. 완전 동일성(바이트 단위) 비교가 필요할 때
+- utf8mb4_0900_bin 또는 utf8mb4_bin
+  - 토큰/해시/서명값/정확 매칭 키 등에 적합
+
+### D. 호환성(구버전 MySQL / MariaDB 이관 가능성)이 중요할 때
+- utf8mb4_unicode_ci
+  - 레거시/이관 호환성 목적의 타협안으로 자주 사용
+
+### E. 과거에 흔했지만 신규 기본값으로는 덜 추천
+- utf8mb4_general_ci
+  - 예전엔 널리 사용
+  - 정렬/언어 처리의 정교함 측면에서 0900 계열 대비 단순한 편
+
+### 선택 가이드(실무 요령)
+- 대부분: utf8mb4_0900_ai_ci
+- “대소문자/악센트까지 구분해야 함”: utf8mb4_0900_as_cs
+- “바이트까지 완전 동일해야 함”: utf8mb4_0900_bin(또는 utf8mb4_bin)
+- “MySQL 5.7/MariaDB로 옮길 가능성이 큼”: utf8mb4_unicode_ci 고려
+
 
 <br><br>
 

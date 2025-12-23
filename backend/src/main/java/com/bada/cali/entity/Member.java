@@ -183,7 +183,7 @@ public class Member {
 	@Builder.Default
 	private Long createMemberId = 0L;
 	
-	@Column(name = "update_datetime", nullable = true)
+	@Column(name = "update_datetime", insertable = false, updatable = false)
 	private LocalDateTime updateDatetime;
 	
 	@Column(name = "update_member_id", nullable = false)

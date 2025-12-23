@@ -14,6 +14,76 @@
                             <button type="button" class="btn btn-primary addReport">등록</button>
                         </li>
                     </ul>
+                    <ul class="list-group list-group-horizontal font-weight-bold pt-2">
+                    </ul>
+                    <ul class="ml-auto list-group list-group-horizontal" id="searchFormUl">
+                        <!-- 행 수 -->
+                        <li class="mr-1">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text" id="basic-addon1">행 수</span>
+                                </div>
+                                <select class="form-control rowLeng">
+                                    <option value="20">20</option>;
+                                    <option value="50">50</option>;
+                                    <option value="100">100</option>;
+                                    <option value="200">200</option>;
+                                </select>
+                            </div>
+                        </li>
+                        <li class="mr-1">
+                            <select class="select2 form-control middle_code_options" style="width: 130px !important;">
+                                <option value="">중분류전체</option>
+                            </select>
+                        </li>
+                        <li class="mr-1">
+                            <select class="select2 form-control small_code_options" style="width: 130px !important;">
+                                <option value="">소분류전체</option>
+                            </select>
+                        </li>                        
+                        <li class="mr-1">
+                            <!-- 중분류코드/소분류코드 -->
+                            <!-- 접수구분 -->
+                            <select class="form-control orderType" name="orderType">
+                                <option value="" selected>접수구분</option>
+                                <option value="ACCREDDIT">공인</option>
+                                <option value="UNACCREDDIT">비공인</option>
+                                <option value="TESTING">시험</option>
+                            </select>
+                        </li>
+                        <li class="mr-1">
+                            <select class="form-control statusType" name="statusType">
+                                <!-- 진행상태 구분 -->
+                                <option value="">진행전체</option>
+                                <option value="wait" selected>대기</option>
+                                <option value="cancel">취소</option>
+                                <option value="impossible">불가</option>
+                                <option value="return">반려</option>
+                                <option value="progress">진행중</option>
+                                <option value="success">완료</option>
+                            </select>
+                        </li>
+                        <li class="mr-1 d-flex">
+                            <div class="input-group">
+                                <select class="form-control searchType" name="searchType" id="searchType">
+                                    <!-- 전체선택의 경우 빈 문자열을 보낸다. -->
+                                    <option value="">전체선택</option>
+                                    <option value="reportNum">성적서번호</option>
+                                    <option value="manageNo">관리번호</option>
+                                    <option value="itemName">기기명</option>
+                                    <option value="itemMakeAgent">제작회사</option>
+                                    <option value="itemFormat">형식</option>
+                                    <option value="itemNum">기기번호</option>
+                                </select>
+                                <div class="input-group-append">
+                                    <input type="input" class="form-control" id="keyword" name="keyword" value="" />
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+                        </li>
+                    </ul>
                 </div>
             </form>
             <div class="grid reportList"></div>

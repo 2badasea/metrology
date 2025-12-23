@@ -96,7 +96,7 @@ public class Agent {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "calibration_cycle", nullable = false, length = 20)
 	@Builder.Default
-	private CalibrationCycleType calibrationCycle = CalibrationCycleType.self_cycle;  // 교정주기
+	private CalibrationCycleType calibrationCycle = CalibrationCycleType.SELF_CYCLE;  // 교정주기
 	
 	// 'nullable = true'는 명시할 필요가 없음. 기본값이 true이기 때문.
 	@Column(name = "self_discount", nullable = true)
@@ -124,7 +124,7 @@ public class Agent {
 	@Column(name = "create_member_id", nullable = false)
 	private Long createMemberId;   // 등록자
 	
-	@Column(name = "update_datetime")
+	@Column(name = "update_datetime", insertable = false, updatable = false)
 	private LocalDateTime updateDatetime; // 수정일시
 	
 	@Column(name = "update_member_id")
