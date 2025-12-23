@@ -115,10 +115,6 @@ $(function () {
 					},
 				},
 				{
-					name: 'itemId',
-					hidden: true,
-				},
-				{
 					header: '기기명',
 					name: 'itemName',
 					className: 'cursor_pointer',
@@ -164,6 +160,11 @@ $(function () {
 					editor: 'text',
 					width: '200',
 					align: 'center',
+				},
+				// 아래는 화면에 표시되진 않지만 넘기는 값들
+				{
+					name: 'itemId',
+					hidden: true,
 				},
 			],
 			editingEvent: 'click', // 원클릭으로 수정할 수 있도록 변경
@@ -292,17 +293,6 @@ $(function () {
 			// 형제 행 추가
 			const referRow = $modal.grid.getRow(rowKey);
 			$modal.grid.appendRow($modal.grid.makeEmptyRow(referRow.orderType), { at, focus: true });
-
-			// let option = {};
-			// // 포커스가 존재할 경우, 포커스된 행 바로 아래 추가
-			// if (focusedCell.rowKey != null) {
-			// 	let rowIndex = $modal.grid.getIndexOfRow(focusedCell.rowKey);
-			// 	if (mode == 'add' || mode == 'hierarchy') {
-			// 		rowIndex = parseInt(rowIndex) + 1;
-			// 	}
-			// 	option.at = rowIndex;
-			// }
-			// $modal.grid.appendRow({ 'orderType': 'ACCREDDIT' }, option);
 		};
 
 		// 모달 내 그리드에 대한 이벤트
@@ -373,6 +363,41 @@ $(function () {
 		$modal.grid.blur();
 		const rows = $modal.grid.getData();
 		console.log('🚀 ~ rows:', rows);
+
+		// 순회하면서 값 확인 => 일단 전부 보낼 것 dto에 hierArchyType 필드를 통해서 부모 id 찾기
+        let isValid = true;
+		$.each(rows, function (index, item) {
+
+			if (!check_input(item.itemName.trim())) {
+				g_toast('품목명은 필수입니다', 'warning');
+                $modal.grid.focus(item.rowKey, 'itemName'); // 해당 cell 포커스
+                isValid = false;
+				return false;
+			}
+            // 문서타입 구분
+            if (item.orderType == 'ACCREDDIT' || item.orderType == 'TESTING') {
+                item.docType = 'ISO';
+            } else {
+                item.docType = 'B';
+            }
+            if (!item.caliCycle) {
+                item.caliCycle = 12;        // 기본값 12(개월) 삽입
+            }
+            item.caliOrderId = caliOrderId;     // 접수id도 넣어준다.
+
+		});
+
+        if (!isValid) {
+            return false;
+        }
+
+        console.log('저장 진행');
+
+        
+
+
+
+		// 자식이 존재하는 경우,
 
 		// 기기명이 존재하는지 체크 (없는 경우 return)
 		// 자식성적서 존재하는지 확인
