@@ -122,7 +122,7 @@ $(function () {
 					header: '기기명',
 					name: 'itemName',
 					className: 'cursor_pointer',
-                    editor: 'text',
+					editor: 'text',
 					width: '200',
 					align: 'center',
 				},
@@ -130,7 +130,7 @@ $(function () {
 					header: '제작회사',
 					name: 'itemMakeAgent',
 					className: 'cursor_pointer',
-                    editor: 'text',
+					editor: 'text',
 					width: '200',
 					align: 'center',
 				},
@@ -138,7 +138,7 @@ $(function () {
 					header: '형식',
 					name: 'itemFormat',
 					className: 'cursor_pointer',
-                    editor: 'text',
+					editor: 'text',
 					width: '200',
 					align: 'center',
 				},
@@ -146,7 +146,7 @@ $(function () {
 					header: '기기번호',
 					name: 'itemNum',
 					className: 'cursor_pointer',
-                    editor: 'text',
+					editor: 'text',
 					width: '200',
 					align: 'center',
 				},
@@ -161,12 +161,11 @@ $(function () {
 					header: '비고',
 					name: 'remark',
 					className: 'cursor_pointer',
-                    editor: 'text',
+					editor: 'text',
 					width: '200',
 					align: 'center',
 				},
 			],
-			rowHeight: 'auto',
 			editingEvent: 'click', // 원클릭으로 수정할 수 있도록 변경
 			rowHeaders: ['checkbox'],
 			minBodyHeight: 650,
@@ -188,6 +187,7 @@ $(function () {
 			}
 		});
 
+		// NOTE 추후 relation을 활용해서 대체가 가능하면 아래 소스 수정할 것
 		$modal.grid.on('afterChange', (ev) => {
 			ev.changes.forEach(({ rowKey, columnName }) => {
 				if (columnName === 'middleItemCodeId') {
@@ -324,10 +324,41 @@ $(function () {
 		});
 
 		// 페이지 내 이벤트
-		$modal.on('click', '.insertRows', function () {
-			// 단순 행 추가
-			$modal.grid.addGridRow();
-		});
+		$modal
+			// 행추가
+			.on('click', '.insertRows', function () {
+				// 단순 행 추가
+				$modal.grid.addGridRow();
+			})
+			// 행삭제
+			.on('click', '.deleteRows', function () {
+				$modal.grid.blur();
+
+				// rowKey는 고유키이므로, index와는 다른 개념이다. reset을 하기 전에는 그리드 내  rowKey는 독립적이다.
+
+				const checkedRowKeys = $modal.grid.getCheckedRowKeys();
+				if (checkedRowKeys.length === 0) {
+					g_toast('삭제할 행을 선택해주세요.', 'warning');
+					return false;
+				}
+
+				// 깊이를 기준으로 내림차순 (자식부터 정렬되도록)
+				let descendRowKeys = checkedRowKeys.sort((a, b) => {
+					// 자식 행에 속하는 행부터 먼저 정렬된다.
+					$modal.grid.getDepth(b) - $modal.grid.getDepth(a);
+				});
+
+				for (const key of descendRowKeys) {
+					if ($modal.grid.getRow(key)) {
+						$modal.grid.removeRow(key);
+					}
+				}
+
+				// 삭제처리 후, 행이 존재하지 않으면 기본 1개 초기화
+				if ($modal.grid.getRowCount() === 0) {
+					$modal.grid.appendRow($modal.grid.makeEmptyRow());
+				}
+			});
 
 		// 엑세 다중 등록
 		$modal_root
@@ -339,7 +370,12 @@ $(function () {
 
 	// 저장
 	$modal.confirm_modal = async function (e) {
-		console.log('등록진행');
+		$modal.grid.blur();
+		const rows = $modal.grid.getData();
+		console.log('🚀 ~ rows:', rows);
+
+		// 기기명이 존재하는지 체크 (없는 경우 return)
+		// 자식성적서 존재하는지 확인
 	};
 
 	// 소분류코드 반환
