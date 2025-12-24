@@ -20,6 +20,15 @@ $(function () {
 		{ text: '비공인', value: 'UNACCREDDIT' },
 		{ text: '시험', value: 'TESTING' },
 	];
+	const CALI_CYCLE_TYPES = [
+		{ text: '자동(기본 12개월)', value: '0' },
+		{ text: '3개월', value: '3' },
+		{ text: '6개월', value: '6' },
+		{ text: '12개월', value: '12' },
+		{ text: '18개월', value: '18' },
+		{ text: '24개월', value: '24' },
+		{ text: '36개월', value: '36' },
+	];
 	// TODO 품목코드 관리 테이블 및 메뉴 생성 이후에 하드코딩이아닌 db에서 가져오도록 변경할 것
 	// NOTE 토스트 그리드에는 relation을 이용하여 동적으로 데이터를 변경이 가능하므로, 다음엔 relation 활용
 	// 중분류/소분류 코드에 대한 부분도 우선 하드코딩으로 넣어준다.
@@ -52,23 +61,29 @@ $(function () {
 			columns: [
 				// 추후에 부모/자식 구분해서 표시하는 행과 자식행을 추가하는 버튼 구분할 것
 				{
-					header: '하위구분',
+					header: '대표/하위',
 					name: 'hierarchyType',
 					width: 100,
 					align: 'center',
 					escapeHTML: false,
 					formatter: ({ value }) => {
 						if (value === 'parent') {
-							return `<span class="badge badge-primary" style="font-size: 100%;"></i>부모</span>`;
+							return `<span class="badge badge-primary" style="font-size: 100%;"></i>대표</span>`;
 						}
-						return `<span class="badge badge-secondary" style="font-size: 100%;"></i>자식</span>`;
+						return `<span class="badge badge-secondary" style="font-size: 100%;"></i>하위</span>`;
 					},
+				},
+				{
+					header: '하위추가',
+					width: 90,
+					name: 'addChild',
+					align: 'center',
 				},
 				{
 					// select 박스로 진행
 					header: '접수구분',
 					name: 'orderType',
-					width: 90,
+					width: 80,
 					align: 'center',
 					className: 'cursor_pointer',
 					editor: { type: 'select', options: { listItems: ORDER_TYPE_ITEMS } },
@@ -92,7 +107,7 @@ $(function () {
 					header: '중분류',
 					name: 'middleItemCodeId',
 					className: 'cursor_pointer',
-					width: 120,
+					width: 90,
 					align: 'center',
 					editor: {
 						type: middle_code_selectbox_renderer,
@@ -104,7 +119,7 @@ $(function () {
 					header: '소분류',
 					name: 'smallItemCodeId',
 					className: 'cursor_pointer',
-					width: 120,
+					width: 90,
 					align: 'center',
 					editor: {
 						type: small_code_selectbox_renderer,
@@ -119,7 +134,7 @@ $(function () {
 					name: 'itemName',
 					className: 'cursor_pointer',
 					editor: 'text',
-					width: '200',
+					// width: '200',
 					align: 'center',
 				},
 				{
@@ -147,10 +162,26 @@ $(function () {
 					align: 'center',
 				},
 				{
-					header: '교정주기',
-					name: 'caliCycle',
+					header: '교정수수료',
+					name: 'caliFee',
 					className: 'cursor_pointer',
-					width: '100',
+					editor: number_format_editor,
+					width: '80',
+					align: 'right',
+					formatter: ({ value }) => {
+						return number_format(value);
+					},
+				},
+				{
+					header: '교정주기',
+					name: 'itemCaliCycle',
+					className: 'cursor_pointer',
+					editor: {
+						type: 'select',
+						options: { listItems: CALI_CYCLE_TYPES },
+					},
+					formatter: 'listItemText',
+					width: 110,
 					align: 'center',
 				},
 				{
@@ -174,8 +205,8 @@ $(function () {
 			bodyHeight: 650,
 			// draggable: true,
 			treeColumnOptions: {
-				name: 'hierarchyType',
-				useIcon: false,
+				name: 'addChild', // 해당 열 클릭 시 트리구조가 생성된다.
+				useIcon: true,
 				useCascadingCheckbox: true, // true: 부모 체크 시, 자식도 같이 체크됨(연쇄), false: 부모/자식 서로 독립적
 			},
 		});
@@ -235,7 +266,6 @@ $(function () {
 			return {
 				hierarchyType, // parent: 부모, child: 자식
 				orderType,
-				item_id: null,
 				middleItemCodeId: null,
 				smallItemCodeId: null,
 				itemId: null,
@@ -243,7 +273,7 @@ $(function () {
 				itemMakeAgent: '',
 				itemFormat: '',
 				itemNum: '',
-				caliCycle: '',
+				itemCaliCycle: 0,
 				remark: '',
 			};
 		};
@@ -300,7 +330,7 @@ $(function () {
 			const row = $modal.grid.getRow(e.rowKey);
 			if (row) {
 				// 자식 행 추가
-				if (e.columnName == 'hierarchyType') {
+				if (e.columnName == 'addChild') {
 					$modal.grid.addChildRow(e.rowKey);
 				}
 				// 그외 클릭 시
@@ -352,6 +382,12 @@ $(function () {
 
 		// 엑세 다중 등록
 		$modal_root
+			// 그리드가 아닌 영역 클릭 시, 그리드에 대한 blur() 처리를 해준다.
+			.on('click', '.modal-dialog', function (e) {
+				if ($(e.target).closest('.addReportList').length === 0 && !$(e.target).hasClass('insertRows')) {
+					$modal.grid.blur();
+				}
+			})
 			// 엑셀 다중 업로드
 			.on('click', '.addReportExcel', async function (e) {
 				console.log('엑셀 다중 등록 진행');
@@ -364,43 +400,115 @@ $(function () {
 		const rows = $modal.grid.getData();
 		console.log('🚀 ~ rows:', rows);
 
-		// 순회하면서 값 확인 => 일단 전부 보낼 것 dto에 hierArchyType 필드를 통해서 부모 id 찾기
-        let isValid = true;
-		$.each(rows, function (index, item) {
+		// 저장버튼 비활성화
+		const $saveBtn = $('button.btn_save', $modal_root);
+		$saveBtn.prop('disabled', true);
+		let isValid = true; // 유효성 검증
+		let notSearchItemList = []; // 품목조회를 하지 않은 경우 별도로 넣기
 
-			if (!check_input(item.itemName.trim())) {
-				g_toast('품목명은 필수입니다', 'warning');
-                $modal.grid.focus(item.rowKey, 'itemName'); // 해당 cell 포커스
-                isValid = false;
-				return false;
+		const sendData = [];
+		try {
+			// 순회하면서 값 확인 => 일단 전부 보낼 것 dto에 hierarchyType 필드를 통해서 부모 id 찾기
+			let currentIndex = -1;
+			$.each(rows, function (index, item) {
+				const itemName = item.itemName;
+				const caliFee = item.caliFee;
+				if (!check_input(itemName.trim())) {
+					g_toast('품목명은 필수입니다', 'warning');
+					$modal.grid.focus(item.rowKey, 'itemName'); // 해당 cell 포커스
+					isValid = false;
+					return false;
+				}
+
+				if (!caliFee || caliFee == '') {
+					item.caliFee = 0;
+				}
+
+				// 품목을 조회하지 않았던 row에 대해선 alert를 위해 별도 구분
+				if (!item.itemId || Number(item.itemId) == 0) {
+					notSearchItemList.push(item);
+				}
+
+				// 문서타입 구분
+				if (item.orderType == 'ACCREDDIT' || item.orderType == 'TESTING') {
+					item.docType = 'ISO';
+				} else {
+					item.docType = 'B';
+				}
+
+				item.reportType = 'SELF'; // 성적서타입(self)
+
+				//
+				if (item.hierarchyType === 'parent') {
+					item.child = [];
+					sendData.push(item);
+					currentIndex = sendData.length - 1;
+				} else {
+					sendData[currentIndex].child.push(item);
+				}
+			});
+		} catch (err) {
+			g_toast('오류가 있습니다.', 'error');
+			isValid = false;
+			console.log(err);
+		} finally {
+			$saveBtn.prop('disabled', false);
+		}
+
+		// 유효성 검증 못한 경우 return
+		if (!isValid) {
+			$saveBtn.prop('disabled', false);
+			return false;
+		}
+
+		let confirmMsg = `저장하시겠습니까?`;
+		if (notSearchItemList.length > 0) {
+			confirmMsg += '<br>품목을 조회하지 않은 아래 데이터의 경우, 품목에 자동으로 등록됩니다.<br><br>';
+			confirmMsg += `<div class='text-left'>`;
+			// 최대 10건까지만 보여주고, 넘어갈 경우 ...로 표시
+			$.each(notSearchItemList, function (idx, item) {
+				if (idx === 10) {
+					return false;
+				} else {
+					const itemName = item.itemName ?? '';
+					const itemFormat = item.itemFormat ?? '';
+					const itemMakeAgent = item.itemMakeAgent ?? '';
+					confirmMsg += `${idx + 1}. 품목명: '${itemName}', 형식: '${itemFormat}', 제작회사: '${itemMakeAgent}' <br>`;
+				}
+			});
+			if (notSearchItemList.length > 10) {
+				confirmMsg += `.....<br>그외 ${notSearchItemList.length - 10}건`;
 			}
-            // 문서타입 구분
-            if (item.orderType == 'ACCREDDIT' || item.orderType == 'TESTING') {
-                item.docType = 'ISO';
-            } else {
-                item.docType = 'B';
-            }
-            if (!item.caliCycle) {
-                item.caliCycle = 12;        // 기본값 12(개월) 삽입
-            }
-            item.caliOrderId = caliOrderId;     // 접수id도 넣어준다.
+			confirmMsg += `</div>`;
+		}
 
-		});
+		// g_ajax로 처리하기
+		const confirmSave = await g_message('성적서 등록', confirmMsg, 'info', 'confirm');
+		console.log('🚀 ~ confirmSave:', confirmSave);
+		if (confirmSave.isConfirmed == true) {
+			g_loading_message();
 
-        if (!isValid) {
-            return false;
-        }
-
-        console.log('저장 진행');
-
-        
-
-
-
-		// 자식이 존재하는 경우,
-
-		// 기기명이 존재하는지 체크 (없는 경우 return)
-		// 자식성적서 존재하는지 확인
+			try {
+				const resSave = await g_ajax(`/api/report/addReport?caliOrderId=${caliOrderId}`, JSON.stringify(sendData), {
+					contentType: 'application/json; charset=utf-8',
+				});
+				console.log('🚀 ~ resSave:', resSave);
+				if (resSave?.code > 0) {
+					await g_message('성적서 등록', '', 'success');
+					$modal_root.modal('hide');
+					return true;
+				} else {
+					await g_message('성적서 저장 실패', '', 'warning');
+				}
+			} catch (err) {
+				custom_ajax_handler(err);
+			} finally {
+				$saveBtn.prop('disabled', false);
+			}
+		} else {
+			$saveBtn.prop('disabled', false);
+			return false;
+		}
 	};
 
 	// 소분류코드 반환
