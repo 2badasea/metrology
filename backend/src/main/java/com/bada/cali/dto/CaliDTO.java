@@ -113,7 +113,6 @@ public class CaliDTO {
 		private String siteAddrEn;                // 소재지 주소 (영문)
 		
 		private String orderNum;                // 접수번호
-		
 	}
 	
 }

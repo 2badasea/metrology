@@ -34,8 +34,8 @@ public class Report {
 	@Column(name = "cali_order_id", nullable = false)
 	private Long caliOrderId;
 	
-	// 성적서번호
-	@Column(name = "report_num", nullable = false, length = 50)
+	// 성적서번호 (NULL을 허용한다. 자식성적서는 성적서번호가 부모를 따라감)
+	@Column(name = "report_num", length = 200)
 	private String reportNum;
 	
 	// 부모성적서 id
@@ -51,8 +51,8 @@ public class Report {
 	private Long esSubId;
 	
 	// 교정주기
-	@Column(name = "cali_cycle", nullable = false)
-	private Integer caliCycle;
+	@Column(name = "item_cali_cycle", nullable = false)
+	private Integer itemCaliCycle;
 	
 	// 성적서 상태 (WAIT: 대기, REPAIR: 수리, IMPOSSIBLE: 불가, RETURN: 반려, COMPLETE: 완료)
 	@Column(name = "report_status", nullable = false, length = 50)
@@ -100,21 +100,25 @@ public class Report {
 	@Column(name = "item_num", length = 200)
 	private String itemNum;
 	
-	// 기기번호
+	// 제작회사
 	@Column(name = "item_make_agent", length = 200)
 	private String itemMakeAgent;
 	
-	// 관리번호 (무조건 존재. 유니크 제약)
-	@Column(name = "manage_no", nullable = false, length = 50)
+	// 교정수수료
+	@Column(name = "cali_fee", nullable = false)
+	private Long caliFee = 0L;		// null 허용
+	
+	// 관리번호
+	@Column(name = "manage_no", length = 50)
 	private String manageNo;
 	
 	// 중분류 코드 고유 id
 	@Column(name = "middle_item_code_id")
-	private Long middleItemId;
+	private Long middleItemCodeId;
 	
 	// 소분류코드 고유 id
 	@Column(name = "small_item_code_id")
-	private Long smallItemId;
+	private Long smallItemCodeId;
 	
 	// 비고/요청사항
 	@Column(name = "remark", columnDefinition = "LONGTEXT")

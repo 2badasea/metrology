@@ -138,3 +138,94 @@ class middle_code_selectbox_renderer {
 		this.el.removeEventListener('click', this._stop);
 	}
 }
+
+// 금액만 입력가능
+class number_format_editor {
+  constructor(props) {
+    const el = document.createElement('input');
+    el.type = 'text';
+    el.inputMode = 'numeric';      // 모바일 키패드 숫자 유도
+    el.autocomplete = 'off';
+    el.spellcheck = false;
+
+    el.style.width = '100%';
+    el.style.height = '100%';
+    el.style.boxSizing = 'border-box';
+
+    // 그리드 편집 종료(blur) 트리거 방지용(필요 시)
+    const stop = (e) => e.stopPropagation();
+    el.addEventListener('mousedown', stop);
+    el.addEventListener('click', stop);
+    this._stop = stop;
+
+    // 초기값 세팅
+    el.value = this._format(props.value);
+
+    // - / + / e / . 등 차단 (type="number"에서 흔히 허용되는 것들)
+    el.addEventListener('keydown', (e) => {
+      const blocked = ['-', '+', 'e', 'E', '.', ',']; // 콤마는 우리가 자동 삽입하므로 직접 입력은 차단
+      if (blocked.includes(e.key)) e.preventDefault();
+    });
+
+    // 붙여넣기 방어: 숫자 외 제거 후 포맷 적용
+    el.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text') || '';
+      const digits = text.replace(/[^\d]/g, '');
+      el.value = this._format(digits);
+    });
+
+    // 입력될 때마다 숫자만 남기고 콤마 포맷
+    el.addEventListener('input', () => {
+      const digits = this._digits(el.value);
+      el.value = this._format(digits);
+      // 커서 위치를 정교하게 유지하려면 추가 로직이 필요하지만,
+      // 대부분 “끝으로 이동”도 UX에 무리가 없습니다.
+    });
+
+    this.el = el;
+  }
+
+  _digits(v) {
+    return String(v ?? '').replace(/[^\d]/g, ''); // 숫자만
+  }
+
+  _format(v) {
+    const digits = this._digits(v);
+
+    // 빈 값 허용 여부: "0 이상"이지만 사용자가 지우는 과정이 있으니 입력 중엔 빈값 허용
+    if (digits === '') return '';
+
+    // 선행 0 정리(예: 00012 -> 12), 단 "0" 자체는 유지
+    const normalized = digits.replace(/^0+(?=\d)/, '');
+
+    // 천 단위 콤마
+    return normalized.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  getElement() {
+    return this.el;
+  }
+
+  getValue() {
+    const digits = this._digits(this.el.value);
+
+    // 빈 값 처리 정책:
+    // - 금액 필드가 NOT NULL이면 0으로 저장하는 게 보통 더 안전
+    if (digits === '') return 0;
+
+    const n = Number(digits);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  mounted() {
+    this.el.focus();
+    this.el.select();
+  }
+
+  beforeDestroy() {
+    // (선택) 이벤트 정리
+    this.el.removeEventListener('mousedown', this._stop);
+    this.el.removeEventListener('click', this._stop);
+  }
+}

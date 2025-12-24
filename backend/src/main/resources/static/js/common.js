@@ -1369,3 +1369,35 @@ async function showRoadMapView(address = '') {
 			show_confirm_button: false,
 		};
 }
+
+
+/**
+ * 1000 이상의 숫자에 콤마를 붙여준다.
+ *
+ * @param {int} value
+ * @returns {string}
+ */
+function number_format(value) {
+	if (value) {
+		if (typeof value.value != "undefined") {
+			if (typeof value.value == "undefined" || value.value == "" || value.value == null || isNaN(Number(value.value))) {
+				return 0;
+			} else {
+				return Number(value.value)
+					.toString()
+					.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+			}
+		} else {
+			if (typeof value == "undefined" || value == "" || value == null || isNaN(Number(value))) {
+				return 0;
+			} else {
+				return Number(value)
+					.toString()
+					.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+			}
+		}
+	} else {
+		return value;
+	}
+}
+
