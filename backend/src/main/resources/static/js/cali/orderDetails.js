@@ -22,17 +22,24 @@ $(function () {
 	};
 
 	// 성적서 리스트 가져오기
-	// $modal.data_source = {
-	// 	api: {
-	// 		readData: {
-	// 			url: '/api/report/getOrderReportList',
-	// 			serializer: (grid_param) => {
-	// 				return $.param(grid_param);
-	// 			},
-	// 			method: 'GET',
-	// 		},
-	// 	},
-	// };
+	$modal.data_source = {
+		api: {
+			readData: {
+				url: '/api/report/getOrderReportList',
+				serializer: (grid_param) => {
+					// TODO item, item_code 테이블 생성 이후에 중분류/소분류 필터링도 검색조건 추가 필요
+					grid_param.orderType = $('form.searchForm .orderType', $modal).val() ?? 'all'; // 전체선택은 all로 간주
+					// grid_param.perPage = $('form.searchForm .rowLeng', $modal).val() ?? '20';			// 행 수
+					grid_param.statusType = $('form.searchForm .statusType', $modal).val() ?? 'all'; // 진행상태
+					grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? 'all'; // 검색타입
+					grid_param.keyword = $('form.searchForm', $modal).find('#keyword').val() ?? ''; // 검색키워드
+
+					return $.param(grid_param);
+				},
+				method: 'GET',
+			},
+		},
+	};
 
 	// 그리드 정의
 	$modal.grid = new Grid({
@@ -128,7 +135,7 @@ $(function () {
 		],
 		pageOptions: {
 			useClient: false, // 서버 페이징
-			perPage: 20, // 기본 20. 선택한 '행 수'에 따라 유동적으로 변경
+			perPage: 20, // 기본 20. 선택한 '행 수'에 따라 유동적으로 변경	=> change 이벤트를 통해 setPerPage() 함수 호출
 		},
 		rowHeaders: ['checkbox'],
 		minBodyHeight: 663,
@@ -148,6 +155,10 @@ $(function () {
 	// 페이지 내 이벤트 정의
 	$modal
 		// 성적서 등록 모달 호출
+		.on('submit', '.searchForm', function (e) {
+			e.preventDefault();
+			$modal.grid.getPagination().movePageTo(1);	// 변경된 페이지 옵션에 맞춰 페이지 렌더링
+		})
 		.on('click', '.addReport', async function () {
 			const resModal = await g_modal(
 				'/cali/registerMultiReport',
@@ -165,6 +176,16 @@ $(function () {
 					],
 				}
 			);
+		})
+		// 행 수 변경
+		.on('change', '.rowLeng', function () {
+			const rowLeng = $(this).val();
+			console.log("🚀 ~ rowLeng:", rowLeng);
+
+			if (rowLeng > 0) {
+				$modal.grid.setPerPage(rowLeng);	// perPage옵션 동적 변경
+				$modal.grid.getPagination().movePageTo(1);	// 변경된 페이지 옵션에 맞춰 페이지 렌더링
+			}
 		});
 
 	$modal.data('modal-data', $modal);
