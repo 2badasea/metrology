@@ -22,6 +22,7 @@ public class ApiReportController {
 	
 	private final ReportServiceImpl reportService;
 	
+	// 성적서 등록
 	@PostMapping(value = "/addReport")
 	public ResponseEntity<ResMessage<?>> addReport(
 			@RequestBody List<ReportDTO.addReportReq> reports,
@@ -34,5 +35,8 @@ public class ApiReportController {
 		
 		return ResponseEntity.ok(resMessage);
 	}
+	
+	// 접수상세내역 내 성적서 리스트
+	
 	
 }
