@@ -25,12 +25,11 @@ $(function () {
 	$modal.data_source = {
 		api: {
 			readData: {
-				url: '/api/report/getOrderReportList',
+				url: '/api/report/getOrderDetailsList',
 				serializer: (grid_param) => {
 					// TODO item, item_code 테이블 생성 이후에 중분류/소분류 필터링도 검색조건 추가 필요
-					grid_param.orderType = $('form.searchForm .orderType', $modal).val() ?? 'all'; // 전체선택은 all로 간주
-					// grid_param.perPage = $('form.searchForm .rowLeng', $modal).val() ?? '20';			// 행 수
-					grid_param.statusType = $('form.searchForm .statusType', $modal).val() ?? 'all'; // 진행상태
+					grid_param.orderType = $('form.searchForm .orderType', $modal).val() ?? ''; // 전체선택은 all로 간주
+					grid_param.statusType = $('form.searchForm .statusType', $modal).val() ?? ''; // 진행상태
 					grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? 'all'; // 검색타입
 					grid_param.keyword = $('form.searchForm', $modal).find('#keyword').val() ?? ''; // 검색키워드
 
@@ -122,8 +121,9 @@ $(function () {
 				align: 'center',
 			},
 			{
+				// 값이 아닌 formatter로 보여줄 것
 				header: '진행상태',
-				name: 'statusTxt',
+				name: 'reportStatus',
 				className: 'cursor_pointer',
 				width: '70',
 				align: 'center',
@@ -140,7 +140,7 @@ $(function () {
 		rowHeaders: ['checkbox'],
 		minBodyHeight: 663,
 		bodyHeight: 663,
-		// data: $modal.data_source,
+		data: $modal.data_source,
 		rowHeight: 'auto',
 	});
 
@@ -184,7 +184,9 @@ $(function () {
 
 			if (rowLeng > 0) {
 				$modal.grid.setPerPage(rowLeng);	// perPage옵션 동적 변경
-				$modal.grid.getPagination().movePageTo(1);	// 변경된 페이지 옵션에 맞춰 페이지 렌더링
+				// $modal.grid.readPage(1);	// setPerPage() 호출 후, 굳이 readPage() 호출할 필요없음.
+				// setPerPage()와 아래 getPagination().movePageTo()는 잘 사용되지 않는 옵션이라 함(내용확인!)
+				// $modal.grid.getPagination().movePageTo(1);	// 변경된 페이지 옵션에 맞춰 페이지 렌더링
 			}
 		});
 

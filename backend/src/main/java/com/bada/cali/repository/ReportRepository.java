@@ -1,8 +1,12 @@
 package com.bada.cali.repository;
 
+import com.bada.cali.common.enums.OrderType;
 import com.bada.cali.entity.Report;
 import com.bada.cali.repository.projection.LastManageNoByType;
 import com.bada.cali.repository.projection.LastReportNumByOrderType;
+import com.bada.cali.repository.projection.OrderDetailsList;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -49,4 +53,86 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 							where x.rn = 1;
 			""", nativeQuery = true)
 	List<LastManageNoByType> findLastManageNoByOrderType(@Param("year") int year);
+	
+	
+	// 접수상세내역 리스트 (인터페이스 프로젝션으로 가져옴)
+	@Query("""
+			    select
+						r.id as id,
+						r.reportType as reportType,
+						r.orderType as orderType,
+			
+						r.middleItemCodeId as middleItemCodeId,
+						r.smallItemCodeId as smallItemCodeId,
+			
+						r.reportNum as reportNum,
+						r.itemName as itemName,
+						r.itemFormat as itemFormat,
+						r.itemNum as itemNum,
+			
+						r.itemCaliCycle as itemCaliCycle,
+						r.itemMakeAgent as itemMakeAgent,
+						r.manageNo as manageNo,
+			
+						r.reportStatus as reportStatus,
+						r.remark as remark,
+						r.caliFee as caliFee,
+						r.statusRemark as statusRemark,
+			
+						r.approvalDatetime as approvalDatetime,
+						r.workDatetime as workDatetime
+			    	from Report r
+			    	where r.isVisible = 'y'
+			    	and r.parentId IS NULL
+			    	and r.parentScaleId IS NULL
+			    	and (:orderType IS NULL OR r.orderType = :orderType)
+			    	and (
+			    		:keyword = '' OR
+			    		(
+			    			(:searchType = 'reportNum' AND r.reportNum LIKE %:keyword%)
+			    			OR (:searchType = 'manageNo' AND r.manageNo LIKE %:keyword%)
+			    			OR (:searchType = 'itemName' AND r.itemName LIKE %:keyword%)
+			    			OR (:searchType = 'itemMakeAgent' AND r.itemMakeAgent LIKE %:keyword%)
+			    			OR (:searchType = 'itemFormat' AND r.itemFormat LIKE %:keyword%)
+			    			OR (:searchType = 'itemNum' AND r.itemNum LIKE %:keyword%)
+			    			OR (:searchType = 'all' AND (
+														    			r.reportNum LIKE %:keyword%
+														    			OR r.manageNo LIKE %:keyword%
+														    			OR r.itemName LIKE %:keyword%
+														    			OR r.itemMakeAgent LIKE %:keyword%
+														    			OR r.itemFormat LIKE %:keyword%
+														    			OR r.itemNum LIKE %:keyword%
+			    									)
+			    			)
+			    		)
+			    	)
+			    	AND (:statusType IS NULL OR (
+			    			(:statusType = 'cancel' AND r.reportStatus = 'CANCEL')
+			    			OR  (:statusType = 'impossible' AND r.reportStatus = 'IMPOSSIBLE')
+			    			OR  (:statusType = 'return' AND (r.reportStatus = 'WORK_RETURN' OR r.reportStatus = 'APPROV_RETURN')
+			    			)
+			    			OR  (:statusType = 'wait' AND r.workDatetime IS NULL AND r.approvalDatetime IS NULL)
+			    			OR (:statusType = 'progress' AND r.workDatetime IS NOT NULL AND r.approvalDatetime IS NULL)
+			    			OR (:statusType = 'success' AND r.workDatetime IS NOT NULL AND r.approvalDatetime IS NOT NULL)
+			    		)
+			    	)
+					ORDER BY
+						case
+							 when r.orderType = com.bada.cali.common.enums.OrderType.ACCREDDIT then 0
+							 when r.orderType = com.bada.cali.common.enums.OrderType.UNACCREDDIT then 1
+							 when r.orderType = com.bada.cali.common.enums.OrderType.TESTING then 2
+			            	else 9
+			         	end asc,
+			         	r.id asc
+			""")
+	List<OrderDetailsList> searchOrderDetails(
+			@Param("orderType") OrderType orderType,
+			@Param("statusType") String statusType,	// 진행전체, 대기, 취소, 불가, 반려, 진행중, 완료
+			@Param("searchType") String searchType,
+			@Param("keyword") String keyword,
+			Pageable pageable
+			);
+		
+	
+	
 }
