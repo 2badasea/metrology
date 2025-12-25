@@ -56,6 +56,7 @@ public class ReportDTO {
 		private String keyword;            // 검색키워드
 		private String statusType;        // 진행상태
 		private OrderType orderType;        // 접수구분
+		private Long caliOrderId;			// 접수id
 	}
 	
 	// 클라이언트에 반환할 데이터

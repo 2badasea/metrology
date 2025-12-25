@@ -360,7 +360,10 @@ $(function () {
 				const orderYear = orderDate.split('-')[0];
 				const originOrderYear = originOrderDate.split('-')[0];
 				if (orderYear != originOrderYear) {
-					g_toast('접수일의 연도가 변경될 경우, 접수번호가 수정됩니다.<br>(결재가 진행중인 성적서가 존재할 경우 접수연도 수정 불가)', 'warning');
+					g_toast(
+						'접수일의 연도가 변경될 경우, 접수번호가 수정됩니다.<br>(결재가 진행중인 성적서가 존재할 경우 접수연도 수정 불가)',
+						'warning'
+					);
 				}
 			}
 		});
@@ -512,13 +515,11 @@ $(function () {
 						await g_message('저장 실패', `${resCode.msg ?? '저장에 실패했습니다.'}`, 'error', 'alert');
 					}
 				} else {
-					console.log('오류가 여기로 넘어오니?');
 					throw new Error('api 오류 발생');
 				}
 
 				// 저장이 정상적으로 이루어지면, 모달을 닫는다.
 			} catch (err) {
-				console.log('🚀 ~ err:', err);
 				custom_ajax_handler(err);
 			} finally {
 				$btn.prop('disabled', false);

@@ -51,7 +51,7 @@ public class ReportServiceImpl {
 		// 접수정보
 		CaliOrder orderInfo = caliOrderRepository.findById(caliOrderId).orElseThrow(() -> new EntityNotFoundException("접수정보를 알 수 없습니다."));
 		
-		ReportLang orderReportLang = orderInfo.getReportLang();	// 접수의 발행타입(KR, EN, BOTH)
+		ReportLang orderReportLang = orderInfo.getReportLang();    // 접수의 발행타입(KR, EN, BOTH)
 		String orderNum = orderInfo.getOrderNum();        // 접수번호
 		int orderYear = orderInfo.getOrderDate().getYear();    // 접수일 연도 (관리번호 조회용)
 		
@@ -136,7 +136,7 @@ public class ReportServiceImpl {
 			
 			// 저장
 			Report savedReport = reportRepository.save(reportEntity);
-			Long parentId = savedReport.getId();		// 생성된 부모 id
+			Long parentId = savedReport.getId();        // 생성된 부모 id
 			
 			// 이력을 남긴다.
 			Log saveLog = Log.builder()
@@ -163,7 +163,7 @@ public class ReportServiceImpl {
 					Report childEntity = reportMapper.toEntity(c);
 					// 자식성적서의 경우, 성적서번호와 관리번호는 존재하지 않는다. (NULL 허용)
 					childEntity.setCaliOrderId(caliOrderId);
-					childEntity.setReportLang(orderReportLang);	// 자식성적서도 접수 건의 발행타입으로 초기화
+					childEntity.setReportLang(orderReportLang);    // 자식성적서도 접수 건의 발행타입으로 초기화
 					childEntity.setCreateDatetime(now);
 					childEntity.setCreateMemberId(workerId);
 					childEntity.setIsVisible(YnType.y);
@@ -194,7 +194,6 @@ public class ReportServiceImpl {
 	
 	// 접수상세내역에 표시할 데이터를 가져온다.
 	public TuiGridDTO.ResData<OrderDetailsList> getOrderDetailsList(ReportDTO.GetOrderDetailsReq request) {
-		
 		// 페이징 옵션
 		int pageIndex = request.getPage() - 1;
 		int perPage = request.getPerPage();
@@ -203,29 +202,32 @@ public class ReportServiceImpl {
 		Pageable pageable = PageRequest.of(pageIndex, perPage);
 		
 		// 1. 접수구분, 2. 진행상태, 3. 검색타입, 4. 검색키워드 세팅
-		
-		// 1. 접숙구분 (전체선택일 경우 null로 바인딩 됨
-		OrderType orderType = request.getOrderType();	// 전체선택인 경우 null로 받게됨
-		
-		// 3. 검색타입
-		String searchType = request.getSearchType();	// 전체선택은 all
-		if (searchType == null || searchType.isBlank()) {
-			searchType = null;
-		}
-		searchType = switch(searchType) {
-			case "all", "reportNum", "manageNo", "itemName", "itemMakeAgent", "itemFormat", "itemNum" -> searchType;
-			default -> "all";
-		};
-		String keyword = request.getKeyword();
-		// 키워드가 혹시 null로 넘어온 경우 빈값으로 취급하여 where절을 타지 않도록 한다.
-		keyword = (keyword == null) ? "" : keyword.trim();
+		// 1. 접수구분 (전체선택일 경우 null로 바인딩 됨
+		OrderType orderType = request.getOrderType();    // 전체선택인 경우 null로 받게됨
 		
 		// 2. 진행상태
 		String statusType = request.getStatusType();
 		statusType = (statusType == null || statusType.isBlank()) ? null : statusType;
 		
+		// 3. 검색타입
+		String searchType = request.getSearchType();    // 전체선택은 all
+		if (searchType == null || searchType.isBlank()) {
+			searchType = null;
+		}
+		if (searchType != null) {
+			searchType = switch (searchType) {
+				case "all", "reportNum", "manageNo", "itemName", "itemMakeAgent", "itemFormat", "itemNum" -> searchType;
+				default -> "all";
+			};
+		}
 		
-		List<OrderDetailsList> pageResult = reportRepository.searchOrderDetails(orderType, statusType, searchType, keyword, pageable);
+		String keyword = request.getKeyword();
+		// 키워드가 혹시 null로 넘어온 경우 빈값으로 취급하여 where절을 타지 않도록 한다.
+		keyword = (keyword == null) ? "" : keyword.trim();
+		// 접수id
+		Long caliOrderId = request.getCaliOrderId();
+		
+		List<OrderDetailsList> pageResult = reportRepository.searchOrderDetails(orderType, statusType, searchType, keyword, caliOrderId, pageable);
 		// 프로젝션 타입으로 바로 받기 때문에 entity -> dto 변환 과정은 생략
 		
 		// 페이지네이션 데이터 세팅
@@ -241,7 +243,6 @@ public class ReportServiceImpl {
 		
 		
 	}
-	
 	
 	
 }

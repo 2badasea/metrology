@@ -41,7 +41,6 @@ public class ApiReportController {
 	// 접수상세내역 내 성적서 리스트
 	@GetMapping(value = "/getOrderDetailsList")
 	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<OrderDetailsList>>> getOrderDetailsList(@ModelAttribute ReportDTO.GetOrderDetailsReq req) {
-		
 		// 리스트 데이터 가져오기 (인터페이스 프로젝션 형태로 가져옴 )
 		TuiGridDTO.ResData<OrderDetailsList> reportGridData = reportService.getOrderDetailsList(req);
 		// 가져온 데이터를 바탕으로 최종 그리드 API 형식으로 세팅
