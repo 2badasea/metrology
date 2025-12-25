@@ -23,7 +23,6 @@ public class CaliDTO {
 	@Getter
 	@Setter
 	public static class GetOrderListReq extends TuiGridDTO.Request {
-		// 검색창에서 넘어오는 값들 정리
 		// 검색창에서 넘어오는 값들
 		private String orderStartDate;    // 접수일 조회 시작일
 		private String orderEndDate;    // 접숭리 조회 종료일
