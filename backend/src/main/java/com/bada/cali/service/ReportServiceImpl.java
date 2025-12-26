@@ -1,8 +1,8 @@
 package com.bada.cali.service;
 
-import com.bada.cali.common.enums.OrderType;
-import com.bada.cali.common.enums.ReportLang;
-import com.bada.cali.common.enums.YnType;
+import com.bada.cali.common.ResMessage;
+import com.bada.cali.common.Utils;
+import com.bada.cali.common.enums.*;
 import com.bada.cali.dto.ReportDTO;
 import com.bada.cali.dto.TuiGridDTO;
 import com.bada.cali.entity.CaliOrder;
@@ -27,10 +27,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -240,8 +239,179 @@ public class ReportServiceImpl {
 				.contents(pageResult)
 				.pagination(pagination)
 				.build();
+	}
+	
+	// 대상 성적서들이 삭제대상으로 적합한지 확인
+	@Transactional(readOnly = true)
+	public ResMessage<?> isValidDelete(ReportDTO.ValidateDeleteReq request) {
+		
+		int code = 0;
+		String message;
+		
+		// 접수 id가 존재하는 경우, 생성된 완료통보서가 존재하는 경우 리턴
+		Long caliOrderId = request.caliOrderId();
+		if (caliOrderId != null && caliOrderId > 0) {
+			CaliOrder orderInfo = caliOrderRepository.findById(caliOrderId).orElseThrow(() -> new EntityNotFoundException("해당 접수 건이 존재하지 않습니다."));
+			// TODO 완료통보서, 완료통보서 품목 테이블 생성 후에 참조하고 있는 성적서id가 존재하는지 체크
+			// Long completionId = orderInfo.getCompletionId();
+			// if (completionId != null && completionId > 0) {
+			// 	code = -1;
+			// }
+		}
+		
+		// 타입별 반복문을 돌리면서 확인
+		Map<String, List<Long>> validateInfo = request.validateInfo();
+		if (validateInfo != null && !validateInfo.isEmpty()) {
+			for (String orderTypeStr : validateInfo.keySet()) {
+				List<Long> reportIds = validateInfo.get(orderTypeStr);
+				
+				OrderType orderType;
+				ReportType reportType;
+				boolean isAgcy;
+				// 대행인 경우 구분
+				if ("AGCY".equals(orderTypeStr)) {
+					reportType = ReportType.AGCY;
+					isAgcy = true;
+					orderType = null;
+				} else {
+					isAgcy = false;
+					reportType = ReportType.SELF;
+					orderType = OrderType.valueOf(orderTypeStr);
+				}
+				
+				// 대행의 경우엔 limit을 걸지 않고, id들을 넘겨서 가져온다.
+				Pageable pageable = (reportType == ReportType.AGCY) ? Pageable.unpaged() : PageRequest.of(0, reportIds.size());
+				
+				List<Report> reportList = reportRepository.getDeleteCheckReport(orderType, isAgcy, reportIds, pageable);
+				
+				// 자체/대행 분리 검증
+				if (reportType == ReportType.AGCY) {
+					// 대행이 경우, 완료유무만 확인한다.
+					for (Report report : reportList) {
+						ReportStatus reportStatus = report.getReportStatus();
+						if (reportStatus == ReportStatus.COMPLETE) {
+							code = -1;
+							message = String.format("완료된 대행성적서는 삭제가 불가능합니다. (성적서번호: %s)", report.getReportNum());
+							return new ResMessage<>(code, message, null);
+						}
+					}
+					
+				} else {
+					// 자체성적서의 경우, 우선 id가 일치하는지 확인 후, 일치하지 않으면 return 일치하면 결재상태 점검
+					List<Long> listIds = new ArrayList<>();
+					for (Report report : reportList) {
+						listIds.add(report.getId());	// 넘어온 id와 비교하기 위해 담는다.
+						// 결재가 진행중인 게 한 건이라도 존재하면 return
+						if (report.getWorkDatetime() != null || report.getApprovalDatetime() != null || report.getWorkStatus() != AppStatus.IDLE || report.getApprovalStatus() != AppStatus.IDLE) {
+							code = -1;
+							message = String.format("결재가 진행중인 성적서가 존재합니다. (성적서번호: %s)", report.getReportNum());
+							return new ResMessage<>(code, message, null);
+						}
+					}
+					
+					Set<Long> getIds = new HashSet<>(listIds);
+					Set<Long> paramIds = new HashSet<>(reportIds);
+					// 일치여부 확인
+					boolean isSame = getIds.size() == paramIds.size() && getIds.containsAll(paramIds);
+					// 일치하지 않으면,
+					if (!isSame) {
+						code = -1;
+						message = "각 접수구분의 마지막 성적서만 삭제가 가능합니다.";
+						return new ResMessage<>(code, message, null);
+					}
+				}
+			}
+			
+		} else {
+			code = -1;
+			message = "삭제할 정보가 올바르지 않습니다.";
+			return new ResMessage<>(code, message, null);
+		}
+		
+		// 여기까지 왔다면, 삭제하는 데 문제가 없다는 의미
+		code = 1;
+		message = "선택한 성적서들을 삭제하시겠습니까?";
+		return new ResMessage<>(code, message, null);
+	}
+	
+	/**
+	 * 성적서 삭제 요청
+	 * @param request ('deleteIds' 라는 key로 List<Long> 타입의 데이터를 받는다.
+	 * @param user
+	 * @return
+	 */
+	@Transactional
+	public ResMessage<?> deleteReport(ReportDTO.DeleteReportReq request, CustomUserDetails user) {
+		LocalDateTime now = LocalDateTime.now();
+		String workerName = user.getUsername();
+		Long userId = user.getId();
+		List<Long> deleteIds = request.deleteIds();
+		
+		int code = 0;
+		String msg = "";
 		
 		
+		if (deleteIds != null && !deleteIds.isEmpty()) {
+			// 대행, 자식성적서, 접수구분 상관없이 모두 가져옴
+			List<Report> reportList = reportRepository.findByIdInOrParentIdInOrParentScaleIdIn(deleteIds, deleteIds, deleteIds);
+			
+			// 삭제된 성적서 번호
+			List<String> deleteReportNums = new ArrayList<>();
+			
+			for (Report report : reportList) {
+				// 자식성적서는 성적서번호, 관리번호 업데이트가 없음
+				
+				if ((report.getParentId() != null && report.getParentId() > 0) || (report.getParentScaleId() != null && report.getParentScaleId() > 0)) {
+					report.setIsVisible(YnType.n);
+					report.setDeleteDatetime(now);
+					report.setDeleteMemberId(userId);
+				}
+				// 그외 부모성적서, 대행성적서의 경우엔 '성적서번호 + [
+				else {
+					String uuid = UUID.randomUUID().toString();	//
+					String originReportNum = report.getReportNum();
+					String originManageNo = report.getManageNo();
+					String suffix = String.format("[deleted-%s", uuid);
+					String newReportNum = originReportNum + suffix;
+					String newManageNo = originManageNo + suffix;
+					
+					report.setReportNum(newReportNum);
+					report.setManageNo(newManageNo);
+					report.setIsVisible(YnType.n);
+					report.setDeleteDatetime(now);
+					report.setDeleteMemberId(userId);
+					
+					deleteReportNums.add(String.format("%s(고유 ID: %d", originReportNum, report.getId()));
+				}
+			}
+			
+			// 로그를 남긴다.
+			if (!deleteReportNums.isEmpty()) {
+				String logContent = String.join(", ", deleteReportNums);
+				Log deleteLog = Log.builder()
+						.logType("d")
+						.logContent(logContent)
+						.workerName(workerName)
+						.createDatetime(now)
+						.createMemberId(userId)
+						.refTable("report")
+				.build();
+				// 이력을 저장한다.
+				logRepository.save(deleteLog);
+				
+				code = 1;
+				msg = String.format("성적서 %d건이 삭제되었습니다.", deleteReportNums.size());
+				
+			} else {
+				code = -1;
+				msg = "성적서 삭제 중 문제가 발생했씁니다.";
+			}
+			
+		} else {
+			code = -1;
+			msg = "삭제대상 성적서를 찾을 수 없습니다.";
+		}
+		return new ResMessage<>(code, msg, null);
 	}
 	
 	

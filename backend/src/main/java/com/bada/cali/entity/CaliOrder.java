@@ -1,5 +1,6 @@
 package com.bada.cali.entity;
 
+import com.bada.cali.common.enums.CalibrationCycleType;
 import com.bada.cali.common.enums.DocType;
 import com.bada.cali.common.enums.ReportLang;
 import com.bada.cali.common.enums.YnType;
@@ -79,7 +80,9 @@ public class CaliOrder {
 	private String caliTakeType;       // send / self / site / pickup
 	
 	@Column(name = "cust_agent_cali_cycle", nullable = false, length = 20)
-	private String custAgentCaliCycle; // self_cycle / next_cycle
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private CalibrationCycleType custAgentCaliCycle = CalibrationCycleType.NEXT_CYCLE;
 	
 	@Column(name = "report_lang", nullable = false, length = 10)
 	@Enumerated(EnumType.STRING)

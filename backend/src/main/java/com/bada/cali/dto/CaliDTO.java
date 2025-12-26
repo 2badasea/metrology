@@ -1,6 +1,7 @@
 package com.bada.cali.dto;
 
 import com.bada.cali.common.enums.CalibrationCycleType;
+import com.bada.cali.common.enums.ReportLang;
 import com.bada.cali.common.enums.YnType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -103,7 +104,7 @@ public class CaliDTO {
 		private String reportAgentAddrEn;        // 성적서발행처 주소 (영문)
 		private String reportAgentEn;            // 성적서발행처 영문명
 		private Long reportAgentId;            // 성적서발행처 id
-		private String reportLang;                // 성적서 발행타입
+		private ReportLang reportLang;                // 성적서 발행타입
 		private String reportManager;            // 성적서발행처 담당자
 		private String reportManagerEmail;        // 성적서발행처 담당자 이메일
 		private String reportManagerTel;        // 성적서발행처 담당자 연락처

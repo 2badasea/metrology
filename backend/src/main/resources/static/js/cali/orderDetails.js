@@ -133,7 +133,7 @@ $(function () {
 				},
 			],
 			pageOptions: {
-				useClient: false, // 서버 페이징 
+				useClient: false, // 서버 페이징
 				perPage: 20, // 기본 20. 선택한 '행 수'에 따라 유동적으로 변경	=> change 이벤트를 통해 setPerPage() 함수 호출
 			},
 			rowHeaders: ['checkbox'],
@@ -176,6 +176,9 @@ $(function () {
 					],
 				}
 			);
+			if (resModal) {
+				$modal.grid.reloadData();
+			}
 		})
 		// 행 수 변경
 		.on('change', '.rowLeng', function () {
@@ -190,17 +193,135 @@ $(function () {
 			}
 		})
 		// 성적서 삭제
-		.on('click', '.deleteReport', function () {
+		.on('click', '.deleteReport', async function () {
 			const checkedRows = $modal.grid.getCheckedRows();
 			if (checkedRows.length === 0) {
 				g_toast('삭제할 성적서를 선택해주세요.', 'warning');
 				return false;
 			}
 
-			// 선택된 성적서들이 해당 페이지에서 접수구분별 가장 마지막에 속하는지, 결재가 진행중인 건이 있는지 확인
+			// TODO 추후에 비밀번호 또는 권한이 생긴다면 사전에 체크할 것
 
-		})
-		;
+			const $btn = $(this);
+			let isFlag = true;
+			const validateInfo = {};
+			try {
+				$btn.prop('disabled', true);
+
+				// TDOO 추후에 대행성적서가 추가되는 경우 조건 추가할 것
+				$.each(checkedRows, (index, row) => {
+					console.log('🚀 ~ row:', row);
+					const orderType = row.orderType;
+					const reportType = row.reportType; // 자체(self)/대행(agcy)
+
+					// 자체와 대행을 분리한다.
+					if (reportType === 'SELF') {
+						if (row.workDatetime || row.approvalDateTime) {
+							isFlag = false;
+							g_toast('결재가 진행중인 건이 존재합니다.', 'warning');
+							return false;
+						} else {
+							if (validateInfo[orderType] != undefined && Array.isArray(validateInfo[orderType])) {
+								validateInfo[orderType].push(row.id);
+							} else {
+								validateInfo[orderType] = [];
+								validateInfo[orderType].push(row.id);
+							}
+						}
+					}
+					// 대행
+					else {
+						if (row.reportStatus === 'COMPLETE') {
+							isFlag = false;
+							g_toast('이미 완료된 대행 건이 존재합니다.', 'warning');
+							return false;
+						} else {
+							// if (validateInfo['AGCY'] != undefined && Array.isArray(validateInfo['AGCY'])) {
+							// 	validateInfo['AGCY'].push(row.id);
+							// } else {
+							// 	validateInfo['AGCY'] = [];
+							// 	validateInfo['AGCY'].push(row.id);
+							// }
+							// NOTE 위의 코드를 개선한 방식
+							if (!Array.isArray(validateInfo['AGCY'])) {
+								validateInfo['AGCY'] = [];
+							}
+							validateInfo['AGCY'].push(row.id);
+						}
+					}
+				});
+
+				console.log(validateInfo);
+			} catch (err) {
+				console.log('🚀 ~ err:', err);
+				isFlag = false;
+				g_toast(`삭제처리 중 오류가 있습니다.<br>${err}`, 'error');
+			}
+
+			if (!isFlag) {
+				$btn.prop('disabled', false);
+				return false;
+			}
+
+			// g_ajax와 fetch api 혼용해서 사용해볼 것
+			try {
+				g_loading_message();
+				const sendData = {
+					caliOrderId: caliOrderId,
+					validateInfo: validateInfo,
+				};
+				const resValiDate = await g_ajax('/api/report/isValidDelete', JSON.stringify(sendData), {
+					contentType: 'application/json; charset=utf-8',
+				});
+				// 문제 없는 경우
+				if (resValiDate?.code > 0) {
+					const confirmDelete = await g_message('성적서 삭제', '성적서를 삭제하시겠습니까?', 'question', 'confirm');
+
+					// 삭제 OK인 경우
+					if (confirmDelete.isConfirmed === true) {
+						// 삭제대상  id 합치기
+						const deleteIds = [];
+						$.each(validateInfo, function (orderType, array) {
+							// 전개연산자 ...를 활용한다.
+							deleteIds.push(...array);
+						});
+
+						const options = {
+							method: 'DELETE',
+							headers: {
+								'Content-Type': 'application/json',
+							},
+							body: JSON.stringify({ deleteIds: deleteIds }),
+						};
+						const resDelete = await fetch('/api/report/deleteReport', options);
+						const resJson = await resDelete.json();
+						// 삭제 성공
+						if (resJson?.code > 0) {
+							await g_message('성적서 삭제', resJson.msg ?? '삭제되었습니다', 'success');
+							// 그리드 갱신
+							$modal.grid.reloadData();
+						}
+					} else {
+						return false;
+					}
+				} else {
+					// 유효하지 않은 경우, 해당 알림 안내
+					g_toast(resValiDate.msg ?? '삭제 검증에 실패했습니다', 'warning');
+					Swal.close();
+					return false;
+				}
+			} catch (err) {
+				custom_ajax_handler(err);
+				Swal.close();
+			} finally {
+				$btn.prop('disabled', false);
+			}
+
+			// 선택된 성적서들이 해당 페이지에서 접수구분별 가장 마지막에 속하는지, 결재가 진행중인 건이 있는지 확인
+			// 1. 브라우저 단에서 1차적으로 결재가 진행중인 건이 있는지만 판단
+			// 2. api를 두 번 탈 것(서버차원에서 검증)
+			// 3. 검증이 완료되었다면, 대상 id들만 삭제api로 보낼 것 (deletemapping 활용?)
+		});
 
 	$modal.data('modal-data', $modal);
 	$modal.addClass('modal-view-applied');

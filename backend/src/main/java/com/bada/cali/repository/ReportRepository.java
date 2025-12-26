@@ -1,6 +1,7 @@
 package com.bada.cali.repository;
 
 import com.bada.cali.common.enums.OrderType;
+import com.bada.cali.common.enums.ReportType;
 import com.bada.cali.entity.Report;
 import com.bada.cali.repository.projection.LastManageNoByType;
 import com.bada.cali.repository.projection.LastReportNumByOrderType;
@@ -134,7 +135,32 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			@Param("caliOrderId") Long caliOrderId,
 			Pageable pageable
 			);
-		
 	
 	
+	/**
+	 * @param orderType
+	 * @param isAgcy
+	 * @param reportIds
+	 * @param pageable
+	 * @return
+	 */
+	@Query("""
+			SELECT r
+			FROM Report r
+			WHERE r.isVisible = 'y'
+			AND r.parentId IS NULL
+			AND r.parentScaleId IS NULL
+			AND (
+				(:isAgcy = true AND r.id IN :reportIds) OR (:isAgcy = false AND r.orderType = :orderType)
+			)
+			ORDER BY r.id DESC
+	""")
+	List<Report> getDeleteCheckReport(
+			@Param("orderType") OrderType orderType,
+			@Param("isAgcy") boolean isAgcy,
+			@Param("reportIds") List<Long> reportIds,
+			Pageable pageable
+	);
+	
+	List<Report> findByIdInOrParentIdInOrParentScaleIdIn(List<Long> deleteIds, List<Long> deleteIds1, List<Long> deleteIds2);
 }
