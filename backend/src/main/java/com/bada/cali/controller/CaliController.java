@@ -58,4 +58,11 @@ public class CaliController {
 	public String registerMultiReport()  {
 		return "cali/registerMultiReport";
 	}
+	
+	// 성적서 수정 [모달]
+	@PostMapping(value = "/reportModify")
+	public String reportModify() {
+		log.info("성적서 수정 모달 호출");
+		return "cali/reportModify";
+	}
 }

@@ -21,7 +21,6 @@ $(function () {
 
 		let gridBodyHeight = Math.floor($modal.find('.caliOrderModifyForm').height() - 145);
 
-		// 업체id로 초기화 하기(수정)
 		if ($modal.param?.id > 0) {
 			// 옵셔널체이닝으로 체크
 			caliOrderId = Number($modal.param.id);

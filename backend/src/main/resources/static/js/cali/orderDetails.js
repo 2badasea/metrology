@@ -146,8 +146,40 @@ $(function () {
 		// 그리드 이벤트 정의
 		$modal.grid.on('click', async function (e) {
 			const row = $modal.grid.getRow(e.rowKey);
-
+			// 성적서 수정 모달을 호출한다.
 			if (row && e.columnName != '_checked') {
+				// 자체와 대행을 구분한다.
+				const id = row.id;
+				const reportNum = row.reportNum;
+				const reportType = row.reportType;
+				// 자체
+				if (reportType === 'SELF') {
+					// 기술책임자가 완료했거나 결재가 진행주인 건에 대해선 수정이 안 되도록 한다 (접수상세, 접수, 실무자, 기책 페이지별 구분)
+					const isModifiable = row.approvalDateTime || row.reportStatus === 'SUCCESS' || row.approvalStatus !== 'IDLE' ? false : true;
+					const resModal = await g_modal(
+						'/cali/reportModify',
+						{
+							id: id,
+						},
+						{
+							title: `성적서 수정 (성적서번호 - ${reportNum})`,
+							size: 'xxxl',
+							show_close_button: true,
+							show_confirm_button: isModifiable,
+							confirm_button_text: '저장',
+						}
+					);
+
+					// 그리드가 닫히면 기본적으로 갱신이 일어나도록 한다.
+					if (resModal) {
+						$modal.grid.reloadData();
+					}
+				}
+				// 대행
+				else {
+					g_toast('대행성적서 수정은 아직 제공되지 않습니다.', 'warning');
+					return false;
+				}
 			}
 		});
 	};

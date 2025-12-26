@@ -81,7 +81,10 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 						r.statusRemark as statusRemark,
 			
 						r.approvalDatetime as approvalDatetime,
-						r.workDatetime as workDatetime
+						r.workDatetime as workDatetime,
+						
+						r.workStatus as workStatus,
+						r.approvalStatus as approvalStatus
 			    	from Report r
 			    	where r.isVisible = 'y'
 			    	and r.parentId IS NULL
