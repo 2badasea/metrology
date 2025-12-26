@@ -85,6 +85,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			    	where r.isVisible = 'y'
 			    	and r.parentId IS NULL
 			    	and r.parentScaleId IS NULL
+					and r.caliOrderId = :caliOrderId
 			    	and (:orderType IS NULL OR r.orderType = :orderType)
 			    	and (
 			    		:keyword = '' OR
@@ -130,6 +131,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			@Param("statusType") String statusType,	// 진행전체, 대기, 취소, 불가, 반려, 진행중, 완료
 			@Param("searchType") String searchType,
 			@Param("keyword") String keyword,
+			@Param("caliOrderId") Long caliOrderId,
 			Pageable pageable
 			);
 		
