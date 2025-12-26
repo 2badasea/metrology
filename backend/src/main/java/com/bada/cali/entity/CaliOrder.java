@@ -1,9 +1,6 @@
 package com.bada.cali.entity;
 
-import com.bada.cali.common.enums.CalibrationCycleType;
-import com.bada.cali.common.enums.DocType;
-import com.bada.cali.common.enums.ReportLang;
-import com.bada.cali.common.enums.YnType;
+import com.bada.cali.common.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -70,8 +67,11 @@ public class CaliOrder {
 	@Builder.Default
 	private String orderType = "accredited";    // accredited(공인)/ non_accredited(비공인)/ testing(시험)
 	
+	// 긴급여부 (일반 NORMAL 이 기본값)
 	@Column(name = "priority_type", nullable = false, length = 20)
-	private String priorityType;       // normal / emergency
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private PriorityType priorityType = PriorityType.NORMAL;
 	
 	@Column(name = "cali_type", nullable = false, length = 20)
 	private String caliType;           // standard / site

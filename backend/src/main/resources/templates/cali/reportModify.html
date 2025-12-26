@@ -21,18 +21,11 @@
                             <tr>
                                 <th>성적서 번호</th>
                                 <td>
-                                    <input type="hidden" class="form-control middleItemCodeId"
-                                        name="middleItemCodeId" />
-                                    <input type="hidden" class="form-control smallItemCodeId" name="smallItemCodeId" />
-                                    <input type="text" class="form-control" id="calbr_report_num"
-                                        name="calbr_report_num" disabled />
-                                    <input type="hidden" class="form-control" name="calibration_cycle"
-                                        id="calibration_cycle" />
+                                    <input type="text" class="form-control reportNum" name="reportNum" disabled />
                                 </td>
-                                <th>접수자</th>
+                                <th>관리번호</th>
                                 <td>
-                                    <input type="text" class="form-control" id="receipt_manager" name="receipt_manager"
-                                        disabled />
+                                    <input type="text" class="form-control manageNo" name="manageNo" disabled />
                                 </td>
                             </tr>
                             <tr>
@@ -40,34 +33,19 @@
                                 <td class="agent_flag_type text-left">
                                     <div class="ml-2">
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" id="" name="report_lang"
-                                                value="kr" checked>
-                                            <label class="form-check-label" for="report_lang_kr">국문</label>
+                                            <input class="form-check-input" type="radio" id="" name="reportLang"
+                                                value="KR" checked>
+                                            <label class="form-check-label" for="reportLangKr">국문</label>
                                         </div>
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" id="report_lang_en"
-                                                name="report_lang" value="en">
-                                            <label class="form-check-label" for="report_lang_en">영문</label>
+                                            <input class="form-check-input" type="radio" id="reportLangEn"
+                                                name="reportLang" value="EN">
+                                            <label class="form-check-label" for="reportLangEn">영문</label>
                                         </div>
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" id="report_lang_both"
-                                                name="report_lang" value="both">
-                                            <label class="form-check-label" for="report_lang_both">국문+영문</label>
-                                        </div>
-                                    </div>
-                                </td>
-                                <th>아일락 마크</th>
-                                <td class="text-left">
-                                    <div class="ml-2">
-                                        <div class="form-check form-check-inline mr-1">
-                                            <input class="form-check-input" type="radio" id="is_ilac" name="is_ilac"
-                                                value="y">
-                                            <label class="form-check-label" for="is_ilac">적용</label>
-                                        </div>
-                                        <div class="form-check form-check-inline mr-1">
-                                            <input class="form-check-input" type="radio" name="is_ilac" value="n"
-                                                checked>
-                                            <label class="form-check-label" for="is_ilac">미적용</label>
+                                            <input class="form-check-input" type="radio" id="reportLangBoth"
+                                                name="reportLang" value="BOTH">
+                                            <label class="form-check-label" for="reportLangBoth">국문+영문</label>
                                         </div>
                                     </div>
                                 </td>
@@ -75,19 +53,16 @@
                                 <td class="agent_flag_type text-left">
                                     <div class="ml-2">
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" id="priority_type"
-                                                name="priority_type" value="general" checked>
-                                            <label class="form-check-label" for="priority_type">일반</label>
+                                            <input class="form-check-input" type="radio" id="priorityTypeGe"
+                                                name="priorityType" value="general" checked>
+                                            <label class="form-check-label" for="priorityTypeGe">일반</label>
                                         </div>
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" id="priority_type"
-                                                name="priority_type" value="emergency">
-                                            <label class="form-check-label" for="priority_type">긴급</label>
+                                            <input class="form-check-input" type="radio" name="priorityType"
+                                                value="emergency" id="priorityTypeEm">
+                                            <label class="form-check-label" for="priorityTypeEm">긴급</label>
                                         </div>
                                     </div>
-                                </td>
-                                <th>관리번호</th>
-                                <td><input type="text" class="form-control" id="manage_no" name="manage_no" disabled />
                                 </td>
                             </tr>
                             <tr>
@@ -95,13 +70,13 @@
                                 <td class="text-left">
                                     <div class="ml-2">
                                         <div class="form-check form-check-inline mr-1">
-                                            <input class="form-check-input" type="radio" id="calbr_type"
-                                                name="calbr_type" value="standard" checked>
-                                            <label class="form-check-label" for="calbr_type">고정표준실</label>
+                                            <input class="form-check-input" type="radio" id="caliType100"
+                                                name="caliType200" value="STANDARD" checked>
+                                            <label class="form-check-label" for="caliType100">고정표준실</label>
                                         </div>
                                         <div class="form-check form-check-inline mr-1">
-                                            <input class="form-check-input" type="radio" name="calbr_type" value="site">
-                                            <label class="form-check-label" for="calbr_type">
+                                            <input class="form-check-input" type="radio" name="caliType200" value="SITE" id="caliType200">
+                                            <label class="form-check-label" for="caliType200">
                                             </label>
                                         </div>
                                     </div>
@@ -112,99 +87,50 @@
                                     <div class="ml-2">
                                         <div class="site_div d-none">
                                             <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio" id="rsi_type"
-                                                    name="calbr_take_type" value="site_calbr">
-                                                <label class="form-check-label" for="rsi_type">
+                                                <input class="form-check-input" type="radio" id="caliTakeType100"
+                                                    name="caliTakeType700" value="SITE_CALI">
+                                                <label class="form-check-label" for="caliTakeType100">현장교정
                                                 </label>
                                             </div>
                                             <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio" id="rsi_type"
-                                                    name="calbr_take_type" value="site_agcy">
-                                                <label class="form-check-label" for="rsi_type">
+                                                <input class="form-check-input" type="radio" id="caliTakeType200"
+                                                    name="caliTakeType700" value="SITE_AGCY">
+                                                <label class="form-check-label" for="caliTakeType200">현장대행
                                                 </label>
                                             </div>
                                         </div>
                                         <div class="standard_div d-none">
                                             <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio" id="rsi_type"
-                                                    name="calbr_take_type" value="send">
-                                                <label class="form-check-label" for="rsi_type">택배</label>
+                                                <input class="form-check-input" type="radio" id="caliTakeType300"
+                                                    name="caliTakeType700" value="SEND">
+                                                <label class="form-check-label" for="caliTakeType300">택배</label>
                                             </div>
                                             <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio" id="rsi_type"
-                                                    name="calbr_take_type" value="self" checked>
-                                                <label class="form-check-label" for="rsi_type">방문</label>
+                                                <input class="form-check-input" type="radio" id="caliTakeType400"
+                                                    name="caliTakeType700" value="SELF" checked>
+                                                <label class="form-check-label" for="caliTakeType400">방문</label>
                                             </div>
                                             <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio" id="rsi_type"
-                                                    name="calbr_take_type" value="site">
-                                                <label class="form-check-label" for="rsi_type">
+                                                <input class="form-check-input" type="radio" id="caliTakeType500"
+                                                    name="caliTakeType700" value="SITE">
+                                                <label class="form-check-label" for="caliTakeType500">
                                                 </label>
                                             </div>
                                             <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio" id="rsi_type"
-                                                    name="calbr_take_type" value="pickup">
-                                                <label class="form-check-label" for="rsi_type">
+                                                <input class="form-check-input" type="radio" id="caliTakeType600"
+                                                    name="caliTakeType700" value="PICKUP">
+                                                <label class="form-check-label" for="caliTakeType600">
                                                 </label>
                                             </div>
                                             <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio" id="rsi_type"
-                                                    name="calbr_take_type" value="etc">
-                                                <label class="form-check-label" for="rsi_type">기타</label>
+                                                <input class="form-check-input" type="radio" id="caliTakeType700"
+                                                    name="caliTakeType700" value="ETC">
+                                                <label class="form-check-label" for="caliTakeType700">기타</label>
                                             </div>
                                         </div>
                                     </div>
                                 </td>
                             </tr>
-                            <th>지점 구분</th>
-                            <td class="text-left" colspan="3">
-                                <div class="ml-2">
-                                    <!-- 고정표준실 -->
-                                    <div class="standard_div">
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" id="place_type10"
-                                                name="place_type" value="hq">
-                                            <label class="form-check-label" for="place_type10">본원</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" id="place_type20"
-                                                name="place_type" value="asan">
-                                            <label class="form-check-label" for="place_type20">
-                                            </label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" id="place_type30"
-                                                name="place_type" value="cheonan">
-                                            <label class="form-check-label" for="place_type30">
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <!-- 현장교정 -->
-                                    <div class="site_div d-none">
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" id="place_type40"
-                                                name="place_type" value="same">
-                                            <label class="form-check-label" for="place_type40">업체동일</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" id="place_type50"
-                                                name="place_type" value="move">
-                                            <label class="form-check-label" for="place_type50">이동</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <th>출장 시작일시</th>
-                            <td>
-                                <input type="datetime-local" class="form-control w-100" id="btrip_date"
-                                    name="btrip_date" readonly />
-                            </td>
-                            <th>출장 종료일시</th>
-                            <td>
-                                <input type="datetime-local" class="form-control w-100" id="btrip_end_date"
-                                    name="btrip_end_date" readonly />
-
-                            </td>
                             <tr>
                                 <th>교정일</th>
                                 <td>
@@ -215,9 +141,6 @@
                                         </div>
                                     </div>
                                 </td>
-                                <th>완료예정일</th>
-                                <td><input type="date" class="form-control" id="calbr_complete_date"
-                                        name="calbr_complete_date" /></td>
                             </tr>
                             <tr>
                                 <th>신청업체</th>
@@ -322,7 +245,7 @@
                 <!-- <div class="col-md pl-1 py-0 pr-0 scroll scroll-y" style="min-height: 773px; max-height: 773px;"> -->
                 <!-- <div class="col-md pl-1 py-0 pr-0 scroll scroll-y" style="min-height: 748px; max-height: 748px; overflow-y: scroll;"> -->
                 <div class="col-md pl-1 py-0 pr-0 scroll scroll-y"
-                    style='min-height: 748px; max-height: 748px; overflow-y: scroll;'>
+                    style="min-height: 748px; max-height: 748px; overflow-y: scroll;">
                     <table class="table table-bordered text-center mb-0 ">
                         <colgroup>
                             <col width="100px" />
@@ -364,66 +287,6 @@
                                 <td><input type="text" class="form-control" id="report_agent_manager_tel"
                                         name="rsi_manager_tel" readonly /></td>
                             </tr>
-                            <!-- 한국교정기술원의 경우, 교정장소를 표시 -->
-                            <tr>
-                                <th>교정 지점</th>
-                                <td class="text-left">
-                                    <div class="ml-2">
-                                        <!-- 본원 -->
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" id="cali_point10"
-                                                name="cali_point" value="hq" checked>
-                                            <label class="form-check-label" for="cali_point10">본원</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" id="cali_point20"
-                                                name="cali_point" value="asan">
-                                            <label class="form-check-label" for="cali_point20">
-                                            </label>
-                                        </div>
-                                    </div>
-                                </td>
-                                <th>교정센터</th>
-                                <td class="text-left">
-                                    <div class="ml-2">
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" id="cali_point10"
-                                                name="cali_point" value="test" disabled>
-                                            <label class="form-check-label" for="cali_point10">가-시험센터</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" id="cali_point20"
-                                                name="cali_point" value="cali" disabled>
-                                            <label class="form-check-label" for="cali_point20">나-정도센터</label>
-                                        </div>
-                                    </div>
-                                </td>
-                                <th>교정장소</th>
-                                <td>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="cali_address" name="cali_address" />
-                                        <input type="hidden" class="form-control" id="cali_address_en"
-                                            name="cali_address_en" />
-                                        <div class="input-group-append">
-                                            <button type="button"
-                                                class="btn btn-info w-100 rounded-0 map_road_view roadview_div"
-                                                data-target="#<?= $modal_id ?> #cali_address" data-title="교정장소"><i
-                                                    class="bi bi-pin-map"></i></button>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>접수 요청사항</th>
-                                <td colspan="3"><textarea class="form-control" style="height:45px !important"
-                                        id="rsi_remark" name='rsi_remark' rows='3' readonly></textarea></td>
-                            </tr>
-                            <tr>
-                                <input type='hidden' name='delete_ids' value>
-                                <td colspan="4" id='eq_list'></td>
-                            </tr>
-                            <!-- 자인을 제외한 대영부터는 환경정보가 보이도록 한다. -->
-                            <!-- 방사선도 환경정보 보이지 않도록 함 -->
                             <tr>
                                 <th colspan="4">환경정보</th>
                             </tr>
@@ -472,3 +335,5 @@
 
     </div>
 </body>
+
+</html>

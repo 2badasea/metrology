@@ -1,7 +1,6 @@
 package com.bada.cali.service;
 
 import com.bada.cali.common.ResMessage;
-import com.bada.cali.common.Utils;
 import com.bada.cali.common.enums.*;
 import com.bada.cali.dto.ReportDTO;
 import com.bada.cali.dto.TuiGridDTO;
@@ -27,9 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Log4j2

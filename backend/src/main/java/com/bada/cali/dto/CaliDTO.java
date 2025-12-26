@@ -1,6 +1,7 @@
 package com.bada.cali.dto;
 
 import com.bada.cali.common.enums.CalibrationCycleType;
+import com.bada.cali.common.enums.PriorityType;
 import com.bada.cali.common.enums.ReportLang;
 import com.bada.cali.common.enums.YnType;
 import lombok.Getter;
@@ -41,7 +42,7 @@ public class CaliDTO {
 		
 		// 리스트에 명시적으로 표현되는 데이터
 		private Long id;                        // 접수id
-		private String priorityType;            // 긴급여부
+		private PriorityType priorityType;            // 긴급여부
 		private String orderType;                // 접수구분 (공인/비공인/시험 등)
 		private String caliType;                // 교정유형 (고정표준실/ 현장교정)
 		private String orderNum;                // 접수번호
@@ -97,7 +98,7 @@ public class CaliDTO {
 		private YnType isTax;                    // 세금계산서 발행여부
 		private String orderDate;                // 접수일
 		private Long orderManagerId;            // 접수자
-		private String priorityType;            // 긴급여부
+		private PriorityType priorityType;            // 긴급여부
 		private String remark;                    // 요청사항
 		private String reportAgent;                // 성적서발행처
 		private String reportAgentAddr;            // 성적서발행처 주소
