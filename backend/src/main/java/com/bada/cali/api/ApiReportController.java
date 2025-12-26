@@ -28,7 +28,7 @@ public class ApiReportController {
 	@PostMapping(value = "/addReport")
 	public ResponseEntity<ResMessage<?>> addReport(
 			@RequestBody List<ReportDTO.addReportReq> reports,
-			@RequestParam Long caliOrderId,		// 쿼리스트링으로 넘어오는 접수 id
+			@RequestParam Long caliOrderId,        // 쿼리스트링으로 넘어오는 접수 id
 			@AuthenticationPrincipal CustomUserDetails user) {
 		
 		Boolean resSave = reportService.addReport(reports, caliOrderId, user);
@@ -48,6 +48,29 @@ public class ApiReportController {
 		TuiGridDTO.Res<TuiGridDTO.ResData<OrderDetailsList>> body = new TuiGridDTO.Res<>(true, reportGridData);
 		
 		return ResponseEntity.ok(body);
+	}
+	
+	// 삭제 대상 성적서들이 삭제에 문제가 없는지 판단
+	@PostMapping(value = "/isValidDelete")
+	public ResponseEntity<ResMessage<?>> isValidDelete(
+			@RequestBody ReportDTO.ValidateDeleteReq validateDeleteReq
+	) {
+		log.info("삭제 검증 api 도착");
+		ResMessage<?> resMessage = reportService.isValidDelete(validateDeleteReq);
+		
+		return ResponseEntity.ok(resMessage);
+	}
+	
+	// 성적서 삭제 시키기
+	@DeleteMapping(value = "/deleteReport")
+	public ResponseEntity<ResMessage<?>> deleteReport(
+			@RequestBody ReportDTO.DeleteReportReq deleteReportReq,
+			@AuthenticationPrincipal CustomUserDetails user) {
+		
+		log.info("성적서 삭제요청 api 호출");
+		ResMessage<?> resMessage = reportService.deleteReport(deleteReportReq, user);
+		
+		return ResponseEntity.ok(resMessage);
 	}
 	
 	

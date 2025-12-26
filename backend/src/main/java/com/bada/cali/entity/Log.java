@@ -41,7 +41,7 @@ public class Log {
 	@Column(name = "ref_table", length = 50)
 	private String refTable;
 	
-	// 참조 테이블 idx
+	// 참조 테이블 id (DB에선 해당 필드에 NULL을 허용한다)
 	@Column(name = "ref_table_id", nullable = true, columnDefinition = "INT UNSIGNED DEFAULT 0")
 	@Builder.Default	// 명시하지 않으면 builder 객체 사용 시, 값을 주지 않을 경우 에러가 발생 (NOT NLL 제약조건)
 	private Long refTableId = 0L;

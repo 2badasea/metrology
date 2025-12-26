@@ -21,7 +21,6 @@ $(function () {
 
 		let gridBodyHeight = Math.floor($modal.find('.caliOrderModifyForm').height() - 145);
 
-		// 업체id로 초기화 하기(수정)
 		if ($modal.param?.id > 0) {
 			// 옵셔널체이닝으로 체크
 			caliOrderId = Number($modal.param.id);
@@ -174,10 +173,10 @@ $(function () {
 					$('input[name=custManager]', $modal).val(searchAgentInfo.managerName);
 					$('input[name=custManagerTel]', $modal).val(searchAgentInfo.managerTel);
 					$('input[name=custManagerEmail]', $modal).val(searchAgentInfo.managerEmail);
-					if (searchAgentInfo.calibrationCycle == 'self_cycle') {
-						$('input[name=custAgentCaliCycle]').val('self_cycle');
+					if (searchAgentInfo.calibrationCycle == 'SELF_CYCLE') {
+						$('input[name=custAgentCaliCycle]').val('SELF_CYCLE');
 					} else {
-						$('input[name=custAgentCaliCycle]').val('next_cycle');
+						$('input[name=custAgentCaliCycle]').val('NEXT_CYCLE');
 					}
 					// 신청업체명 readonly
 					$('input[name=custAgent]', $modal).prop('readonly', true);

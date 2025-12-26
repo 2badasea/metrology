@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <div layout:fragment="content">
+        <form id="report_modify_form">
+            <div class="row m-0">
+                <div class="col-md p-0">
+                    <table class="table table-bordered text-center mb-0">
+                        <colgroup>
+                            <col width="100px" />
+                            <col width="300px" />
+                            <col width="100px" />
+                            <col width="310px" />
+                        </colgroup>
+                        <tbody>
+                            <tr class="input_kr">
+                                <th colspan="4">기본정보</th>
+                            </tr>
+                            <tr>
+                                <th>성적서 번호</th>
+                                <td>
+                                    <input type="text" class="form-control reportNum" name="reportNum" disabled />
+                                </td>
+                                <th>관리번호</th>
+                                <td>
+                                    <input type="text" class="form-control manageNo" name="manageNo" disabled />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>성적서 발행</th>
+                                <td class="agent_flag_type text-left">
+                                    <div class="ml-2">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" id="" name="reportLang"
+                                                value="KR" checked>
+                                            <label class="form-check-label" for="reportLangKr">국문</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" id="reportLangEn"
+                                                name="reportLang" value="EN">
+                                            <label class="form-check-label" for="reportLangEn">영문</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" id="reportLangBoth"
+                                                name="reportLang" value="BOTH">
+                                            <label class="form-check-label" for="reportLangBoth">국문+영문</label>
+                                        </div>
+                                    </div>
+                                </td>
+                                <th>긴급 여부</th>
+                                <td class="agent_flag_type text-left">
+                                    <div class="ml-2">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" id="priorityTypeGe"
+                                                name="priorityType" value="general" checked>
+                                            <label class="form-check-label" for="priorityTypeGe">일반</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="priorityType"
+                                                value="emergency" id="priorityTypeEm">
+                                            <label class="form-check-label" for="priorityTypeEm">긴급</label>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>구분</th>
+                                <td class="text-left">
+                                    <div class="ml-2">
+                                        <div class="form-check form-check-inline mr-1">
+                                            <input class="form-check-input" type="radio" id="caliType100"
+                                                name="caliType200" value="STANDARD" checked>
+                                            <label class="form-check-label" for="caliType100">고정표준실</label>
+                                        </div>
+                                        <div class="form-check form-check-inline mr-1">
+                                            <input class="form-check-input" type="radio" name="caliType200" value="SITE" id="caliType200">
+                                            <label class="form-check-label" for="caliType200">
+                                            </label>
+                                        </div>
+                                    </div>
+                                </td>
+                                <th>
+                                </th>
+                                <td class="text-left">
+                                    <div class="ml-2">
+                                        <div class="site_div d-none">
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" id="caliTakeType100"
+                                                    name="caliTakeType700" value="SITE_CALI">
+                                                <label class="form-check-label" for="caliTakeType100">현장교정
+                                                </label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" id="caliTakeType200"
+                                                    name="caliTakeType700" value="SITE_AGCY">
+                                                <label class="form-check-label" for="caliTakeType200">현장대행
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="standard_div d-none">
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" id="caliTakeType300"
+                                                    name="caliTakeType700" value="SEND">
+                                                <label class="form-check-label" for="caliTakeType300">택배</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" id="caliTakeType400"
+                                                    name="caliTakeType700" value="SELF" checked>
+                                                <label class="form-check-label" for="caliTakeType400">방문</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" id="caliTakeType500"
+                                                    name="caliTakeType700" value="SITE">
+                                                <label class="form-check-label" for="caliTakeType500">
+                                                </label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" id="caliTakeType600"
+                                                    name="caliTakeType700" value="PICKUP">
+                                                <label class="form-check-label" for="caliTakeType600">
+                                                </label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" id="caliTakeType700"
+                                                    name="caliTakeType700" value="ETC">
+                                                <label class="form-check-label" for="caliTakeType700">기타</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>교정일</th>
+                                <td>
+                                    <div class="input-group">
+                                        <input type="date" class="form-control" id="calbr_date" name="calbr_date" />
+                                        <div class="input-group-append">
+                                            <button class="btn btn-secondary set_today_date" type="button">오늘</button>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>신청업체</th>
+                                <td class="text-left">
+                                    <input type="text" class="form-control" id="cust_agent" name="cust_agent"
+                                        disabled />
+                                </td>
+                                <th>소분류</th>
+                                <td>
+                                    <select class="item_small_code_idx form-control select2" name="item_small_code_idx">
+                                        <option value="0">선택하세요</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>신청업체 주소</th>
+                                <td colspan="3">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="cust_agent_addr"
+                                            name="cust_agent_addr" disabled />
+                                        <div class="input-group-append">
+                                            <button type="button"
+                                                class="btn btn-info w-100 rounded-0 map_road_view roadview_div"
+                                                data-title="신청업체"><i class="bi bi-pin-map"></i></button>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>신청업체 담당자</th>
+                                <td class="text-left">
+                                    <input type="text" class="form-control cust_manager" name="cust_manager" disabled />
+                                </td>
+                                <th>담당자 연락처</th>
+                                <td class="text-left">
+                                    <input type="text" class="form-control cust_manager_tel" name="cust_manager_tel"
+                                        disabled />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>실무자</th>
+                                <td class="text-left">
+                                    <select class="member_list form-control select2" id="work_member_idx"
+                                        name="work_member_idx">
+                                        <option value="0">선택하세요.</option>
+                                    </select>
+                                </td>
+                                <th class="approve_row">
+                                </th>
+                                <td class="text-left approve_row">
+                                    <select class="member_list form-control select2" id="approv_member_idx"
+                                        name="approv_member_idx">
+                                        <option value="0">선택하세요.</option>
+                                    </select>
+                                </td>
+                            </tr>
+
+                            <tr class="">
+                                <th colspan="3" class="border-0">
+                                    <p class="float-left pl-3">표준장비 리스트 <span id="equip_cnt"></span></p>
+                                </th>
+                                <th class="border-0">
+                                    <button class="btn btn-secondary float-right search_equip" data-type=""
+                                        type="button">조회</button>
+                                </th>
+                            </tr>
+                            <tr class="">
+                                <td colspan="4">
+                                    <input type='hidden' id="delete_idx" name="delete_idx">
+                                    <div class="equipageList"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th rowspan="3">소급성</th>
+                                <td colspan="3"><input type="text" class="form-control" id="retro_active"
+                                        name="retro_active" /></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3"><input type="text" class="form-control" id="retro_active2"
+                                        name="retro_active2" /></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3"><input type="text" class="form-control" id="retro_active3"
+                                        name="retro_active3" /></td>
+                            </tr>
+                            <tr>
+                                <th rowspan="3">소급성(영문)</th>
+                                <td colspan="3"><input type="text" class="form-control" id="retro_active_en"
+                                        name="retro_active_en" /></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3"><input type="text" class="form-control" id="retro_active_en2"
+                                        name="retro_active_en2" /></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3"><input type="text" class="form-control" id="retro_active_en3"
+                                        name="retro_active_en3" /></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- <div class="col-md pl-1 py-0 pr-0 scroll scroll-y" style="min-height: 773px; max-height: 773px;"> -->
+                <!-- <div class="col-md pl-1 py-0 pr-0 scroll scroll-y" style="min-height: 748px; max-height: 748px; overflow-y: scroll;"> -->
+                <div class="col-md pl-1 py-0 pr-0 scroll scroll-y"
+                    style="min-height: 748px; max-height: 748px; overflow-y: scroll;">
+                    <table class="table table-bordered text-center mb-0 ">
+                        <colgroup>
+                            <col width="100px" />
+                            <col width="300px" />
+                            <col width="100px" />
+                            <col width="300px" />
+                        </colgroup>
+                        <tbody>
+                            <tr class="input_kr">
+                                <th colspan="4">성적서발행처 정보</th>
+                            </tr>
+                            <tr>
+                                <th>성적서발행처</th>
+                                <td><input type="text" class="form-control" id="report_agent" name="report_agent"
+                                        readonly /></td>
+                                <th>성적서발행처(영문)</th>
+                                <td><input type="text" class="form-control" id="report_agent_en" name="report_agent_en"
+                                        readonly /></td>
+                            </tr>
+                            <tr>
+                                <th>성적서발행처 주소</th>
+                                <td colspan="3">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="report_agent_addr"
+                                            name="report_agent_addr" readonly />
+                                        <div class="input-group-append">
+                                            <button type="button"
+                                                class="btn btn-info w-100 rounded-0 map_road_view roadview_div"
+                                                data-title="성적서발행처"><i class="bi bi-pin-map"></i></button>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>성적서발행처 담당자</th>
+                                <td><input type="text" class="form-control" id="report_agent_manager" name="rsi_manager"
+                                        readonly /></td>
+                                <th>담당자 연락처</th>
+                                <td><input type="text" class="form-control" id="report_agent_manager_tel"
+                                        name="rsi_manager_tel" readonly /></td>
+                            </tr>
+                            <tr>
+                                <th colspan="4">환경정보</th>
+                            </tr>
+                            <tr>
+                                <th>온도 (°C)</th>
+                                <td>
+                                    <div class="input-group">
+                                        <div class="input-group-append text-center">
+                                            <span class="input-group-text rounded-0">최저</span>
+                                        </div>
+                                        <input type="text" class="form-control input_temp" name="temp_low">
+                                        <div class="input-group-append text-center">
+                                            <span class="input-group-text rounded-0">최고</span>
+                                        </div>
+                                        <input type="text" class="form-control input_temp" name="temp_high">
+                                    </div>
+                                </td>
+                                <th>습도 (%R.H.)</th>
+                                <td>
+                                    <div class="input-group">
+                                        <div class="input-group-append text-center">
+                                            <span class="input-group-text rounded-0">최저</span>
+                                        </div>
+                                        <input type="text" class="form-control input_temp" name="rh_low">
+                                        <div class="input-group-append text-center">
+                                            <span class="input-group-text rounded-0">최고</span>
+                                        </div>
+                                        <input type="text" class="form-control input_temp" name="rh_high">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th colspan="4">비고</th>
+                            </tr>
+                            <tr>
+                                <td colspan="4">
+                                    <textarea class="form-control" id="calbr_report_remark" name="calbr_report_remark"
+                                        rows=""></textarea>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+
+    </div>
+</body>
+
+</html>

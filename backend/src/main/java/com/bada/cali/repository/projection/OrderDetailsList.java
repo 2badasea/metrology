@@ -1,5 +1,6 @@
 package com.bada.cali.repository.projection;
 
+import com.bada.cali.common.enums.AppStatus;
 import com.bada.cali.common.enums.OrderType;
 import com.bada.cali.common.enums.ReportStatus;
 import com.bada.cali.common.enums.ReportType;
@@ -44,4 +45,8 @@ public interface OrderDetailsList {
 	LocalDateTime getApprovalDatetime(); // 기술책임자 결재일시
 	
 	LocalDateTime getWorkDatetime();     // 실무자 결재일시
+	
+	AppStatus getWorkStatus();		// 실무자 결재상태
+	
+	AppStatus getApprovalStatus();	// 기술책임자 결재상태
 }
