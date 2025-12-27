@@ -38,6 +38,13 @@ public class ReportServiceImpl {
 	private final LogRepository logRepository;
 	private final ReportMapper reportMapper;
 	
+	/**
+	 * 성적서 등록
+	 * @param reports
+	 * @param caliOrderId
+	 * @param user
+	 * @return
+	 */
 	@Transactional
 	public Boolean addReport(List<ReportDTO.addReportReq> reports, Long caliOrderId, CustomUserDetails user) {
 		LocalDateTime now = LocalDateTime.now();
@@ -50,6 +57,9 @@ public class ReportServiceImpl {
 		ReportLang orderReportLang = orderInfo.getReportLang();    // 접수의 발행타입(KR, EN, BOTH)
 		String orderNum = orderInfo.getOrderNum();        // 접수번호
 		int orderYear = orderInfo.getOrderDate().getYear();    // 접수일 연도 (관리번호 조회용)
+		PriorityType priorityType = orderInfo.getPriorityType();
+		CaliType caliType = orderInfo.getCaliType();
+		CaliTakeType caliTakeType = orderInfo.getCaliTakeType();
 		
 		// 접수구분별 성적서번호 enumMap
 		Map<OrderType, Integer> nextReportNums = new EnumMap<>(OrderType.class);
@@ -129,6 +139,9 @@ public class ReportServiceImpl {
 			reportEntity.setReportLang(orderReportLang);    // 발행타입은 기본적으로 접수를 따라간다
 			reportEntity.setItemCaliCycle(itemCaliCycle);        // 교정주기
 			reportEntity.setIsVisible(YnType.y);
+			reportEntity.setPriorityType(priorityType);		// 긴급여부(접수정보)
+			reportEntity.setCaliType(caliType);				// 접수유형(접수정보)
+			reportEntity.setCaliTakeType(caliTakeType);		// 접수상세유형(접수정보)
 			
 			// 저장
 			Report savedReport = reportRepository.save(reportEntity);

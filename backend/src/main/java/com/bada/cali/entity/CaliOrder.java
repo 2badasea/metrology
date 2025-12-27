@@ -64,8 +64,9 @@ public class CaliOrder {
 	
 	// ! 접수구분을 성적서 단위에서 구분할 수 있도록 정책 변경 (일단 기본값 명시)
 	@Column(name = "order_type", nullable = false, length = 50)
+	@Enumerated(EnumType.STRING)
 	@Builder.Default
-	private String orderType = "accredited";    // accredited(공인)/ non_accredited(비공인)/ testing(시험)
+	private OrderType orderType = OrderType.ACCREDDIT;    // accredited(공인)/ non_accredited(비공인)/ testing(시험)
 	
 	// 긴급여부 (일반 NORMAL 이 기본값)
 	@Column(name = "priority_type", nullable = false, length = 20)
@@ -73,11 +74,15 @@ public class CaliOrder {
 	@Builder.Default
 	private PriorityType priorityType = PriorityType.NORMAL;
 	
-	@Column(name = "cali_type", nullable = false, length = 20)
-	private String caliType;           // standard / site
+	@Column(name = "cali_type", nullable = false, length = 50)
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private CaliType caliType = CaliType.STANDARD;	// 기본값으로 고정표준실
 	
-	@Column(name = "cali_take_type", nullable = false, length = 20)
-	private String caliTakeType;       // send / self / site / pickup
+	@Column(name = "cali_take_type", nullable = false, length = 50)
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private CaliTakeType caliTakeType = CaliTakeType.SELF;	// 방문(SELF)가 기본값
 	
 	@Column(name = "cust_agent_cali_cycle", nullable = false, length = 20)
 	@Enumerated(EnumType.STRING)

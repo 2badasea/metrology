@@ -1,5 +1,6 @@
 package com.bada.cali.repository;
 
+import com.bada.cali.common.enums.CaliType;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.entity.CaliOrder;
 import org.springframework.data.domain.Page;
@@ -49,7 +50,7 @@ public interface CaliOrderRepository extends JpaRepository<CaliOrder, Long> {
 			@Param("startDate") LocalDate startDate,
 			@Param("endDate") LocalDate endDate,
 			@Param("isTax") YnType isTax,
-			@Param("caliType") String caliType,
+			@Param("caliType") CaliType caliType,
 			@Param("statusType") String statusType,
 			@Param("searchType") String searchType,
 			@Param("keyword") String keyword,

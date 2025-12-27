@@ -1,5 +1,6 @@
 package com.bada.cali.service;
 
+import com.bada.cali.common.enums.CaliType;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.CaliDTO;
 import com.bada.cali.dto.TuiGridDTO;
@@ -71,12 +72,16 @@ public class CaliOrderServiceImpl {
 		}
 		
 		// 교정유형
-		String caliType = request.getCaliType();
-		caliType = switch (caliType) {
-			case "" -> null;               // 빈 값으로 넘어온 경우 null 취급 -> 쿼리에서 jpql에서 where절 생성 방지
-			case "standard", "site" -> caliType;
-			default -> null;
-		};
+		CaliType caliType = request.getCaliType();
+		// null이면(= "전체"를 null로 내려보낸 경우) 그대로 null -> where절 조건 제외
+		if (caliType == null) {
+			// 리파지토리에 null그대로 전달
+		} else {
+			caliType = switch (caliType) {
+				case STANDARD, SITE -> caliType;
+				default -> null;		// 혹시 그외 값들이 넘어오더라도 모두 null로 처리
+			};
+		}
 		
 		// 진행상태
 		String statusType = request.getStatusType();
