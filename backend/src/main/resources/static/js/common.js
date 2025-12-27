@@ -34,6 +34,11 @@ $(function () {
 		const menuPath = parentMenuName != '' ? `${parentMenuName} > ${childMenuName}` : childMenuName;
 		$('.topbar-inner .customBreadcrumb').text(menuPath);
 	}
+
+	// 페이지렌더링 이후 comma가 명시된 요소들에 대해 콤마(,) 처리
+	$('input.comma').each(function (idx, item) {
+		$(item).val(comma($(item).val()));
+	});
 })
 	// 0이상의 정수만 입력 가능
 	.on('input', 'input.number_integer', function () {
@@ -1431,4 +1436,25 @@ function number_format(value) {
 	} else {
 		return value;
 	}
+}
+
+function comma(str) {
+	try {
+		if (str == '') {
+			return;
+		}
+		str = String(str);
+		var i = parseInt(str);
+		var str1 = ('' + Math.abs(i)).replace(/(\d)(?=(?:\d{3})+(?!\d))/g, '$1,');
+		if (0 > i) {
+			str1 = '-' + str1;
+		}
+		if ('NaN' == str1) {
+			str1 = 0;
+		}
+
+		// console.log(`comma str: ${str}, ${str1}`);
+		return str1;
+	} catch (ex) {}
+	return str;
 }

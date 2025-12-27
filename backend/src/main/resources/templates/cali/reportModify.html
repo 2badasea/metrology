@@ -4,7 +4,7 @@
 
 <body>
     <div layout:fragment="content">
-        <form id="report_modify_form">
+        <form class="reportModifyForm">
             <div class="row m-0">
                 <div class="col-md p-0">
                     <table class="table table-bordered text-center mb-0">
@@ -93,11 +93,11 @@
                                     <div class="ml-2">
                                         <div class="form-check form-check-inline mr-1">
                                             <input class="form-check-input" type="radio" id="caliType100"
-                                                name="caliType200" value="STANDARD" checked>
+                                                name="caliType" value="STANDARD" checked>
                                             <label class="form-check-label" for="caliType100">고정표준실</label>
                                         </div>
                                         <div class="form-check form-check-inline mr-1">
-                                            <input class="form-check-input" type="radio" name="caliType200" value="SITE"
+                                            <input class="form-check-input" type="radio" name="caliType" value="SITE"
                                                 id="caliType200">
                                             <label class="form-check-label" for="caliType200">현장교정
                                             </label>
@@ -111,13 +111,13 @@
                                         <div class="siteDiv">
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input" type="radio" id="caliTakeType100"
-                                                    name="caliTakeType700" value="SITE_CALI">
+                                                    name="caliTakeType" value="SITE_SELF">
                                                 <label class="form-check-label" for="caliTakeType100">현장교정
                                                 </label>
                                             </div>
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input" type="radio" id="caliTakeType200"
-                                                    name="caliTakeType700" value="SITE_AGCY">
+                                                    name="caliTakeType" value="SITE_AGCY">
                                                 <label class="form-check-label" for="caliTakeType200">현장대행
                                                 </label>
                                             </div>
@@ -344,17 +344,17 @@
                                                         value="" />
                                                 </td>
                                                 <th>기기번호</th>
-                                                <td><input type="text" class="form-control itemFormat" name="itemFormat"
+                                                <td><input type="text" class="form-control itemNum" name="itemNum"
                                                         value="" /></td>
                                             </tr>
                                             <tr>
                                                 <th>교정수수료</th>
                                                 <td><input type="text"
-                                                        class="form-control text-right pr-1 comma caliFee"
+                                                        class="form-control text-right pr-1  caliFee comma number_integer"
                                                         maxlength="20" name="caliFee" value="" /></td>
                                                 <th>추가금액</th>
                                                 <td><input type="text"
-                                                        class="form-control text-right pr-1 comma additionalFee"
+                                                        class="form-control text-right pr-1  additionalFee comma number_integer"
                                                         name="additionalFee" value="" />
                                                 </td>
                                             </tr>
