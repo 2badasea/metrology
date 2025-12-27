@@ -4,6 +4,7 @@ import com.bada.cali.common.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 // NOTE DDL 자동생성(ddl-auto) 기능은 꺼져있지만, 문서/메타데이터 역할을 위해 명시
@@ -34,6 +35,12 @@ public class Report {
 	@Column(name = "cali_order_id", nullable = false)
 	private Long caliOrderId;
 	
+	// 긴급여부 (일반 NORMAL 이 기본값)
+	@Column(name = "priority_type", nullable = false, length = 20)
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private PriorityType priorityType = PriorityType.NORMAL;
+	
 	// 성적서번호 (NULL을 허용한다. 자식성적서는 성적서번호가 부모를 따라감)
 	@Column(name = "report_num", length = 200)
 	private String reportNum;
@@ -50,6 +57,10 @@ public class Report {
 	@Column(name = "es_sub_id")
 	private Long esSubId;
 	
+	// 교정일자
+	@Column(name = "cali_date")
+	private LocalDate caliDate;
+	
 	// 교정주기
 	@Column(name = "item_cali_cycle", nullable = false)
 	private Integer itemCaliCycle;
@@ -58,11 +69,11 @@ public class Report {
 	@Column(name = "report_status", nullable = false, length = 50)
 	@Enumerated(EnumType.STRING)
 	@Builder.Default
-	private ReportStatus reportStatus = ReportStatus.WAIT;	// 기본: 대기
+	private ReportStatus reportStatus = ReportStatus.WAIT;    // 기본: 대기
 	
 	// 취소, 불가, 반려 사유
 	@Column(name = "status_remark")
-	private String statusRemark;		// 기본값은 NULL
+	private String statusRemark;        // 기본값은 NULL
 	
 	// 성적서 타입 (자체/ 대행)
 	@Column(name = "report_type", nullable = false, length = 20)
@@ -74,7 +85,7 @@ public class Report {
 	@Column(name = "order_type", nullable = false, length = 10)
 	@Enumerated(EnumType.STRING)
 	@Builder.Default
-	private OrderType orderType = OrderType.ACCREDDIT;	// 기본적으로 공인 부여
+	private OrderType orderType = OrderType.ACCREDDIT;    // 기본적으로 공인 부여
 	
 	// 문서타입 기본적으로 ISO
 	@Column(name = "doc_type", nullable = false, length = 10)
@@ -86,7 +97,17 @@ public class Report {
 	@Column(name = "report_lang", nullable = false, length = 10)
 	@Enumerated(EnumType.STRING)
 	@Builder.Default
-	private ReportLang reportLang = ReportLang.KR;         // kr / en / both
+	private ReportLang reportLang = ReportLang.KR;         // KR / EN / BOTH
+	
+	@Column(name = "cali_type", nullable = false, length = 50)
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private CaliType caliType = CaliType.STANDARD;    // 기본값으로 고정표준실
+	
+	@Column(name = "cali_take_type", nullable = false, length = 50)
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private CaliTakeType caliTakeType = CaliTakeType.SELF;    // 방문(SELF)가 기본값
 	
 	// 품목 고유 id (null 가능)
 	@Column(name = "item_id")
@@ -95,6 +116,10 @@ public class Report {
 	// 품목명
 	@Column(name = "item_name", nullable = false, length = 200)
 	private String itemName;
+	
+	// 품목명 (영문)
+	@Column(name = "item_name_en", length = 200)
+	private String itemNameEn;
 	
 	// 품목 형식
 	@Column(name = "item_format", length = 200)
@@ -108,9 +133,22 @@ public class Report {
 	@Column(name = "item_make_agent", length = 200)
 	private String itemMakeAgent;
 	
+	// 제작회사 (영문)
+	@Column(name = "item_make_agent_en", length = 200)
+	private String itemMakeAgentEn;
+	
 	// 교정수수료
 	@Column(name = "cali_fee", nullable = false)
-	private Long caliFee = 0L;		// null 허용
+	private Long caliFee = 0L;        // null 허용
+	
+	// 추가금액
+	@Column(name = "additional_fee", nullable = false)
+	private Long additionalFee = 0L;        // null 허용
+	
+	// 추가금액사유
+	@Column(name = "additional_fee_cause", length = 250)
+	private String additionalFeeCause;
+	
 	
 	// 관리번호
 	@Column(name = "manage_no", length = 50)
@@ -124,10 +162,18 @@ public class Report {
 	@Column(name = "small_item_code_id")
 	private Long smallItemCodeId;
 	
-	// 비고/요청사항
-	@Column(name = "remark", columnDefinition = "LONGTEXT")
-	@Lob	// JPA에게 “이 필드는 일반적인 VARCHAR 같은 짧은 문자열/바이너리가 아니라, 대용량(Large Object) 으로 저장하라” 알림
+	// 환경정보 (json형태로 DB에 값을 보관한다)
+	@Column(name = "environment_info", columnDefinition = "json")
+	private String environmentInfo;
+	
+	// 비고/품목비고
+	@Column(name = "remark", length = 250)
 	private String remark;
+	
+	// 요청사항
+	@Column(name = "request", columnDefinition = "LONGTEXT")
+	@Lob
+	private String request;
 	
 	// 작성자 고유 id
 	@Column(name = "write_member_id")
@@ -149,7 +195,7 @@ public class Report {
 	@Column(name = "work_status", nullable = false)
 	@Enumerated(EnumType.STRING)
 	@Builder.Default
-	private AppStatus workStatus = AppStatus.IDLE;	// 기본 대기 상태
+	private AppStatus workStatus = AppStatus.IDLE;    // 기본 대기 상태
 	
 	// 기술책임자 id
 	@Column(name = "approval_member_id")
@@ -163,7 +209,7 @@ public class Report {
 	@Column(name = "approval_status", nullable = false)
 	@Enumerated(EnumType.STRING)
 	@Builder.Default
-	private AppStatus approvalStatus = AppStatus.IDLE;	// 기본 대기 상태
+	private AppStatus approvalStatus = AppStatus.IDLE;    // 기본 대기 상태
 	
 	
 	// 삭제유무
@@ -185,10 +231,15 @@ public class Report {
 	private LocalDateTime createDatetime;  // 생성일시
 	
 	// insertable = false, updatable = false 명시를 통해 읽기 전용으로 선언. insert/update 시 hibernate가 이 컬럼을 절대로 건드리지 않음
-	@Column(name = "update_datetime" , insertable = false, updatable = false)
+	@Column(name = "update_datetime", insertable = false, updatable = false)
 	private LocalDateTime updateDatetime;  // 수정일시 (nullable)
 	
 	@Column(name = "delete_datetime")
 	private LocalDateTime deleteDatetime;  // 삭제일시 (nullable)
+	
+	// 교정접수 테이블과의 연관관계 정의
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "cali_order_id", insertable = false, updatable = false)
+	private CaliOrder caliOrder;
 	
 }

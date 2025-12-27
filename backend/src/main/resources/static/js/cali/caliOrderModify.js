@@ -193,7 +193,7 @@ $(function () {
 					$('input[name=reportManagerTel]', $modal).val(searchAgentInfo.managerTel);
 					$('input[name=reportManagerEmail]', $modal).val(searchAgentInfo.managerEmail);
 					// 교정유형이 '현장교정(site)'인 경우, 성적서발행처 주소와 동일하게 소재지 주소 삽입
-					if ($('input[name=caliType]:checked', $modal).val() == 'site') {
+					if ($('input[name=caliType]:checked', $modal).val() == 'SITE') {
 						$('input[name=siteAddr]', $modal).val(searchAgentInfo.addr);
 						$('input[name=siteAddrEn]', $modal).val(searchAgentInfo.addrEn);
 					}
@@ -288,7 +288,7 @@ $(function () {
 			const resPost = await sample4_execDaumPostcode((zipCode = ''), (addr = addrClass), (addrEn = addrEnClass));
 			// 성적서발행처 주소의 경우, 교정유형이 '현장교정'인 경우, 소재지주소에도 할당
 			const caliType = $('input[name=caliType]:checked', $modal).val();
-			if (caliType == 'site' && agentType == 'reportAgent') {
+			if (caliType == 'SITE' && agentType == 'reportAgent') {
 				const addr = $(`.${addrClass}`, $modal).val();
 				const addrEn = $(`.${addrEnClass}`, $modal).val();
 				$('input[name=siteAddr]', $modal).val(addr);
@@ -372,7 +372,7 @@ $(function () {
 		const $siteDiv = $('div.site_div', $modal);
 		const $standardDiv = $('div.standard_div', $modal);
 		// 고정표준실인 경우
-		if (caliType == 'standard') {
+		if (caliType == 'STANDARD') {
 			$siteDiv.addClass('d-none');
 			$standardDiv.removeClass('d-none');
 		}
@@ -387,10 +387,10 @@ $(function () {
 		}
 		// 없는 경우엔 기본값
 		else {
-			if (caliType == 'standard') {
-				$('input[name=caliTakeType][value=self]', $modal).prop('checked', true);
+			if (caliType == 'STANDARD') {
+				$('input[name=caliTakeType][value=SELF]', $modal).prop('checked', true);
 			} else {
-				$('input[name=caliTakeType][value=site_self]', $modal).prop('checked', true); // 현장교정
+				$('input[name=caliTakeType][value=SITE_SELF]', $modal).prop('checked', true); // 현장교정
 			}
 		}
 	};

@@ -21,7 +21,57 @@ $(function () {
 
 		id = $modal.param.id;
 		// 성적서 데이터를 가져온다.(자식성적서 및 표준장비 데이터 포함)
+		const feOptions = {
+			method: 'GET',
+			// header, body 모두 생략
+		};
+		try {
+			const resReportInfo = await fetch(`/api/report/getReportInfo?id=${id}`, feOptions);
+			if (resReportInfo.ok) {
+				const reportInfoJson = await resReportInfo.json();
+				if (reportInfoJson?.code > 0) {
+					const reportInfo = reportInfoJson.data;
+					const parentInfo = reportInfo.reportInfo ?? {};
+					console.log('🚀 ~ parentInfo:', parentInfo);
+					const childInfos = reportInfo.childReportInfos ?? {}; // 없을 경우 빈 객체로 받기
+					console.log('🚀 ~ childInfos:', childInfos);
 
+					// 데이터 세팅
+					if (parentInfo) {
+						$('form.reportModifyForm', $modal).find('input[name], textarea[name], select[name]').setupValues(parentInfo);
+
+						// 접수구분 비활성화 처리
+						$('input[name=orderType]', $modal).prop('disabled', true);
+
+						// 교정유형, 교정상세유형 세팅
+						const caliType = parentInfo.caliType;
+						const caliTakeType = parentInfo.caliTakeType;
+						$modal.setCaliType(caliType, caliTakeType);
+
+						// 환경정보 세팅
+						if (parentInfo.environmentInfo != undefined && parentInfo.environmentInfo) {
+							const parentInfo = JSON.parse(parentInfo.environmentInfo);
+							console.log("🚀 ~ parentInfo:", parentInfo);
+
+							Object.entries(parentInfo).forEach(([key, value]) => {
+								
+							})
+							
+						}
+					}
+				}
+
+				// 데이터세팅 이후, 접수구분 수정이 안 되도록 disabled 처리할 것
+			}
+		} catch (xhr) {
+			console.error('에러발생');
+			custom_ajax_handler(xhr);
+		} finally {
+		}
+
+		// 자식성적서 세팅
+		// 표준장비 데이터 세팅 TODO 추가와 삭제된 장비에 대해서 데이터를 어떻게 관리할 것인지 고민할 것 => is_visible이 아닌 레코드 자체를 delete 시키고 insert시키는 방향으로 생각할 것
+		// 변경전과 변경후가 같은지 판단할 것
 
 		// 표준장비 그리드 (더미데이터만 우선 표시)
 		$modal.grid = new Grid({
@@ -58,9 +108,17 @@ $(function () {
 				perPage: 15,
 			},
 		});
-	};
+	}; // End of init_modal
+
 	// 모달 내 이벤트 정의
-	// $modal;
+	$modal
+		// 교정유형 선택
+		.on('change', 'input[name=caliType]', function () {
+			console.log('변동확인');
+			const caliType = $(this).val();
+			// 함수를 통해서 값 세팅
+			$modal.setCaliType(caliType);
+		});
 
 	// 저장
 	$modal.confirm_modal = async function (e) {};
@@ -70,6 +128,30 @@ $(function () {
 		$modal.param.res = true;
 		$modal_root.modal('hide');
 		return $modal.param;
+	};
+
+	// 교정유형, 교정상세유형 변경 이벤트
+	$modal.setCaliType = (caliType, caliTakeType = '') => {
+		// 현장교정인 경우
+		if (caliType === 'SITE') {
+			$('div.siteDiv', $modal).removeClass('d-none');
+			$('div.standardDiv', $modal).addClass('d-none');
+		}
+		// 고정표준실인 경우
+		else {
+			$('div.siteDiv', $modal).addClass('d-none');
+			$('div.standardDiv', $modal).removeClass('d-none');
+		}
+
+		if (caliTakeType) {
+			$(`input[name=caliTakeType][value=${caliTakeType}]`, $modal).prop('checked', true);
+		} else {
+			if (caliType === 'SITE') {
+				$('input[name=caliTakeType][value=SITE_SELF]', $modal).prop('checked', true); // '현장교정'이 기본값
+			} else {
+				$('input[name=caliTakeType][value=SELF]', $modal).prop('checked', true); // 방문이 기본값
+			}
+		}
 	};
 
 	$modal.data('modal-data', $modal);

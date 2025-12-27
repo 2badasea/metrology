@@ -73,5 +73,16 @@ public class ApiReportController {
 		return ResponseEntity.ok(resMessage);
 	}
 	
+	// 성적서 수정 모달 데이터 조회
+	@GetMapping(value = "/getReportInfo")
+	public ResponseEntity<ResMessage<ReportDTO.ReportInfoRes>> getReportInfo(
+			@RequestParam Long id
+	) {
+		log.info("개별 성적서 데이터 조회");
+		log.info("쿼리스트링 성적서 id: {}", id);
+		ReportDTO.ReportInfoRes resData = reportService.getReportInfo(id);
+		return ResponseEntity.ok(new ResMessage<>(1, null, resData));
+	}
+	
 	
 }

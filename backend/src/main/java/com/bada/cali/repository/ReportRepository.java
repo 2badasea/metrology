@@ -2,6 +2,7 @@ package com.bada.cali.repository;
 
 import com.bada.cali.common.enums.OrderType;
 import com.bada.cali.common.enums.ReportType;
+import com.bada.cali.dto.ReportDTO;
 import com.bada.cali.entity.Report;
 import com.bada.cali.repository.projection.LastManageNoByType;
 import com.bada.cali.repository.projection.LastReportNumByOrderType;
@@ -165,5 +166,84 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			Pageable pageable
 	);
 	
+	// 삭제대상 id를 가진 성적서와 이 성적서를 바라보는 재발행, 자식성적서를 모두 가져온다.
 	List<Report> findByIdInOrParentIdInOrParentScaleIdIn(List<Long> deleteIds, List<Long> deleteIds1, List<Long> deleteIds2);
+	
+	/**
+	 * 성적서 수정 모달 내 데이터 조회 (접수의 데이터도 조인하여 가져온다)
+	 * @param id
+	 * @return
+	 */
+	@Query("""
+				select new com.bada.cali.dto.ReportDTO$ReportInfo(
+					 r.id,
+					 r.orderType,
+					 r.caliDate,
+					 r.reportLang,
+					 r.priorityType,
+					 r.caliType,
+					 r.caliTakeType,
+					 r.manageNo,
+					
+					 r.middleItemCodeId,
+					 r.smallItemCodeId,
+					 r.workMemberId,
+					 r.approvalMemberId,
+					
+					 r.itemId,
+					 r.itemName,
+					 r.itemNameEn,
+					 r.itemFormat,
+					 r.itemNum,
+					 r.itemCaliCycle,
+					 r.itemMakeAgent,
+					 r.itemMakeAgentEn,
+					 r.remark,
+					 r.caliFee,
+					 r.additionalFee,
+					 r.additionalFeeCause,
+					 r.request,
+					 r.environmentInfo,
+					
+					 o.custAgent,
+					 o.custAgentAddr,
+					 o.custManager,
+					 o.custManagerTel,
+					 o.reportAgent,
+					 o.reportAgentEn,
+					 o.reportAgentAddr,
+					 o.reportManager,
+					 o.reportManagerTel
+				)
+				from Report r
+				JOIN CaliOrder o ON o.id = r.caliOrderId
+				where r.id = :id
+							and r.isVisible = 'y'
+			""")
+	ReportDTO.ReportInfo getReportInfo(@Param("id") Long id);
+	
+	@Query("""
+			select new com.bada.cali.dto.ReportDTO$ChildReportInfo(
+				    r.id,
+					r.middleItemCodeId,
+					r.smallItemCodeId,
+					r.itemId,
+					r.itemName,
+					r.itemNameEn,
+					r.itemFormat,
+					r.itemNum,
+					r.itemCaliCycle,
+					r.itemMakeAgent,
+					r.itemMakeAgentEn,
+					r.remark,
+					r.caliFee,
+					r.additionalFee,
+					r.additionalFeeCause
+			)
+			from Report  r
+			where r.parentScaleId = :parentScaleId
+				and r.isVisible = 'y'
+			ORDER BY r.id DESC
+	""")
+	List<ReportDTO.ChildReportInfo> getChildReport(@Param("parentScaleId") Long parentScaleId);
 }
