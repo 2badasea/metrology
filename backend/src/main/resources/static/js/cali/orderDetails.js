@@ -162,7 +162,7 @@ $(function () {
 							id: id,
 						},
 						{
-							title: `성적서 수정 (성적서번호 - ${reportNum})`,
+							title: `성적서 수정 [성적서번호 - ${reportNum}]`,
 							size: 'xxxl',
 							show_close_button: true,
 							show_confirm_button: isModifiable,

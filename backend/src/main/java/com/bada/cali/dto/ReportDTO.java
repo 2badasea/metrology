@@ -1,14 +1,12 @@
 package com.bada.cali.dto;
 
-import com.bada.cali.common.enums.DocType;
-import com.bada.cali.common.enums.OrderType;
-import com.bada.cali.common.enums.ReportStatus;
-import com.bada.cali.common.enums.ReportType;
+import com.bada.cali.common.enums.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -98,7 +96,80 @@ public class ReportDTO {
 	// 성적서 삭제요청 (id 파라미터)
 	public record DeleteReportReq(
 			List<Long> deleteIds
-	) {}
+	) {
+	}
+	
+	// 개별 성적서 조회 데이터
+	public record ReportInfo(
+			Long id,
+			OrderType orderType,    // 접수구분
+			LocalDate caliDate,        // 교정일자
+			ReportLang reportLang,    // 성적서발행타입
+			PriorityType priorityType, // 긴급여부(NORMAL:일반, EMERGENCY: 긴급)
+			CaliType caliType,        // 교정유형
+			CaliTakeType caliTakeType,    // 교정상세유형
+			String manageNo,        // 관리번호
+			
+			Long middleItemCodeId,        // 중분류id
+			Long smallItemCodeId,        // 소뷴류id
+			Long workMemberId,        // 실무자 id
+			Long approvalMemberId,        // 기술책임자id
+			
+			// 품목정보
+			Long itemId,            // 품목id
+			String itemName,        // 기기명
+			String itemNameEn,        // 기기명(영문)
+			String itemFormat,       // 기기 형식
+			String itemNum,            // 기기번호
+			Integer itemCaliCycle,        // 품목교정주기
+			String itemMakeAgent,    // 제작회사
+			String itemMakeAgentEn,    // 제작회사(영문명)
+			String remark,                    // 비고(품목비고)
+			Long caliFee,                // 교정수수료
+			Long additionalFee,                // 추가금액
+			String additionalFeeCause,        // 추가금액사유
+			String request,               // 요청사항
+			String environmentInfo,            // 환경정보
+			
+			// 접수데이터
+			String custAgent,        // 신청업체
+			String custAgentAddr,        // 신청업체 주소
+			String custManager,        // 신청업체 담당자
+			String custManagerTel,        // 신청업체 담당자 연락처
+			String reportAgent,            // 성적서발행처
+			String reportAgentEn,        // 성적서발행처(영문)
+			String reportAgentAddr,        // 성적서발행처 주소
+			String reportManager,        // 성적서발행처 담당자
+			String reportManagerTel   // 성적서발행처 담당자 연락처
+	) {
+	}
+	
+	// 자식성적서 조회 데이터 (성적서 수정 모달에서 데이터 수정 가능
+	public record ChildReportInfo(
+			Long id,        // 자싱성적서 id
+			Long middleItemCodeId,        // 중분류id
+			Long smallItemCodeId,        // 소분류id
+			Long itemId,            // 품목id
+			String itemName,        // 기기명
+			String itemNameEn,        // 기기명(영문)
+			String itemFormat,       // 기기 형식
+			String itemNum,            // 기기번호
+			Integer itemCaliCycle,        // 품목교정주기
+			String itemMakeAgent,    // 제작회사
+			String itemMakeAgentEn,    // 제작회사(영문명)
+			String remark,                    // 비고(품목비고)
+			Long caliFee,                // 교정수수료
+			Long additionalFee,                // 추가금액
+			String additionalFeeCause        // 추가금액사유
+	) {
+	}
+	
+	// 성적서 수정 모달 응답 데이터
+	public record ReportInfoRes(
+			ReportInfo reportInfo,
+			List<ChildReportInfo> childReportInfos
+	) {
+	}
 	
 	
 }

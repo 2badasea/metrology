@@ -40,6 +40,7 @@ public class ReportServiceImpl {
 	
 	/**
 	 * 성적서 등록
+	 *
 	 * @param reports
 	 * @param caliOrderId
 	 * @param user
@@ -139,9 +140,9 @@ public class ReportServiceImpl {
 			reportEntity.setReportLang(orderReportLang);    // 발행타입은 기본적으로 접수를 따라간다
 			reportEntity.setItemCaliCycle(itemCaliCycle);        // 교정주기
 			reportEntity.setIsVisible(YnType.y);
-			reportEntity.setPriorityType(priorityType);		// 긴급여부(접수정보)
-			reportEntity.setCaliType(caliType);				// 접수유형(접수정보)
-			reportEntity.setCaliTakeType(caliTakeType);		// 접수상세유형(접수정보)
+			reportEntity.setPriorityType(priorityType);        // 긴급여부(접수정보)
+			reportEntity.setCaliType(caliType);                // 접수유형(접수정보)
+			reportEntity.setCaliTakeType(caliTakeType);        // 접수상세유형(접수정보)
 			
 			// 저장
 			Report savedReport = reportRepository.save(reportEntity);
@@ -310,7 +311,7 @@ public class ReportServiceImpl {
 					// 자체성적서의 경우, 우선 id가 일치하는지 확인 후, 일치하지 않으면 return 일치하면 결재상태 점검
 					List<Long> listIds = new ArrayList<>();
 					for (Report report : reportList) {
-						listIds.add(report.getId());	// 넘어온 id와 비교하기 위해 담는다.
+						listIds.add(report.getId());    // 넘어온 id와 비교하기 위해 담는다.
 						// 결재가 진행중인 게 한 건이라도 존재하면 return
 						if (report.getWorkDatetime() != null || report.getApprovalDatetime() != null || report.getWorkStatus() != AppStatus.IDLE || report.getApprovalStatus() != AppStatus.IDLE) {
 							code = -1;
@@ -346,6 +347,7 @@ public class ReportServiceImpl {
 	
 	/**
 	 * 성적서 삭제 요청
+	 *
 	 * @param request ('deleteIds' 라는 key로 List<Long> 타입의 데이터를 받는다.
 	 * @param user
 	 * @return
@@ -378,7 +380,7 @@ public class ReportServiceImpl {
 				}
 				// 그외 부모성적서, 대행성적서의 경우엔 '성적서번호 + [
 				else {
-					String uuid = UUID.randomUUID().toString();	//
+					String uuid = UUID.randomUUID().toString();    //
 					String originReportNum = report.getReportNum();
 					String originManageNo = report.getManageNo();
 					String suffix = String.format("[deleted-%s", uuid);
@@ -405,7 +407,7 @@ public class ReportServiceImpl {
 						.createDatetime(now)
 						.createMemberId(userId)
 						.refTable("report")
-				.build();
+						.build();
 				// 이력을 저장한다.
 				logRepository.save(deleteLog);
 				
@@ -422,6 +424,25 @@ public class ReportServiceImpl {
 			msg = "삭제대상 성적서를 찾을 수 없습니다.";
 		}
 		return new ResMessage<>(code, msg, null);
+	}
+	
+	/**
+	 * 개별 성적서 조회
+	 *
+	 * @param id
+	 * @return
+	 */
+	@Transactional(readOnly = true)
+	public ReportDTO.ReportInfoRes getReportInfo(Long id) {
+		
+		ReportDTO.ReportInfo reportInfo = reportRepository.getReportInfo(id);
+		// 자식 성적서를 조회한다.
+		List<ReportDTO.ChildReportInfo> childReportInfos = reportRepository.getChildReport(id);
+		return new ReportDTO.ReportInfoRes(
+				reportInfo,
+				childReportInfos
+		);
+		
 	}
 	
 	

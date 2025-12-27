@@ -98,6 +98,39 @@ $(function () {
 
 		this.value = v;
 	})
+	// 환경정보 (소수점 한 자리까지만 입력이 가능하되, 마이너스(-) 허용)
+	.on('input', 'input.environment_decimal', function () {
+		let v = this.value;
+
+		// 1) 숫자/점/마이너스 외 제거
+		v = v.replace(/[^\d.\-]/g, '');
+
+		// 2) 마이너스는 맨 앞 1개만 허용
+		const neg = v.startsWith('-');
+		v = (neg ? '-' : '') + v.replace(/-/g, '');
+
+		// 3) 점은 1개만 허용 (첫 번째 점만 남기고 나머지 제거)
+		const dotIdx = v.indexOf('.');
+		if (dotIdx !== -1) {
+			const before = v.slice(0, dotIdx);
+			const after = v.slice(dotIdx + 1).replace(/\./g, '');
+			v = before + '.' + after;
+		}
+
+		// 4) 소수점 이하 1자리까지만 허용
+		const idx = v.indexOf('.');
+		if (idx !== -1) {
+			const intPart = v.slice(0, idx);
+			const fracPart = v.slice(idx + 1);
+			v = intPart + '.' + fracPart.slice(0, 1);
+		}
+
+		// 5) 선택: ".5" / "-.5" 입력을 "0.5" / "-0.5"로 보정
+		if (v.startsWith('.')) v = '0' + v;
+		if (v.startsWith('-.')) v = '-0' + v.slice(1);
+
+		this.value = v;
+	})
 	// 전화번호 입력 필드
 	// .on('keyup', 'input.tel', (e) => {
 	// 	let contactNum = e.target.value; // 화살표함수가 아닌 'this.value' 형태로도 값을 얻을 수 있음.
@@ -1370,7 +1403,6 @@ async function showRoadMapView(address = '') {
 		};
 }
 
-
 /**
  * 1000 이상의 숫자에 콤마를 붙여준다.
  *
@@ -1379,25 +1411,24 @@ async function showRoadMapView(address = '') {
  */
 function number_format(value) {
 	if (value) {
-		if (typeof value.value != "undefined") {
-			if (typeof value.value == "undefined" || value.value == "" || value.value == null || isNaN(Number(value.value))) {
+		if (typeof value.value != 'undefined') {
+			if (typeof value.value == 'undefined' || value.value == '' || value.value == null || isNaN(Number(value.value))) {
 				return 0;
 			} else {
 				return Number(value.value)
 					.toString()
-					.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+					.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 			}
 		} else {
-			if (typeof value == "undefined" || value == "" || value == null || isNaN(Number(value))) {
+			if (typeof value == 'undefined' || value == '' || value == null || isNaN(Number(value))) {
 				return 0;
 			} else {
 				return Number(value)
 					.toString()
-					.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+					.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 			}
 		}
 	} else {
 		return value;
 	}
 }
-

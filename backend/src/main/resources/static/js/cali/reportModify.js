@@ -21,6 +21,40 @@ $(function () {
 
 		id = $modal.param.id;
 		// 성적서 데이터를 가져온다.(자식성적서 및 표준장비 데이터 포함)
+		const feOptions = {
+			method: "GET"
+			// header, body 모두 생략
+		}
+		try {
+			const resReportInfo = await fetch(`/api/report/getReportInfo?id=${id}`, feOptions);
+			if (resReportInfo.ok) {
+				const reportInfoJson = await resReportInfo.json();
+				console.log("🚀 ~ reportInfoJson:", reportInfoJson);
+				if (reportInfoJson?.code > 0) {
+					const reportInfo = reportInfoJson.data;
+					console.log("🚀 ~ reportInfo:", reportInfo)
+					const parentInfo = reportInfo.reportInfo;
+					console.log("🚀 ~ parentInfo:", parentInfo)
+					const childInfos = reportInfo.childReportInfos ?? {};	// 없을 수도 있음
+					console.log("🚀 ~ childInfos:", childInfos)
+
+				}
+
+				// 데이터세팅 이후, 접수구분 수정이 안 되도록 disabled 처리할 것
+				
+			}
+
+		} catch (xhr) {
+			console.error('에러발생');
+			custom_ajax_handler(xhr);
+		} finally {
+
+		}
+
+
+		// 자식성적서 세팅
+		// 표준장비 데이터 세팅 TODO 추가와 삭제된 장비에 대해서 데이터를 어떻게 관리할 것인지 고민할 것 => is_visible이 아닌 레코드 자체를 delete 시키고 insert시키는 방향으로 생각할 것
+		// 변경전과 변경후가 같은지 판단할 것
 
 
 		// 표준장비 그리드 (더미데이터만 우선 표시)

@@ -4,6 +4,7 @@ import com.bada.cali.common.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 // NOTE DDL 자동생성(ddl-auto) 기능은 꺼져있지만, 문서/메타데이터 역할을 위해 명시
@@ -55,6 +56,10 @@ public class Report {
 	// 견적서 품목 id
 	@Column(name = "es_sub_id")
 	private Long esSubId;
+	
+	// 교정일자
+	@Column(name = "cali_date")
+	private LocalDate caliDate;
 	
 	// 교정주기
 	@Column(name = "item_cali_cycle", nullable = false)
@@ -112,6 +117,10 @@ public class Report {
 	@Column(name = "item_name", nullable = false, length = 200)
 	private String itemName;
 	
+	// 품목명 (영문)
+	@Column(name = "item_name_en", length = 200)
+	private String itemNameEn;
+	
 	// 품목 형식
 	@Column(name = "item_format", length = 200)
 	private String itemFormat;
@@ -124,9 +133,22 @@ public class Report {
 	@Column(name = "item_make_agent", length = 200)
 	private String itemMakeAgent;
 	
+	// 제작회사 (영문)
+	@Column(name = "item_make_agent_en", length = 200)
+	private String itemMakeAgentEn;
+	
 	// 교정수수료
 	@Column(name = "cali_fee", nullable = false)
 	private Long caliFee = 0L;        // null 허용
+	
+	// 추가금액
+	@Column(name = "additional_fee", nullable = false)
+	private Long additionalFee = 0L;        // null 허용
+	
+	// 추가금액사유
+	@Column(name = "additional_fee_cause", length = 250)
+	private String additionalFeeCause;
+	
 	
 	// 관리번호
 	@Column(name = "manage_no", length = 50)
@@ -140,10 +162,18 @@ public class Report {
 	@Column(name = "small_item_code_id")
 	private Long smallItemCodeId;
 	
-	// 비고/요청사항
-	@Column(name = "remark", columnDefinition = "LONGTEXT")
-	@Lob    // JPA에게 “이 필드는 일반적인 VARCHAR 같은 짧은 문자열/바이너리가 아니라, 대용량(Large Object) 으로 저장하라” 알림
+	// 환경정보 (json형태로 DB에 값을 보관한다)
+	@Column(name = "environment_info", columnDefinition = "json")
+	private String environmentInfo;
+	
+	// 비고/품목비고
+	@Column(name = "remark", length = 250)
 	private String remark;
+	
+	// 요청사항
+	@Column(name = "request", columnDefinition = "LONGTEXT")
+	@Lob
+	private String request;
 	
 	// 작성자 고유 id
 	@Column(name = "write_member_id")
@@ -206,5 +236,10 @@ public class Report {
 	
 	@Column(name = "delete_datetime")
 	private LocalDateTime deleteDatetime;  // 삭제일시 (nullable)
+	
+	// 교정접수 테이블과의 연관관계 정의
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "cali_order_id", insertable = false, updatable = false)
+	private CaliOrder caliOrder;
 	
 }
