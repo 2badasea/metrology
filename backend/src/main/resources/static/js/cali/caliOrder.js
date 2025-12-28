@@ -343,9 +343,9 @@ $(function () {
 
 		if (row && e.columnName != '_checked') {
 			// 접수내역 호출
-			if (e.columnName == 'grid_btn_orderDetails')  {
-				window.open(`/cali/orderDetails?caliOrderId=${row.id}`,'접수상세내역');
-			} 
+			if (e.columnName == 'grid_btn_orderDetails') {
+				window.open(`/cali/orderDetails?caliOrderId=${row.id}`, '_blank');
+			}
 			// 접수수정
 			else {
 				try {
@@ -362,7 +362,7 @@ $(function () {
 							confirm_button_text: '저장',
 						}
 					);
-	
+
 					// 모달이 성공적으로 종료되었을 때만 그리드 갱신
 					if (resModal) {
 						$modal.grid.reloadData();

@@ -166,6 +166,10 @@ public class Report {
 	@Column(name = "environment_info", columnDefinition = "json")
 	private String environmentInfo;
 	
+	// 소급성문구 (json 형태로 관리)
+	@Column(name = "tracestatement_info", columnDefinition = "json")
+	private String tracestatementInfo;
+	
 	// 비고/품목비고
 	@Column(name = "remark", length = 250)
 	private String remark;

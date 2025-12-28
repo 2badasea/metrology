@@ -76,12 +76,12 @@
                                     <div class="ml-2">
                                         <div class="form-check form-check-inline">
                                             <input class="form-check-input" type="radio" id="priorityTypeGe"
-                                                name="priorityType" value="general" checked>
+                                                name="priorityType" value="NORMAL" checked>
                                             <label class="form-check-label" for="priorityTypeGe">일반</label>
                                         </div>
                                         <div class="form-check form-check-inline">
                                             <input class="form-check-input" type="radio" name="priorityType"
-                                                value="emergency" id="priorityTypeEm">
+                                                value="EMERGENCY" id="priorityTypeEm">
                                             <label class="form-check-label" for="priorityTypeEm">긴급</label>
                                         </div>
                                     </div>
@@ -125,29 +125,29 @@
                                         <div class="standardDiv d-none">
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input" type="radio" id="caliTakeType300"
-                                                    name="caliTakeType700" value="SEND">
+                                                    name="caliTakeType" value="SEND">
                                                 <label class="form-check-label" for="caliTakeType300">택배</label>
                                             </div>
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input" type="radio" id="caliTakeType400"
-                                                    name="caliTakeType700" value="SELF" checked>
+                                                    name="caliTakeType" value="SELF" checked>
                                                 <label class="form-check-label" for="caliTakeType400">방문</label>
                                             </div>
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input" type="radio" id="caliTakeType500"
-                                                    name="caliTakeType700" value="SITE">
+                                                    name="caliTakeType" value="SITE">
                                                 <label class="form-check-label" for="caliTakeType500">현장반입
                                                 </label>
                                             </div>
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input" type="radio" id="caliTakeType600"
-                                                    name="caliTakeType700" value="PICKUP">
-                                                <label class="form-check-label" for="caliTakeType600">
+                                                    name="caliTakeType" value="PICKUP">
+                                                <label class="form-check-label" for="caliTakeType600">픽업
                                                 </label>
                                             </div>
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input" type="radio" id="caliTakeType700"
-                                                    name="caliTakeType700" value="ETC">
+                                                    name="caliTakeType" value="ETC">
                                                 <label class="form-check-label" for="caliTakeType700">기타</label>
                                             </div>
                                         </div>
@@ -231,37 +231,41 @@
                             </tr>
                             <tr class="">
                                 <td colspan="4">
-                                    <input type="hidden" id="delete_idx" name="delete_idx">
                                     <div class="equipageList"></div>
                                 </td>
                             </tr>
                             <tr>
                                 <th rowspan="3">소급성</th>
-                                <td colspan="3"><input type="text" class="form-control" name="traceStatement" /></td>
+                                <td colspan="3"><input type="text" class="form-control tracestatementInfo"
+                                        name="traceStatement" /></td>
                             </tr>
                             <tr>
-                                <td colspan="3"><input type="text" class="form-control" name="traceStatement2" /></td>
+                                <td colspan="3"><input type="text" class="form-control tracestatementInfo"
+                                        name="traceStatement2" /></td>
                             </tr>
                             <tr>
-                                <td colspan="3"><input type="text" class="form-control" name="traceStatement3" /></td>
+                                <td colspan="3"><input type="text" class="form-control tracestatementInfo"
+                                        name="traceStatement3" /></td>
                             </tr>
                             <tr>
                                 <th rowspan="3">소급성(영문)</th>
-                                <td colspan="3"><input type="text" class="form-control" name="traceStatementEn" /></td>
+                                <td colspan="3"><input type="text" class="form-control tracestatementInfo"
+                                        name="traceStatementEn" /></td>
                             </tr>
                             <tr>
-                                <td colspan="3"><input type="text" class="form-control" name="traceStatementEn2" /></td>
+                                <td colspan="3"><input type="text" class="form-control tracestatementInfo"
+                                        name="traceStatementEn2" /></td>
                             </tr>
                             <tr>
-                                <td colspan="3"><input type="text" class="form-control" name="traceStatementEn3" /></td>
+                                <td colspan="3"><input type="text" class="form-control tracestatementInfo"
+                                        name="traceStatementEn3" /></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
                 <!-- <div class="col-md pl-1 py-0 pr-0 scroll scroll-y" style="min-height: 773px; max-height: 773px;"> -->
                 <!-- <div class="col-md pl-1 py-0 pr-0 scroll scroll-y" style="min-height: 748px; max-height: 748px; overflow-y: scroll;"> -->
-                <div class="col-md pl-1 py-0 pr-0 scroll scroll-y"
-                    style="min-height: 748px; max-height: 748px;">
+                <div class="col-md pl-1 py-0 pr-0 scroll scroll-y" style="min-height: 748px; max-height: 748px;">
                     <table class="table table-bordered text-center mb-0 ">
                         <colgroup>
                             <col width="130px" />
@@ -311,13 +315,15 @@
                                             <tr>
                                                 <th colspan="3" class="border-0 text-left"><span
                                                         class="pl-3">기기정보</span> </th>
-                                                <th class="border-0 "><button class="btn btn-primary addChild float-right"
+                                                <th class="border-0 "><button
+                                                        class="btn btn-primary addChild float-right"
                                                         type="button">추가</button></th>
                                             </tr>
                                             <tr>
                                                 <th>기기명(국문)</th>
                                                 <td>
                                                     <div class="input-group">
+                                                        <input type="hidden" name="itemCaliCycle">
                                                         <input type="text" class="form-control" name="itemName"
                                                             placeholder="품목을 검색하세요." value="">
                                                         <div class="input-group-append">
@@ -373,7 +379,6 @@
                                             </tr>
                                         </tbody>
                                     </table>
-
                                 </td>
                             </tr>
                             <tr>
@@ -386,11 +391,13 @@
                                         <div class="input-group-append text-center">
                                             <span class="input-group-text rounded-0">최저</span>
                                         </div>
-                                        <input type="text" class="form-control environment_decimal" name="tempMin">
+                                        <input type="text" class="form-control environmentInfo environment_decimal"
+                                            name="tempMin">
                                         <div class="input-group-append text-center">
                                             <span class="input-group-text rounded-0">최고</span>
                                         </div>
-                                        <input type="text" class="form-control environment_decimal" name="tempMax">
+                                        <input type="text" class="form-control  environmentInfo environment_decimal"
+                                            name="tempMax">
                                     </div>
                                 </td>
                                 <th>습도 (%R.H.)</th>
@@ -399,11 +406,13 @@
                                         <div class="input-group-append text-center">
                                             <span class="input-group-text rounded-0">최저</span>
                                         </div>
-                                        <input type="text" class="form-control environment_decimal" name="humMin">
+                                        <input type="text" class="form-control  environmentInfo environment_decimal"
+                                            name="humMin">
                                         <div class="input-group-append text-center">
                                             <span class="input-group-text rounded-0">최고</span>
                                         </div>
-                                        <input type="text" class="form-control environment_decimal" name="humMax">
+                                        <input type="text" class="form-control  environmentInfo environment_decimal"
+                                            name="humMax">
                                     </div>
                                 </td>
                             </tr>
@@ -414,11 +423,13 @@
                                         <div class="input-group-append text-center">
                                             <span class="input-group-text rounded-0">최저</span>
                                         </div>
-                                        <input type="text" class="form-control environment_decimal" name="preMin">
+                                        <input type="text" class="form-control  environmentInfo environment_decimal"
+                                            name="preMin">
                                         <div class="input-group-append text-center">
                                             <span class="input-group-text rounded-0">최고</span>
                                         </div>
-                                        <input type="text" class="form-control environment_decimal" name="preMax">
+                                        <input type="text" class="form-control environmentInfo environment_decimal"
+                                            name="preMax">
                                     </div>
                                 </td>
                             </tr>

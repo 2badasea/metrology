@@ -171,6 +171,7 @@ $(function () {
 					);
 
 					// 그리드가 닫히면 기본적으로 갱신이 일어나도록 한다.
+					console.log("🚀 ~ resModal:", resModal);
 					if (resModal) {
 						$modal.grid.reloadData();
 					}
