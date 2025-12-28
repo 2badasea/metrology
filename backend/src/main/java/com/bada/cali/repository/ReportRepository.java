@@ -204,6 +204,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 					 r.additionalFeeCause,
 					 r.request,
 					 r.environmentInfo,
+					 r.tracestatementInfo,
 					
 					 o.custAgent,
 					 o.custAgentAddr,
@@ -243,7 +244,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			from Report  r
 			where r.parentScaleId = :parentScaleId
 				and r.isVisible = 'y'
-			ORDER BY r.id DESC
+			ORDER BY r.id ASC
 	""")
 	List<ReportDTO.ChildReportInfo> getChildReport(@Param("parentScaleId") Long parentScaleId);
 }

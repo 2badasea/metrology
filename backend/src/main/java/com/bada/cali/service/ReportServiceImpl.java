@@ -355,7 +355,7 @@ public class ReportServiceImpl {
 	@Transactional
 	public ResMessage<?> deleteReport(ReportDTO.DeleteReportReq request, CustomUserDetails user) {
 		LocalDateTime now = LocalDateTime.now();
-		String workerName = user.getUsername();
+		String workerName = user.getName();
 		Long userId = user.getId();
 		List<Long> deleteIds = request.deleteIds();
 		
@@ -393,7 +393,7 @@ public class ReportServiceImpl {
 					report.setDeleteDatetime(now);
 					report.setDeleteMemberId(userId);
 					
-					deleteReportNums.add(String.format("%s(고유 ID: %d", originReportNum, report.getId()));
+					deleteReportNums.add(String.format("[성적서 삭제] 성적서번호: %s, - 고유 ID: %d)", originReportNum, report.getId()));
 				}
 			}
 			
@@ -443,6 +443,122 @@ public class ReportServiceImpl {
 				childReportInfos
 		);
 		
+	}
+	
+	/**
+	 * 성적서 삭제 요청 (is_visible = 'n' 처리)
+	 *
+	 * @param id
+	 * @param user
+	 * @return
+	 */
+	@Transactional
+	public ResMessage<Object> deleteById(Long id, CustomUserDetails user) {
+		int resCode = 0;
+		String resMsg;
+		
+		
+		Report deleteTargetRepost = reportRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("해당 성적서가 존재하지 않습니다."));
+		
+		String reportNum = (deleteTargetRepost.getReportNum() == null) ? "[성적서번호 없음]" : deleteTargetRepost.getReportNum();
+		
+		LocalDateTime now = LocalDateTime.now();
+		Long userId = user.getId();
+		String workerName = user.getName();    // log에 넣을 데이터
+		
+		// dirty checking으로 영속성 컨텍스트 선에서 삭제처리
+		deleteTargetRepost.setIsVisible(YnType.n);
+		deleteTargetRepost.setDeleteDatetime(now);
+		deleteTargetRepost.setDeleteMemberId(userId);
+		
+		String logContent = String.format("[성적서 삭제] 성적서번호: %s, 고유번호 - %d", reportNum, deleteTargetRepost.getId());
+		Log deleteLog = Log.builder()
+				.logType("d")
+				.createMemberId(userId)
+				.createDatetime(now)
+				.workerName(workerName)
+				.refTable("report")
+				.refTableId(id)
+				.logContent(logContent)
+				.build();
+		logRepository.save(deleteLog);
+		
+		resCode = 1;
+		resMsg = "성적서가 삭제되었습니다.";
+		
+		return new ResMessage<>(resCode, resMsg, null);
+	}
+	
+	// 성적서 수정 요청
+	@Transactional
+	public ResMessage<Object> updateReport(ReportDTO.ReportUpdateReq req, CustomUserDetails user) {
+		int resCode = 0;
+		String resMsg;
+		
+		Long userId = user.getId();
+		LocalDateTime now = LocalDateTime.now();
+		String workerName = user.getName();
+		// 부모데이터를 가져온다.
+		Long id = req.id();
+		Report updateReport = reportRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("수정할 성적서 정보를 찾는 데 실패했습니다."));
+		// mapstruct를 통해 넘어온 값들을 그대로 entity에 덮어씌운다.
+		reportMapper.updateEntityFromDto(req, updateReport);
+		updateReport.setUpdateDatetime(now);
+		updateReport.setUpdateMemberId(userId);
+		
+		Log updateLog = Log.builder()
+				.logType("u")
+				.createMemberId(userId)
+				.createDatetime(now)
+				.workerName(workerName)
+				.refTableId(id)
+				.refTable("report")
+				.logContent(String.format("[성적서 수정] 성적서번호: %s - 고유번호: %d", updateReport.getReportNum(), id))
+				.build();
+		logRepository.save(updateLog);
+		
+		// 자식성적서도 존재하는지 확인
+		List<ReportDTO.ChildReportInfo> childReportInfos = req.childReportInfos();
+		// 자식성적서가 존재하는 경우, update 또는 insert
+		if (childReportInfos != null && !childReportInfos.isEmpty()) {
+			Long caliOrderId = updateReport.getCaliOrderId();
+			ReportLang reportLang = updateReport.getReportLang();
+			
+			
+			// 자식성적서 데이터 반복
+			for (ReportDTO.ChildReportInfo childReport : childReportInfos) {
+				Long childReportId = childReport.id();
+				
+				// id가 존재하면 update, 없으면 insert
+				if (childReportId != null && childReportId > 0) {
+					Report updateChildReport = reportRepository.findById(childReportId).orElseThrow(() -> new EntityNotFoundException("자식성적서가 존재하지 않습니다."));
+					reportMapper.updateChildEntityFromDto(childReport, updateChildReport);
+					updateChildReport.setUpdateDatetime(now);
+					updateChildReport.setUpdateMemberId(userId);
+					
+				}
+				// 신규등록인 경우
+				else {
+					Report newChildReport = reportMapper.insertChildEntityFromDto(childReport);
+					// 부모 id를 넣어준다.
+					newChildReport.setCreateDatetime(now);
+					newChildReport.setCreateMemberId(userId);
+					newChildReport.setParentScaleId(id);
+					newChildReport.setCaliOrderId(caliOrderId);
+					newChildReport.setReportLang(reportLang);
+					newChildReport.setIsVisible(YnType.y);
+					
+					// 신규 등록
+					reportRepository.save(newChildReport);
+				}
+			
+			}
+		}
+		
+		resCode = 1;
+		resMsg = "성적서 수정에 성공했습니다.";
+		
+		return new ResMessage<>(resCode, resMsg, null);
 	}
 	
 	

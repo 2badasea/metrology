@@ -130,6 +130,7 @@ public class ReportDTO {
 			String additionalFeeCause,        // 추가금액사유
 			String request,               // 요청사항
 			String environmentInfo,            // 환경정보
+			String tracestatementInfo,            // 소급성문구
 			
 			// 접수데이터
 			String custAgent,        // 신청업체
@@ -169,6 +170,45 @@ public class ReportDTO {
 			ReportInfo reportInfo,
 			List<ChildReportInfo> childReportInfos
 	) {
+	}
+	
+	// 성적서 수정 요청 데이터
+	public record ReportUpdateReq(
+			Long id,
+			OrderType orderType,    // 접수구분
+			LocalDate caliDate,        // 교정일자
+			ReportLang reportLang,    // 성적서발행타입
+			PriorityType priorityType, // 긴급여부(NORMAL:일반, EMERGENCY: 긴급)
+			CaliType caliType,        // 교정유형
+			CaliTakeType caliTakeType,    // 교정상세유형
+			String manageNo,        // 관리번호
+			
+			Long middleItemCodeId,        // 중분류id
+			Long smallItemCodeId,        // 소뷴류id
+			Long workMemberId,        // 실무자 id
+			Long approvalMemberId,        // 기술책임자id
+			
+			// 품목정보
+			Long itemId,            // 품목id
+			String itemName,        // 기기명
+			String itemNameEn,        // 기기명(영문)
+			String itemFormat,       // 기기 형식
+			String itemNum,            // 기기번호
+			Integer itemCaliCycle,        // 품목교정주기
+			String itemMakeAgent,    // 제작회사
+			String itemMakeAgentEn,    // 제작회사(영문명)
+			String remark,                    // 비고(품목비고)
+			Long caliFee,                // 교정수수료
+			Long additionalFee,                // 추가금액
+			String additionalFeeCause,        // 추가금액사유
+			String request,               // 요청사항
+			String environmentInfo,            // 환경정보
+			String tracestatementInfo,           // 소급성문구
+			
+			// 자식성적서
+			List<ChildReportInfo> childReportInfos
+	) {
+	
 	}
 	
 	

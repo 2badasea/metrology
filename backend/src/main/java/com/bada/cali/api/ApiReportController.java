@@ -84,5 +84,27 @@ public class ApiReportController {
 		return ResponseEntity.ok(new ResMessage<>(1, null, resData));
 	}
 	
+	// 자식 성적서 삭제 요청
+	@DeleteMapping(value = "/delete/{id}")
+	public ResponseEntity<ResMessage<?>> delete(
+			@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails user
+	) {
+		log.info("delete id : {}", id);
+		ResMessage<Object> resMessage = reportService.deleteById(id, user);
+		
+		return ResponseEntity.ok(resMessage);
+	}
+	
+	// 성적서 수정 요청
+	@PostMapping(value = "updateReport")
+	public ResponseEntity<ResMessage<?>> updateReport(
+			@RequestBody ReportDTO.ReportUpdateReq req,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		ResMessage<Object> resMessage = reportService.updateReport(req, user);
+		
+		return ResponseEntity.ok(resMessage);
+	}
+	
 	
 }

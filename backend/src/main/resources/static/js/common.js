@@ -1438,6 +1438,7 @@ function number_format(value) {
 	}
 }
 
+// 콤마처리
 function comma(str) {
 	try {
 		if (str == '') {
@@ -1456,5 +1457,20 @@ function comma(str) {
 		// console.log(`comma str: ${str}, ${str1}`);
 		return str1;
 	} catch (ex) {}
+	return str;
+}
+
+// 콤마제거
+function uncomma(str) {
+	try {
+		str = String(str);
+		// var str1 = str.replace(/^[\d]+/g, '');
+		var str1 = str.replaceAll(",", "");
+		if ('NaN' == str1) {
+			str1 = 0;
+		}
+		// console.log(`uncomma str: ${str}, ${str1}`);
+		return str1;
+	} catch (ex) { }
 	return str;
 }
