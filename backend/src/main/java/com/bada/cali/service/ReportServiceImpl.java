@@ -355,7 +355,7 @@ public class ReportServiceImpl {
 	@Transactional
 	public ResMessage<?> deleteReport(ReportDTO.DeleteReportReq request, CustomUserDetails user) {
 		LocalDateTime now = LocalDateTime.now();
-		String workerName = user.getUsername();
+		String workerName = user.getName();
 		Long userId = user.getId();
 		List<Long> deleteIds = request.deleteIds();
 		
@@ -393,7 +393,7 @@ public class ReportServiceImpl {
 					report.setDeleteDatetime(now);
 					report.setDeleteMemberId(userId);
 					
-					deleteReportNums.add(String.format("%s(고유 ID: %d", originReportNum, report.getId()));
+					deleteReportNums.add(String.format("[성적서 삭제] 성적서번호: %s, - 고유 ID: %d)", originReportNum, report.getId()));
 				}
 			}
 			
@@ -443,6 +443,50 @@ public class ReportServiceImpl {
 				childReportInfos
 		);
 		
+	}
+	
+	/**
+	 * 성적서 삭제 요청 (is_visible = 'n' 처리)
+	 *
+	 * @param id
+	 * @param user
+	 * @return
+	 */
+	@Transactional
+	public ResMessage<Object> deleteById(Long id, CustomUserDetails user) {
+		int resCode = 0;
+		String resMsg;
+		
+		
+		Report deleteTargetRepost = reportRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("해당 성적서가 존재하지 않습니다."));
+		
+		String reportNum = (deleteTargetRepost.getReportNum() == null) ? "[성적서번호 없음]" : deleteTargetRepost.getReportNum();
+		
+		LocalDateTime now = LocalDateTime.now();
+		Long userId = user.getId();
+		String workerName = user.getName();    // log에 넣을 데이터
+		
+		// dirty checking으로 영속성 컨텍스트 선에서 삭제처리
+		deleteTargetRepost.setIsVisible(YnType.n);
+		deleteTargetRepost.setDeleteDatetime(now);
+		deleteTargetRepost.setDeleteMemberId(userId);
+		
+		String logContent = String.format("[성적서 삭제] 성적서번호: %s, 고유번호 - %d", reportNum, deleteTargetRepost.getId());
+		Log deleteLog = Log.builder()
+				.logType("d")
+				.createMemberId(userId)
+				.createDatetime(now)
+				.workerName(workerName)
+				.refTable("report")
+				.refTableId(id)
+				.logContent(logContent)
+				.build();
+		logRepository.save(deleteLog);
+		
+		resCode = 1;
+		resMsg = "성적서가 삭제되었습니다.";
+		
+		return new ResMessage<>(resCode, resMsg, null);
 	}
 	
 	

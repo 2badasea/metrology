@@ -84,5 +84,16 @@ public class ApiReportController {
 		return ResponseEntity.ok(new ResMessage<>(1, null, resData));
 	}
 	
+	// 자식 성적서 삭제 요청
+	@DeleteMapping(value = "/delete/{id}")
+	public ResponseEntity<ResMessage<?>> delete(
+			@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails user
+	) {
+		log.info("delete id : {}", id);
+		ResMessage<Object> resMessage = reportService.deleteById(id, user);
+		
+		return ResponseEntity.ok(resMessage);
+	}
+	
 	
 }

@@ -124,6 +124,44 @@ $(function () {
 			const caliType = $(this).val();
 			// 함수를 통해서 값 세팅
 			$modal.setCaliType(caliType);
+		})
+		// 자식성적서 삭제
+		.on('click', '.deleteChild', async function () {
+			// 삭제는 저장이 아닌 실시간으로 반영되며, 삭제 이후엔 numbering이 변동된다.
+			console.log('자식성적서 삭제');
+			const $btn = $(this);
+
+			try {
+				$btn.prop('disabled', true);
+				const $deleteTable = $btn.closest('table');
+				const deleteId = $deleteTable.find('input[name=id]').val();
+				console.log('🚀 ~ deleteId:', deleteId);
+				const deleteConfirm = await g_message(
+					'성적서 삭제',
+					'성적서를 삭제하시겠습니까?<br>저장과 관계없이 바로 삭제됩니다. ',
+					'warning',
+					'confirm'
+				);
+				if (deleteConfirm.isConfirmed === true) {
+					g_loading_message();
+					// 삭제요청은 DELETE http method 형식으로 보낸다.
+					const resDelete = await g_ajax(`/api/report/delete/${deleteId}`, {}, { type: 'DELETE'});
+					console.log('🚀 ~ resDelete:', resDelete);
+
+					// 삭제성공 시, 대상 table을 remove시키고, 넘버링을 새롭게 한다.
+					if (resDelete?.code > 0) {
+						await g_message('성적서 삭제', resDelete.msg, 'success', 'alert');
+						// 영역을 삭제 후, numbering을 새롭게 한다.
+						$deleteTable.remove();
+						$modal.setChildNumbering();
+					}
+				} else {
+					return false;
+				}
+			} catch (err) {
+			} finally {
+				$btn.prop('disabled', false);
+			}
 		});
 
 	// 저장
@@ -134,6 +172,14 @@ $(function () {
 		$modal.param.res = true;
 		$modal_root.modal('hide');
 		return $modal.param;
+	};
+
+	// 자식성적서 넘버링 세팅
+	$modal.setChildNumbering = () => {
+		const childReportTitle = $('.childTitle', $modal); // span
+		$.each(childReportTitle, (index, ele) => {
+			$(ele).text(`기기정보 (${index + 2})`);
+		});
 	};
 
 	// 자식성적서 세팅
@@ -147,11 +193,10 @@ $(function () {
 		$.each(rows, function (index, row) {
 			const childTable = $parentItemTable.clone(); // 부모table 복사
 			childTable.find('tbody tr').eq(0).remove(); // 첫 번째 tr 삭제 -> 반복문으로 새롭게 세팅
-			const orderNo = (index + 1);
 			const newEleTr = `<tr>
 								<input type='hidden' name="id">
 								<th colspan="3" class="border-0 text-left"><span
-										class="pl-3">기기정보 (${orderNo})</span> </th>
+										class="pl-3 childTitle"></span> </th>
 								<th class="border-0 "><button class="btn btn-danger deleteChild float-right"
 										type="button">삭제</button></th>
                                 </tr>`;
@@ -160,6 +205,9 @@ $(function () {
 			$(childTable).find('table').addClass('childTable');
 			$itemTd.append(childTable);
 		});
+
+		// 자식성적서 numbering 세팅
+		$modal.setChildNumbering();
 	};
 
 	// 교정유형, 교정상세유형 변경 이벤트
