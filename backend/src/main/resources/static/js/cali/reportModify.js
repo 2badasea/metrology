@@ -49,14 +49,20 @@ $(function () {
 						$modal.setCaliType(caliType, caliTakeType);
 
 						// 환경정보 세팅
+						// NOTE 서버에서 record 클래스 내 환경정보를 String으로 받고 있기 때문에 문자열 형태로 매핑된 상태로 브라우저에 응답한 것
 						if (parentInfo.environmentInfo != undefined && parentInfo.environmentInfo) {
-							const parentInfo = JSON.parse(parentInfo.environmentInfo);
-							console.log("🚀 ~ parentInfo:", parentInfo);
+							const environmentInfo = JSON.parse(parentInfo.environmentInfo);
+							console.log('🚀 ~ parentInfo:', parentInfo);
 
-							Object.entries(parentInfo).forEach(([key, value]) => {
-								
-							})
-							
+							// key별로 항목에 세팅한다.
+							Object.entries(environmentInfo).forEach(([key, value]) => {
+								$(`input[name=${key}]`, $modal).val(value);
+							});
+						}
+
+						// 자식성적서가 존재하는 경우, 세팅
+						if (childInfos.length > 0) {
+							await $modal.setChildInfo(childInfos);
 						}
 					}
 				}
@@ -128,6 +134,32 @@ $(function () {
 		$modal.param.res = true;
 		$modal_root.modal('hide');
 		return $modal.param;
+	};
+
+	// 자식성적서 세팅
+	$modal.setChildInfo = (rows) => {
+		console.log('🚀 ~ rows:', rows);
+		// 부모성적서 table 요소
+		const $parentItemTable = $('.itemTable', $modal);
+		const $itemTd = $('.itemList', $modal);
+
+		// 반복문만큼 세팅한다.
+		$.each(rows, function (index, row) {
+			const childTable = $parentItemTable.clone(); // 부모table 복사
+			childTable.find('tbody tr').eq(0).remove(); // 첫 번째 tr 삭제 -> 반복문으로 새롭게 세팅
+			const orderNo = (index + 1);
+			const newEleTr = `<tr>
+								<input type='hidden' name="id">
+								<th colspan="3" class="border-0 text-left"><span
+										class="pl-3">기기정보 (${orderNo})</span> </th>
+								<th class="border-0 "><button class="btn btn-danger deleteChild float-right"
+										type="button">삭제</button></th>
+                                </tr>`;
+			$(childTable).find('tbody').prepend(newEleTr);
+			$(childTable).find('input[name]').setupValues(row);
+			$(childTable).find('table').addClass('childTable');
+			$itemTd.append(childTable);
+		});
 	};
 
 	// 교정유형, 교정상세유형 변경 이벤트
