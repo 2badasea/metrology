@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <div layout:fragment="content">
+        	<div class="row m-0 p-1">
+		<div class="col-lg-6 col-md-6 pl-0 pr-1">
+			<div class="card">
+				<div class="card-header p-2">
+					<div class="d-flex">
+						<ul>
+							<li>
+								<h5 class="font-weight-bold card_header_style">중분류 관리</h5>
+							</li>
+						</ul>
+						<ul class="ml-auto list-group list-group-horizontal">
+							<li>
+								<button type="button" class="btn btn-purple open_report_code_modal">대분류 관리</button>
+								<button type="button" class="btn btn-danger delete_item_code" data-type="middle">삭제</button>
+								<button type="button" class="btn btn-primary new_item_code" data-type="middle">신규</button>
+								<button type="button" class="btn btn-success save_item_code" data-type="middle">저장</button>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div class="card-body p-1">
+					<form id="middle_code_frm">
+						<table class="table table-bordered table-hover text-center mb-0">
+							<colgroup>
+								<col width="100px">
+								<col width="200px">
+							</colgroup>
+							<tbody>
+								<tr>
+									<th class="required">대분류코드</th>
+									<td>
+										<select class="form-control" id="report_code" name="report_code">
+											<option value="">코드선택</option>
+										</select>
+									</td>
+								</tr>
+								<tr>
+									<th class="required">중분류코드</th>
+									<td>
+										<input type="hidden" name="item_code_idx">
+										<input class="form-control rounded-0" name="item_code_num">
+									</td>
+								</tr>
+								<tr>
+									<th class="required">중분류명</th>
+									<td><input type="text" class="form-control rounded-0" name="item_code_name" /></td>
+								</tr>
+								<tr>
+									<th>중분류명(영문)</th>
+									<td><input type="text" class="form-control rounded-0" name="item_code_name_en" /></td>
+								</tr>
+							</tbody>
+						</table>
+					</form>
+					<div class="input-group w-100 mb-1 mt-3">
+						<input type="text" class="form-control middle_keyword w-75" placeholder="중분류 검색">
+						<div class="input-group-append">
+							<button class="btn btn-info middle_search" type="button">조회</button>
+						</div>
+					</div>
+					<table class="table table-bordered table-hover text-center" id="middle_code_table">
+						<colgroup>
+							<col width="20px">
+							<col width="80px">
+							<col width="200px">
+						</colgroup>
+						<thead>
+							<tr class="text-center">
+								<th><input type="checkbox" name="all_check" class="checkid all_check" data-type="middle"></th>
+								<th>중분류코드</th>
+								<th>중분류명</th>
+								<th>중분류명(영문)</th>
+							</tr>
+						</thead>
+					</table>
+
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-6 col-md-6 pl-0 pr-1">
+			<div class="card">
+				<div class="card-header p-2">
+					<div class="d-flex">
+						<ul>
+							<li>
+								<h5 class="font-weight-bold card_header_style">소분류 관리</h5>
+							</li>
+						</ul>
+						<ul class="ml-auto list-group list-group-horizontal">
+							<li>
+								<button type="button" class="btn btn-danger delete_item_code" data-type="small">삭제</button>
+								<button type="button" class="btn btn-primary new_item_code" data-type="small">신규</button>
+								<button type="button" class="btn btn-success save_item_code" data-type="small">저장</button>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div class="card-body p-1">
+					<form id="small_code_frm">
+						<table class="table table-bordered table-hover text-center mb-0">
+							<colgroup>
+								<col width="100px">
+								<col width="200px">
+								<col width="100px">
+								<col width="200px">
+							</colgroup>
+							<tbody>
+								<tr>
+									<th class="required">소분류코드</th>
+									<td colspan="3">
+										<input type="hidden" name="item_code_idx">
+										<input type="hidden" name="parent_idx">
+										<input class="form-control rounded-0" name="item_code_num">
+									</td>
+								</tr>
+								<tr>
+									<th class="required">소분류명</th>
+									<td colspan="3"><input type="text" class="form-control rounded-0" name="item_code_name" /></td>
+								</tr>
+								<tr>
+									<th class="required">소분류명(영문)</th>
+									<td colspan="3"><input type="text" class="form-control rounded-0" name="item_code_name_en" /></td>
+								</tr>
+								<tr>
+									<th rowspan="3">소급성</th>
+									<td colspan="3"><input type="text" class="form-control rounded-0 excep-text" name="retro_active" /></td>
+								</tr>
+								<tr>
+									<td colspan="3"><input type="text" class="form-control rounded-0 excep-text" name="retro_active2" /></td>
+								</tr>
+								<tr>
+									<td colspan="3"><input type="text" class="form-control rounded-0 excep-text" name="retro_active3" /></td>
+								</tr>
+								<tr>
+									<th rowspan="3">소급성(영문)</th>
+									<td colspan="3"><input type="text" class="form-control rounded-0 excep-text" name="retro_active_en" /></td>
+								</tr>
+								<tr>
+									<td colspan="3"><input type="text" class="form-control rounded-0 excep-text" name="retro_active_en2" /></td>
+								</tr>
+								<tr>
+									<td colspan="3"><input type="text" class="form-control rounded-0 excep-text" name="retro_active_en3" /></td>
+								</tr>
+
+							</tbody>
+						</table>
+					</form>
+					<div class="input-group mb-1 mt-3">
+						<select class="form-control w-25 item_code_delete" data-type="small" style="width: 15% !important;">
+							<option value="all">삭제 포함</option>
+							<option value="Y">삭제 미포함</option>
+						</select>
+						<input type="text" class="form-control small_keyword w-75" placeholder="소분류 검색">
+						<div class="input-group-append">
+							<button class="btn btn-info small_search" type="button">조회</button>
+						</div>
+					</div>
+					<table class="table table-bordered table-hover text-center" id="small_code_table">
+						<colgroup>
+							<col width="20px">
+							<col width="80px">
+							<col width="200px">
+						</colgroup>
+						<thead>
+							<tr class="text-center">
+								<th><input type="checkbox" name="all_check" class="checkid all_check" data-type="small"></th>
+								<th>소분류코드</th>
+								<th>소분류명</th>
+								<th>소분류명(영문)</th>
+							</tr>
+						</thead>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+    </div>
+</body>
+
+</html>

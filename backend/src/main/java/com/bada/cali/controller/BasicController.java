@@ -69,4 +69,11 @@ public class BasicController {
 		return "basic/viewRoadMap";
 	}
 	
+	// 분류코드관리 페이지 호출
+	@GetMapping(value = "/itemCode")
+	public String itemCode(Model model) {
+		log.info("분류코드 페이지 호출");
+		model.addAttribute("title", "분류코드관리");
+		return "basic/itemCode";
+	}
 }
