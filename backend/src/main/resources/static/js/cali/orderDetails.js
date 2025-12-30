@@ -54,7 +54,7 @@ $(function () {
 					},
 				},
 				{
-					header: '접수타입',
+					header: '접수구분',
 					name: 'orderType',
 					className: 'cursor_pointer',
 					width: '80',
@@ -150,7 +150,7 @@ $(function () {
 			if (row && e.columnName != '_checked') {
 				// 자체와 대행을 구분한다.
 				const id = row.id;
-				const reportNum = row.reportNum;	// 성적서 번호
+				const reportNum = row.reportNum; // 성적서 번호
 				const reportType = row.reportType; // 자체/대행 구분 -> 수정 모달 UI 구분위함
 				// 자체
 				if (reportType === 'SELF') {
@@ -215,7 +215,7 @@ $(function () {
 		})
 		// 행 수 변경
 		.on('change', '.rowLeng', function () {
-			const rowLeng = $(this).val();	// 행 수
+			const rowLeng = $(this).val(); // 행 수
 
 			if (rowLeng > 0) {
 				$modal.grid.setPerPage(rowLeng); // perPage옵션이 변경된 상태로 다시 재렌더링이 일어남
@@ -247,14 +247,15 @@ $(function () {
 
 					// 자체와 대행을 분리한다.
 					if (reportType === 'SELF') {
-						if (row.workDatetime || row.approvalDateTime) {		// FIX 결재상태가 'IDLE'인지도 체크 필요
+						if (row.workDatetime || row.approvalDateTime) {
+							// FIX 결재상태가 'IDLE'인지도 체크 필요
 							isFlag = false;
 							g_toast('결재가 진행중인 건이 존재합니다.', 'warning');
 							return false;
 						} else {
 							if (validateInfo[orderType] != undefined && Array.isArray(validateInfo[orderType])) {
 								validateInfo[orderType].push(row.id);
-							} 
+							}
 							// 접수구분(key)에 맞는 배열이 없는 경우, 배열을 초기화해주고 id를 넣는다.
 							else {
 								validateInfo[orderType] = [];
@@ -283,7 +284,6 @@ $(function () {
 						}
 					}
 				});
-
 			} catch (err) {
 				isFlag = false;
 				g_toast(`삭제처리 중 오류가 있습니다.<br>${err}`, 'error');
