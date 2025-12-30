@@ -261,26 +261,26 @@ $(function () {
 		// 	}
 		// });
 
-		// 빈 row 데이터를 생성한다.
+		// 빈 row 객체 반환. (기본 접수타입은 '공인')
 		$modal.grid.makeEmptyRow = (orderType = 'ACCREDDIT', hierarchyType = 'parent') => {
 			return {
 				hierarchyType, // parent: 부모, child: 자식
 				orderType,
-				middleItemCodeId: null,
+				middleItemCodeId: null,		// id관련 컬럼은 기본적으로 NULL을 준다.
 				smallItemCodeId: null,
 				itemId: null,
 				itemName: '',
 				itemMakeAgent: '',
 				itemFormat: '',
 				itemNum: '',
-				itemCaliCycle: 0,
+				itemCaliCycle: 0,		// TODO 교정주기 품목테이블에서 교정주기가 없거나, 시간단위, 또는 '수시'인 경우 고민 필요)
 				remark: '',
 			};
 		};
 
 		// 자식 row 추가 ('하위' 버튼 클릭 시)
 		$modal.grid.addChildRow = (parentRowKey) => {
-			const depth = $modal.grid.getDepth(parentRowKey);
+			const depth = $modal.grid.getDepth(parentRowKey);	// 클릭이 발생한 row의 깊이 (부모는 1임)
 			if (depth >= 2) {
 				g_toast('하위 성적서는 그 하위 성적서를<br>가질 수 없습니다.', 'warning');
 				return false;
@@ -388,7 +388,7 @@ $(function () {
 					$modal.grid.blur();
 				}
 			})
-			// 엑셀 다중 업로드
+			// TODO 엑셀 다중 업로드
 			.on('click', '.addReportExcel', async function (e) {
 				console.log('엑셀 다중 등록 진행');
 			});
@@ -484,7 +484,6 @@ $(function () {
 
 		// g_ajax로 처리하기
 		const confirmSave = await g_message('성적서 등록', confirmMsg, 'info', 'confirm');
-		console.log('🚀 ~ confirmSave:', confirmSave);
 		if (confirmSave.isConfirmed == true) {
 			g_loading_message();
 

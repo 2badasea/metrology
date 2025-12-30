@@ -38,7 +38,7 @@ $(function () {
 					if (parentInfo) {
 						$('form.reportModifyForm', $modal).find('input[name], textarea[name], select[name]').setupValues(parentInfo);
 
-						// 접수구분 비활성화 처리
+						// 접수구분 비활성화 처리 (성적서 수정 모달 내에선 수정 불가)
 						$('input[name=orderType]', $modal).prop('disabled', true);
 
 						// 교정유형, 교정상세유형 세팅
@@ -49,7 +49,7 @@ $(function () {
 						// 환경정보 세팅
 						// NOTE 서버에서 record 클래스 내 환경정보를 String으로 받고 있기 때문에 문자열 형태로 매핑된 상태로 브라우저에 응답한 것
 						if (parentInfo.environmentInfo != undefined && parentInfo.environmentInfo) {
-							const environmentInfo = JSON.parse(parentInfo.environmentInfo);
+							const environmentInfo = JSON.parse(parentInfo.environmentInfo);	// JSON 형태로 파싱(역직렬화)
 
 							// key별로 항목에 세팅한다.
 							Object.entries(environmentInfo).forEach(([key, value]) => {
@@ -125,15 +125,13 @@ $(function () {
 	$modal
 		// 교정유형 선택
 		.on('change', 'input[name=caliType]', function () {
-			console.log('변동확인');
-			const caliType = $(this).val();
+			const caliType = $(this).val();	// 변경된 타입
 			// 함수를 통해서 값 세팅
 			$modal.setCaliType(caliType);
 		})
 		// 자식성적서 삭제
 		.on('click', '.deleteChild', async function () {
 			// 삭제는 저장이 아닌 실시간으로 반영되며, 삭제 이후엔 numbering이 변동된다.
-			console.log('자식성적서 삭제');
 			const $btn = $(this);
 
 			try {
@@ -152,7 +150,6 @@ $(function () {
 						g_loading_message();
 						// 삭제요청은 DELETE http method 형식으로 보낸다.
 						const resDelete = await g_ajax(`/api/report/delete/${deleteId}`, {}, { type: 'DELETE' });
-						console.log('🚀 ~ resDelete:', resDelete);
 
 						// 삭제성공 시, 대상 table을 remove시키고, 넘버링을 새롭게 한다.
 						if (resDelete?.code > 0) {
@@ -244,7 +241,6 @@ $(function () {
 		});
 
 		// 담긴 데이터엔 접수관련 데이터도 존재하지만, record 클래스에서 필드로 정의하지 않음으로써 필터링하기
-		console.log(saveObj);
 		saveObj.id = id;
 
 		// 교정료나 추가금액의 경우, comma를 제거하고 삽입
@@ -275,15 +271,14 @@ $(function () {
 		// 자식성적서가 존재하는 경우, 별도로 받을 것
 		const $childTables = $('.childTable', $modal);
 		if ($childTables.length > 0) {
-			let isValid = true;
+			let isValid = true;		// 기기명이 존재하지 않을 경우 리턴
 			$.each($childTables, function (index, table) {
 				const childObj = {};
 				if (!isValid) {
 					return false;
 				}
-				$(table)
-					.find('input[name]')
-					.each(function (idx, input) {
+				// <tabel> 요소 내부의 input들에 대해서도 순회로 검증 및 데이터 담기
+				$(table).find('input[name]').each(function (idx, input) {
 						const key = $(input).attr('name');
 						let val = $(input).val();
 
@@ -308,15 +303,14 @@ $(function () {
 					});
 				childReportData.push(childObj);
 			});
+			// 검증에 실패한 경우 return
 			if (!isValid) {
 				return false;
 			}
 		}
 
-		// 자식성적서의 데이터 유효성 검사 결과
+		// 문제가 없었다면 데이터를 담는다.
 		saveObj.childReportInfos = childReportData;
-		console.log('🚀 ~ saveObj:', saveObj);
-
 		// 저장로직 진행
 		try {
 			$btn.prop('disabled', true);
@@ -373,10 +367,9 @@ $(function () {
 
 	// 자식성적서 세팅
 	$modal.setChildInfo = (rows) => {
-		console.log('🚀 ~ rows:', rows);
 		// 부모성적서 table 요소
 		const $parentItemTable = $('.itemTable', $modal).eq(0);
-		const $itemTd = $('.itemList', $modal);
+		const $itemTd = $('.itemList', $modal);	// 자식성적서를 붙여줄 요소
 
 		// 반복문만큼 세팅한다.
 		$.each(rows, function (index, row) {
@@ -389,9 +382,9 @@ $(function () {
 								<th class="border-0 "><button class="btn btn-danger deleteChild float-right"
 										type="button">삭제</button></th>
                                 </tr>`;
-			$(childTable).find('tbody').prepend(newEleTr);
-			$(childTable).find('input[name]').setupValues(row);
-			$(childTable).addClass('childTable');
+			$(childTable).find('tbody').prepend(newEleTr);	// 자식성적서는 새로운 tr로 교체
+			$(childTable).find('input[name]').setupValues(row);	// 자식성적서의 id도 세팅됨
+			$(childTable).addClass('childTable');	// 부모테이블, 자식테이블 구분
 			$itemTd.append(childTable);
 		});
 

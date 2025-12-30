@@ -31,9 +31,7 @@ public class ApiReportController {
 			@RequestParam Long caliOrderId,        // 쿼리스트링으로 넘어오는 접수 id
 			@AuthenticationPrincipal CustomUserDetails user) {
 		
-		Boolean resSave = reportService.addReport(reports, caliOrderId, user);
-		int resCode = resSave ? 1 : -1;
-		ResMessage<?> resMessage = new ResMessage<>(resCode, null, null);
+		ResMessage<Object> resMessage = reportService.addReport(reports, caliOrderId, user);
 		
 		return ResponseEntity.ok(resMessage);
 	}
