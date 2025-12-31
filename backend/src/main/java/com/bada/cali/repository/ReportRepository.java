@@ -1,13 +1,11 @@
 package com.bada.cali.repository;
 
 import com.bada.cali.common.enums.OrderType;
-import com.bada.cali.common.enums.ReportType;
 import com.bada.cali.dto.ReportDTO;
 import com.bada.cali.entity.Report;
 import com.bada.cali.repository.projection.LastManageNoByType;
 import com.bada.cali.repository.projection.LastReportNumByOrderType;
 import com.bada.cali.repository.projection.OrderDetailsList;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

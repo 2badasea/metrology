@@ -29,8 +29,9 @@ $(function () {
 		{ text: '24개월', value: '24' },
 		{ text: '36개월', value: '36' },
 	];
-	// TODO 품목코드 관리 테이블 및 메뉴 생성 이후에 하드코딩이아닌 db에서 가져오도록 변경할 것
-	// NOTE 토스트 그리드에는 relation을 이용하여 동적으로 데이터를 변경이 가능하므로, 다음엔 relation 활용
+	// TODO 1)	품목코드 관리 테이블 및 메뉴 생성 이후에 하드코딩이아닌 db에서 가져오도록 변경할 것
+	// TODO 2) 토스트 그리드에는 relation을 이용하여 동적으로 데이터를 변경이 가능하므로, 다음엔 relation 활용
+	// https://nhn.github.io/tui.grid/latest/tutorial-example05-relation-columns 페이지 참조
 	// 중분류/소분류 코드에 대한 부분도 우선 하드코딩으로 넣어준다.
 	const tmpMiddleCode = [
 		{ text: '101', value: '10' },
@@ -222,44 +223,12 @@ $(function () {
 		// NOTE 추후 relation을 활용해서 대체가 가능하면 아래 소스 수정할 것
 		$modal.grid.on('afterChange', (ev) => {
 			ev.changes.forEach(({ rowKey, columnName }) => {
+				// 중분류코드 변경 시, 소분류코드 초기화
 				if (columnName === 'middleItemCodeId') {
 					$modal.grid.setValue(rowKey, 'smallItemCodeId', '');
 				}
 			});
 		});
-
-		// drag and drop에 대한 이벤트
-		// let dragCtx = null;
-
-		// $modal.grid.on('dragStart', (ev) => {
-		// 	const rowKey = ev.rowKey;
-		// 	const parent = $modal.grid.getParentRow(rowKey);
-		// 	dragCtx = {
-		// 		rowKey,
-		// 		fromParentKey: parent ? parent.rowKey : null,
-		// 		// fromIndex 등도 같이 저장해두면 “원복”이 쉬움
-		// 	};
-		// });
-
-		// $modal.grid.on('drop', (ev) => {
-		// 	if (!dragCtx) return;
-
-		// 	// 트리에서 “자식으로 붙이기” 시도를 의미하는 힌트
-		// 	if (ev.appended) {
-		// 		alert('부모/자식 레벨은 변경할 수 없습니다.');
-		// 		// 여기서 원복 로직 수행(또는 드랍 무효 처리 가능한 방식이면 무효 처리)
-		// 		return;
-		// 	}
-
-		// 	// 드랍 후 parent가 바뀌었는지 확인(같은 레벨 제약)
-		// 	const parent = $modal.grid.getParentRow(dragCtx.rowKey);
-		// 	const toParentKey = parent ? parent.rowKey : null;
-
-		// 	if (toParentKey !== dragCtx.fromParentKey) {
-		// 		alert('같은 레벨 내에서만 이동할 수 있습니다.');
-		// 		// 원복 로직 수행
-		// 	}
-		// });
 
 		// 빈 row 객체 반환. (기본 접수타입은 '공인')
 		$modal.grid.makeEmptyRow = (orderType = 'ACCREDDIT', hierarchyType = 'parent') => {
@@ -380,8 +349,7 @@ $(function () {
 				}
 			});
 
-		// 엑세 다중 등록
-		$modal_root
+			$modal_root
 			// 그리드가 아닌 영역 클릭 시, 그리드에 대한 blur() 처리를 해준다.
 			.on('click', '.modal-dialog', function (e) {
 				if ($(e.target).closest('.addReportList').length === 0 && !$(e.target).hasClass('insertRows')) {

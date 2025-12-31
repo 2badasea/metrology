@@ -352,7 +352,8 @@ $(function () {
 			// 1. 브라우저 단에서 1차적으로 결재가 진행중인 건이 있는지만 판단
 			// 2. api를 두 번 탈 것(서버차원에서 검증)
 			// 3. 검증이 완료되었다면, 대상 id들만 삭제api로 보낼 것 (deletemapping 활용?)
-		});
+		})
+		;
 
 	$modal.data('modal-data', $modal);
 	$modal.addClass('modal-view-applied');
