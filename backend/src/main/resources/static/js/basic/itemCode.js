@@ -38,8 +38,8 @@ $(function () {
 		};
 
 		// 그리드 정의
-		$modal.grid = new Grid({
-			el: document.querySelector('.middleCodeList'),
+		$modal.middleGrid = new Grid({
+			el: document.querySelector('.middleGrid'),
 			columns: [
 				{
 					header: '접수일',
@@ -53,32 +53,60 @@ $(function () {
 				},
 			],
 			pageOptions: {
-				useClient: false, // 서버 페이징
-				perPage: 20,
+				perPage: 12,
 			},
 			rowHeaders: ['checkbox'],
-			// minBodyHeight: 663,
-			// bodyHeight: 663,
-			// data: $modal.data_source,
+			// data: $modal.middleDataSource,
 			rowHeight: 'auto',
 		});
 
-		// 페이지 내 이벤트
-		$modal
-			// 검색
-			.on('submit', '.searchForm', function (e) {
-				e.preventDefault();
-				$modal.grid.getPagination().movePageTo(1);
-			});
+		// 그리드 정의
+		$modal.smallGrid = new Grid({
+			el: document.querySelector('.smallGrid'),
+			columns: [
+				{
+					header: '접수일',
+					name: 'orderDate',
+					className: 'cursor_pointer',
+					align: 'center',
+					width: '80',
+					formatter: function (data) {
+						return !data.value ? '' : data.value;
+					},
+				},
+			],
+			pageOptions: {
+				perPage: 8,
+			},
+			// data: $modal.smallDataSource,
+			rowHeaders: ['checkbox'],
+			rowHeight: 'auto',
+		});
 
 		// 그리드 이벤트 정의
-		$modal.grid.on('click', async function (e) {
-			const row = $modal.grid.getRow(e.rowKey);
+		// $modal.grid.on('click', async function (e) {
+		// 	const row = $modal.grid.getRow(e.rowKey);
 
-			if (row && e.columnName != '_checked') {
-			}
+		// 	if (row && e.columnName != '_checked') {
+		// 	}
+		// });
+
+	}; // End init_modal
+
+	// 페이지 내 이벤트
+	$modal
+		// 대분류관리 모달 호출
+		.on('click', '.manageBig', async function () {
+			console.log('대분류관리 모달 호출');
+			const resModal = await g_modal('/basic/bigItemCodeModify', {}, {
+				size: 'lg',
+				title: '대분류코드 관리',
+				show_close_button: true,
+				show_confirm_button: true,
+			});
+
+			console.log(resModal);
 		});
-	};
 
 	$modal.data('modal-data', $modal);
 	$modal.addClass('modal-view-applied');

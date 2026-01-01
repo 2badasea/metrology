@@ -681,6 +681,131 @@ ORDER BY
 - 도메인 로직/연관관계 활용/수정까지 이어질 가능성 → **엔티티 조회 후 DTO 변환 선호**
 - 복잡한 조회인데도 DTO로 바로 받고 싶다 → **Querydsl/Projection 조합 고려**
 
+
+## 5) 기타 참조사항
+- 데이터 조회를 위한 GET요청을 보내는 경우, 일반적으로 쿼리스트링이나 @PathVariable 형태로 서버에서 받을 수 있도록 한다.
+  - GET 방식에서 body에 데이터를 담아보내는 것은 환경에 따라 무시되는 경우가 존재하기 때문.
+
+<br><br>
+
+---
+
+# 📌 53번. @ManyToOne 애너테이션을 통해 연관관계 활용
+
+## 예시코드
+```java
+@ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = "cali_order_id", insertable = false, updatable = false)
+private CaliOrder caliOrder;
+```
+
+## 애너테이션을 활용하여 연관관계를 정의하는 경우 on절을 생략할 수 있다.
+```java
+// 연관관계 애너테이션을 사용하는 경우, on절을 생략해도 된다.
+@Query("""
+    select new com.bada.cali.dto.report.ReportModifyInfo(
+        r.id, r.reportNum, r.itemName, r.remark,
+        o.id, o.orderNum, o.orderDate, o.isTax, o.caliType
+    )
+    from Report r
+    join r.caliOrder o
+    where r.id = :reportId
+      and r.isVisible = :isVisible
+""")
+ReportModifyInfo getReportModifyInfo(@Param("reportId") Long reportId,
+                                    @Param("isVisible") YnType isVisible);
+```
+- 참고로 **insertable=false, updatable=false** 부분은 이 연관관계를 통해 FK 컬럼을 쓰기(INSERT/UPDATE)를 하지 않겠다는 의미. 조인/조회에는 문제 없음
+- `join r.caliOrder o` 는 기본이 INNER JOIN이라 cali_order_id가 NULL이면 결과에서 빠집니다.
+  - NULL 이라는 결과도 포함시키기 위해선 `LEFT JOIN`을 활용
+
+## 추가 참고사항
+- 결론부터 말하면, 자식(성적서) 쪽 @ManyToOne은 “거의 항상” 두는 게 좋고, 부모(접수) 쪽 `@OneToMany`는 “필요할 때만” 추가하는 게 실무적으로 가장 안정적
+
+
+<br><br>
+
+---
+
+# 📌 54번. REST 관례 요약: id는 URL, 데이터는 Body
+
+일반적인 REST 관례 기준으로는 **PUT/DELETE도 작업 대상 리소스의 id를 URL에 명시**하는 경우가 많습니다.  
+즉, **“id는 URL(path), 변경 내용은 body”**가 정석에 가깝습니다.
+
+## 관례적으로 많이 쓰는 형태
+
+### 1) 생성 (POST)
+- **POST /reports**
+- **Body**: 새로 만들 데이터
+
+### 2) 수정 (PUT / PATCH)
+- **PUT /reports/{id}** 또는 **PATCH /reports/{id}**
+- **URL**: `{id}` 명시
+- **Body**: 변경할 필드들
+
+### 3) 삭제 (DELETE)
+- **DELETE /reports/{id}**
+- **URL**: `{id}` 명시
+- **Body**: 보통 비움 (단건 삭제는 body 없이 충분)
+
+## 참고: DELETE 요청에 Body를 보내는 것에 대해
+DELETE에서 body를 보내는 것이 **불가능한 것은 아니지만**, 중간 프록시/서버 구성에 따라 **무시되거나 파싱이 애매해지는 경우**가 있어 **단건 삭제는 URL path로 처리하는 것을 권장**합니다.
+
+<br><br>
+
+---
+
+# 📌 55번. TUI Grid `useClientSort` 옵션 정리
+
+`useClientSort`는 정렬(sort)을 **클라이언트(브라우저)**에서 처리할지, **서버**에서 처리할지 결정하는 옵션이다.  
+특히 `data.api.readData`를 이용해 서버에서 데이터를 받아오는 구조(서버 페이징 등)에서 의미가 크다.
+
+## 1) `useClientSort: true`
+
+### 동작
+- 사용자가 컬럼 헤더를 클릭해 정렬하면, **현재 그리드에 로딩되어 있는 데이터만** 브라우저에서 정렬한다.
+- 정렬을 위해 서버에 추가 요청을 보내지 않는다(기본 동작 기준).
+
+### 특징
+- 정렬이 빠르고 구현이 단순하다.
+- **서버 페이징/부분 로딩 환경에서는 전체 데이터 기준 정렬이 아니다.**
+  - 예: 1페이지(20개)만 로딩되어 있으면 그 **20개만** 정렬된다.
+
+### 적합한 경우
+- `pageOptions.useClient: true` 같은 **클라이언트 페이징**(전체 데이터를 한 번에 받아오는 방식)
+- 데이터량이 작아서 **전체 로딩**이 가능할 때
+- “현재 화면에 보이는 데이터만 정렬”이면 충분할 때
+
+## 2) `useClientSort: false`
+
+### 동작
+- 그리드가 클라이언트 정렬을 수행하지 않는다.
+- 보통은 정렬이 발생하면 그 정렬 조건을 서버로 보내서,
+  **서버가 ORDER BY 처리한 결과를 다시 내려주는 구조**로 설계한다.
+
+### 특징
+- **서버 페이징과 궁합이 좋다.** (전체 데이터 기준 정렬 가능)
+- 정렬 조건이 바뀔 때마다 서버 호출 및 쿼리(ORDER BY) 처리가 필요하다.
+- 서버 API가 정렬 파라미터(예: `sortColumn`, `sortDir`, `ascending` 등)를 받아 처리해야 한다.
+
+### 적합한 경우
+- `pageOptions.useClient: false`로 **서버 페이징**을 사용하는 경우
+- 데이터가 많아 전체를 한 번에 로딩할 수 없는 경우
+- “전체 데이터 기준으로 정확한 정렬”이 필요한 경우
+
+## 3) 흔한 오해
+
+- `useClientSort: true`는 “서버가 가진 전체 데이터 기준 정렬”이 아니다.
+- **그 순간 그리드가 들고 있는 데이터만** 정렬한다.
+- 서버 페이징이면 “페이지 내부 정렬”처럼 보여 UX가 애매해질 수 있다.
+
+## 4) 실무 결론(서버 페이징 기준)
+
+서버 페이징(`pageOptions.useClient: false`)이라면 보통:
+
+- `useClientSort: false`로 두고
+- 정렬 조건을 서버로 전달해 서버에서 `ORDER BY` 처리하도록 구현하는 것이 정석이다.
+
 <br><br>
 
 ---

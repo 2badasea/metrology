@@ -62,7 +62,7 @@ public class BasicController {
 		model.addAttribute("fileList", fileList);
 		return "basic/fileList";
 	}
-	
+	//
 	// 로드뷰 모달 호출
 	@PostMapping(value = "/viewRoadMap")
 	public String viewRoadMap() {
@@ -75,5 +75,11 @@ public class BasicController {
 		log.info("분류코드 페이지 호출");
 		model.addAttribute("title", "분류코드관리");
 		return "basic/itemCode";
+	}
+	
+	// 대분류코드 관리 [모달]
+	@PostMapping(value = "/bigItemCodeModify")
+	public String bigItemCodeModify() {
+		return "basic/bigItemCodeModify";
 	}
 }
