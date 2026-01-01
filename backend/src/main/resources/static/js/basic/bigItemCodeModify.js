@@ -35,47 +35,105 @@ $(function () {
 			el: document.querySelector('.bigGrid'),
 			columns: [
 				{
+					name: 'id',
+					hidden: true,
+				},
+				{
 					header: '분류코드',
 					name: 'codeNum',
 					width: '80',
+					editor: 'text',
+					editor: {
+						type: readOnlyEditorByCondition,
+						conditions: {
+							isKolasStandard: 'y',
+						},
+					},
 					className: 'cursor_pointer',
 					align: 'center',
 				},
 				{
 					header: '분류코드명',
 					name: 'codeName',
-					className: 'cursor_pointer',
+					editor: {
+						type: readOnlyEditorByCondition,
+						conditions: {
+							isKolasStandard: 'y',
+						},
+					},
+					className: 'cursor_pointer ',
 					align: 'center',
 				},
 				{
 					header: '분류코드명(영문)',
 					name: 'codeNameEn',
+					editor: {
+						type: readOnlyEditorByCondition,
+						conditions: {
+							isKolasStandard: 'y',
+						},
+					},
 					className: 'cursor_pointer',
 					align: 'center',
 				},
 			],
 			rowHeaders: ['checkbox'],
-			pageOptions: {
-				perPage: 12,
-			},
 			rowHeight: 'auto',
-			minHeight: 500,
-			maxHeight: 500,
+			scrollY: true,
 			data: $modal.data_source,
-		});
-
-		// 모달 내 그리드에 대한 이벤트
-		$modal.grid.on('click', async function (e) {
-			const row = $modal.grid.getRow(e.rowKey);
-			if (row) {
-				console.log('🚀 ~ row:', row);
-			}
+			editingEvent: 'click',
 		});
 
 		// 페이지 내 이벤트
 		$modal
 			// 행 추가
-			.on('click', '.addBigCode', function (e) {});
+			.on('click', '.addBigCode', function (e) {
+				const emptyRow = {
+					id: null,
+					codeNum: '',
+					codeName: '',
+					codeNameEn: '',
+					isKolasStandard: 'n'
+				};
+				$modal.grid.appendRow(emptyRow);
+			})
+			// 행 삭제
+			.on('click', '.delBigCode', function (e) {
+				const checkedRows = $modal.grid.getCheckedRows();
+				if (checkedRows.length === 0) {
+					g_toast('삭제할 행을 선택해주세요.<br>KOLAS 표준 분류코드의 경우 수정/삭제가 불가능합니다.', 'warning');
+					return false;
+				}
+			});
+
+		// 그리드 객체에 대한 이벤트 추가
+		$modal.grid.on('click', async function (e) {
+			const row = $modal.grid.getRow(e.rowKey);
+			if (row) {
+				if (row.isKolasStandard === 'y') {
+					g_toast('KOLAS 표준 분류코드는 수정/삭제가 불가능합니다.', 'warning');
+					return false;
+				}
+			}
+		});
+
+		// 그리드에 데이터가 렌더링(세팅) 직후의 이벤트
+		$modal.grid.on('onGridUpdated', function (e) {
+			const datas = $modal.grid.getData();
+			datas.forEach((row) => {
+				$modal.grid.store.column.allColumns.forEach((col) => {
+					// kolas 공인 표준의 경우, 체크박스를 통해 선택이 안 되도록 한다.
+					if (row.isKolasStandard == 'y' && col.name == '_checked') {
+						$modal.grid.disableCell(row.rowKey, col.name);
+						$modal.grid.addCellClassName(row.rowKey, col.name, 'read_only');
+					}
+				});
+			});
+		});
+
+		// $modal.grid.on('response', function (e) {
+		// 	console.log('response 이벤트');
+		// });
 	}; // End of init_modal
 
 	// 저장

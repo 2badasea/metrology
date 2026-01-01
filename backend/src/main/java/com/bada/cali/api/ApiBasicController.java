@@ -118,9 +118,6 @@ public class ApiBasicController {
 	// 분류코드 정보 가져오기
 	@GetMapping(value = "/getItemCodeList")
 	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<ItemCodeList>>> getItemCodeList(@ModelAttribute ItemCodeDTO.ItemCodeListReq req) {
-		log.info("========== getItemCodeList");
-		log.info(req.getCodeLevel());
-		log.info(req.getParentId());
 		
 		// 리스트 데이터 가져오기 (인터페이스 프로젝션 형태로 가져옴 )
 		TuiGridDTO.ResData<ItemCodeList> itemCodeGridData = itemCodeService.getItemCodeList(req);

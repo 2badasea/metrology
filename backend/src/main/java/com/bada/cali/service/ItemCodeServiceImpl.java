@@ -23,12 +23,8 @@ public class ItemCodeServiceImpl {
 	// 분류코드관리 리스트
 	@Transactional(readOnly = true)
 	public TuiGridDTO.ResData<ItemCodeList> getItemCodeList(ItemCodeDTO.ItemCodeListReq req) {
-		// 그리드에서 넘어온 파라미터 (extends)
-		int page = req.getPage() -1 ;
-		int perPage = req.getPerPage();
 		
 		// 페이지네이션을 위한 객체
-		PageRequest pageRequest = PageRequest.of(page, perPage);
 		// codelevel과 parentId로 모두 분류한다.
 		Long parentId = req.getParentId();
 		if (parentId != null && parentId == 0) {
@@ -36,12 +32,9 @@ public class ItemCodeServiceImpl {
 		}
 		
 		CodeLevel codeLevel = req.getCodeLevel();
-		log.info("확인");
-		log.info("coeLevel: {}", codeLevel);
-		List<ItemCodeList> pageResult = itemCodeRepository.searchItemCodeList(parentId, codeLevel, pageRequest);
+		List<ItemCodeList> pageResult = itemCodeRepository.searchItemCodeList(parentId, codeLevel);
 		
 		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
-				.page(req.getPage())
 				.totalCount(pageResult.size())
 				.build();
 		

@@ -14,7 +14,7 @@ public class ItemCodeDTO {
 	// 분류코드관리 리스트(그리드)에서 조회를 하는 경우
 	@Getter
 	@Setter
-	public static class ItemCodeListReq extends TuiGridDTO.Request {
+	public static class ItemCodeListReq {
 		CodeLevel codeLevel;	// 분류코드 레벨(깊이)
 		Long parentId;			// 부모id
 	}

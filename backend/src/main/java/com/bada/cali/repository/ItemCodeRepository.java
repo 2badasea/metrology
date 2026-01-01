@@ -35,7 +35,6 @@ public interface ItemCodeRepository extends JpaRepository<ItemCode, Long> {
 			""")
 	List<ItemCodeList> searchItemCodeList(
 			@Param("parentId") Long parentId,
-			@Param("codeLevel") CodeLevel codeLevel,
-			Pageable pageable
+			@Param("codeLevel") CodeLevel codeLevel
 	);
 }
