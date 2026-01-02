@@ -293,6 +293,9 @@ i.close:hover {
 
 
 
+/* 토스트 그리드 관련 */
+
+
 td[data-column-name*="grid_btn_"] .tui-grid-cell-content {
 	padding: 0px !important;
 	/* height: 33.5px !important; */
@@ -313,3 +316,9 @@ td[data-column-name*="grid_btn_"] .tui-grid-cell-content {
 .modal-footer i{
 	margin-right: 5px !important;
 }
+
+.gridFocused {
+	background-color: bisque !important;
+}
+
+/************** END토스트 그리드 관련 ****************/

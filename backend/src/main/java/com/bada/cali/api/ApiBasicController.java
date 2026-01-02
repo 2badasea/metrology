@@ -1,12 +1,17 @@
 package com.bada.cali.api;
 
 import com.bada.cali.common.ResMessage;
+import com.bada.cali.common.enums.CodeLevel;
 import com.bada.cali.dto.AgentDTO;
 import com.bada.cali.dto.AgentManagerDTO;
+import com.bada.cali.dto.ItemCodeDTO;
 import com.bada.cali.dto.TuiGridDTO;
 import com.bada.cali.repository.AgentManagerRepository;
+import com.bada.cali.repository.projection.ItemCodeList;
+import com.bada.cali.repository.projection.OrderDetailsList;
 import com.bada.cali.security.CustomUserDetails;
 import com.bada.cali.service.AgentServiceImpl;
+import com.bada.cali.service.ItemCodeServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 @RestController        // @Controller + @ResponseBody의 조합으로, 자동으로 응답 데이터를 JSON 형태로 직렬화해서 리턴한다.
 @RequestMapping("/api/basic")
@@ -24,7 +30,7 @@ import java.util.List;
 public class ApiBasicController {
 	
 	private final AgentServiceImpl agentService;
-	private final AgentManagerRepository agentManagerRepository;
+	private final ItemCodeServiceImpl itemCodeService;
 	
 	// 업체관리 리스트 가져오기 (토스트 그리드)
 	// NOTE 그리드 api형식에 맞춰서 데이터를 받기 때문에, JSON.stringify() 처리를 하지 않았기에 @ModelAttribute로 받음.
@@ -109,6 +115,62 @@ public class ApiBasicController {
 	) {
 		int resSaveAgent = agentService.saveAgent(saveAgentDataReq, files, user);
 		return ResponseEntity.ok(new ResMessage<>(resSaveAgent, null, null));
+	}
+	
+	// 분류코드 정보 가져오기 (토스트리스트)
+	@GetMapping(value = "/getItemCodeList")
+	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<ItemCodeList>>> getItemCodeList(@ModelAttribute ItemCodeDTO.ItemCodeListReq req) {
+		
+		
+		// 리스트 데이터 가져오기 (인터페이스 프로젝션 형태로 가져옴 )
+		TuiGridDTO.ResData<ItemCodeList> itemCodeGridData = itemCodeService.getItemCodeList(req);
+		
+		TuiGridDTO.Res<TuiGridDTO.ResData<ItemCodeList>> body = new TuiGridDTO.Res<>(true, itemCodeGridData);
+		
+		return ResponseEntity.ok(body);
+	}
+	
+	// 분류코드 저장
+	@PostMapping(value = "/saveItemCode")
+	public ResponseEntity<ResMessage<Object>> saveItemCode(
+			@RequestBody List<ItemCodeDTO.ItemCodeData> req,
+			@AuthenticationPrincipal CustomUserDetails user)
+	{
+		ResMessage<Object> resMessage = itemCodeService.saveItemCode(req, user);
+		
+		return ResponseEntity.ok(resMessage);
+	}
+	
+	// 삭제대상 분류코드의 데이터를 검증한다.
+	@PostMapping(value = "/deleteItemCodeCheck")
+	public ResponseEntity<ResMessage<Map<String, String>>> deleteItemCodeCheck(
+			@RequestBody ItemCodeDTO.DeleteCheckReq req
+	) {
+	
+		ResMessage<Map<String, String>> resMessage = itemCodeService.deleteItemCodeCheck(req);
+		return ResponseEntity.ok(resMessage);
+	}
+	
+	// 분류코드 최종 삭제처리
+	@PostMapping(value = "/deleteItemCode")
+	public ResponseEntity<ResMessage<Object>> deleteItemCode(
+			@RequestBody ItemCodeDTO.DeleteCheckReq req,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		
+		ResMessage<Object> resMessage = itemCodeService.deleteItemCode(req, user);
+		
+		return ResponseEntity.ok(resMessage);
+	}
+	
+	@GetMapping("/getItemCodeSet")
+	public ResponseEntity<ResMessage<List<ItemCodeList>>> getItemCodeSet(
+			@RequestParam CodeLevel codeLevel
+			) {
+		
+		ResMessage<List<ItemCodeList>> resMessage = itemCodeService.getItemCodeSet(codeLevel);
+		
+		return ResponseEntity.ok(resMessage);
 	}
 	
 }

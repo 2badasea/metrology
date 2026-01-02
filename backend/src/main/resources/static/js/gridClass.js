@@ -42,6 +42,48 @@ class contact_num_editor {
 	beforeDestroy() {}
 }
 
+// editor에서 특정조건이 있는 경우엔 편집이 안 되도록 설정한다.
+class readOnlyEditorByCondition {
+	constructor(props) {
+		const { grid, rowKey, value } = props;
+		const rowData = grid.getRow(rowKey);
+
+		const condition = props.columnInfo.editor.conditions;
+
+		const el = document.createElement('input');
+		el.type = 'text';
+		el.value = String(props.value ?? '');
+		el.style.width = '100%';
+		el.style.height = '100%';
+		el.style.textAlign = "center";
+
+		
+		Object.entries(condition).forEach(([key, value]) => {
+			if (rowData[key] == value) {
+				el.readOnly = true;
+				el.disabled = true;
+			}
+		})
+
+		this.el = el;
+	}
+
+	getElement() {
+		return this.el;
+	}
+
+	getValue() {
+		return this.el.value.trim();
+	}
+
+	mounted() {
+		this.el.focus();
+		this.el.select();
+	}
+
+	beforeDestroy() {}
+}
+
 // 소분류 select box 커스텀
 class small_code_selectbox_renderer {
 	constructor(props) {

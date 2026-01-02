@@ -1,6 +1,7 @@
 package com.bada.cali.repository;
 
 import com.bada.cali.common.enums.OrderType;
+import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.ReportDTO;
 import com.bada.cali.entity.Report;
 import com.bada.cali.repository.projection.LastManageNoByType;
@@ -245,4 +246,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			ORDER BY r.id ASC
 	""")
 	List<ReportDTO.ChildReportInfo> getChildReport(@Param("parentScaleId") Long parentScaleId);
+	
+	
+	List<Report> findByMiddleItemCodeIdInAndIsVisible(List<Long> attr0, YnType isVisible);
 }
