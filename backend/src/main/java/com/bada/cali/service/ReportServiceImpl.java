@@ -47,7 +47,11 @@ public class ReportServiceImpl {
 	 * @return
 	 */
 	@Transactional
-	public Boolean addReport(List<ReportDTO.addReportReq> reports, Long caliOrderId, CustomUserDetails user) {
+	public ResMessage<Object> addReport(List<ReportDTO.addReportReq> reports, Long caliOrderId, CustomUserDetails user) {
+		
+		int resCode = 0;
+		String resMessage;
+		
 		LocalDateTime now = LocalDateTime.now();
 		String workerName = user.getName();
 		Long workerId = user.getId();
@@ -69,8 +73,8 @@ public class ReportServiceImpl {
 		}
 		// 접수구분별 성적서번호 시작 넘버링 세팅
 		for (LastReportNumByOrderType p : reportRepository.findLastReportNumsByOrderType(caliOrderId)) {
-			OrderType orderType = OrderType.valueOf(p.getOrderType());
-			String reportNum = p.getReportNum();
+			OrderType orderType = OrderType.valueOf(p.getOrderType());		// 접수구분
+			String reportNum = p.getReportNum();			// 접수구분별 가장 마지막 성적서번호
 			if (reportNum == null || reportNum.isBlank()) {
 				continue;
 				// // NOTE java에서는 substring에 음수 인덱스를 못 받기 때문에 아래와 같이 사용한다.
@@ -102,7 +106,7 @@ public class ReportServiceImpl {
 			nextManageNos.put(orderType, last + 1);
 		}
 		
-		// 자식성적서들의 경우, list에 담았다가 부모가 저장되고 나면 일괄적으로 저장하한다.
+		// 자식성적서들의 경우, list에 담았다가 부모가 저장되고 나면 일괄적으로 저장한다.
 		List<Report> childrenToSave = new ArrayList<>();
 		
 		// 성적서번호 prefix
@@ -191,7 +195,9 @@ public class ReportServiceImpl {
 			}
 		}
 		
-		return true;
+		resCode = 1;
+		resMessage = "";
+		return new ResMessage<>(resCode, resMessage, null);
 	}
 	
 	
@@ -203,6 +209,7 @@ public class ReportServiceImpl {
 	}
 	
 	// 접수상세내역에 표시할 데이터를 가져온다.
+	@Transactional(readOnly = true)
 	public TuiGridDTO.ResData<OrderDetailsList> getOrderDetailsList(ReportDTO.GetOrderDetailsReq request) {
 		// 페이징 옵션
 		int pageIndex = request.getPage() - 1;
@@ -215,7 +222,7 @@ public class ReportServiceImpl {
 		// 1. 접수구분 (전체선택일 경우 null로 바인딩 됨
 		OrderType orderType = request.getOrderType();    // 전체선택인 경우 null로 받게됨
 		
-		// 2. 진행상태
+		// 2. 진행상태 (Enum 타입으로 구분하지 않은 건, 성적서 관련 페이지별로 진행상태 option종류와 각 option별 해당하는 조건이 다르기 때문)
 		String statusType = request.getStatusType();
 		statusType = (statusType == null || statusType.isBlank()) ? null : statusType;
 		
@@ -237,8 +244,10 @@ public class ReportServiceImpl {
 		// 접수id
 		Long caliOrderId = request.getCaliOrderId();
 		
+		// 프로젝션(인터페이스)를 통해서 바로 dto로 넘겨줄 데이터를 받기 때문에, Page<> 타입으로 받지 않음
 		List<OrderDetailsList> pageResult = reportRepository.searchOrderDetails(orderType, statusType, searchType, keyword, caliOrderId, pageable);
-		// 프로젝션 타입으로 바로 받기 때문에 entity -> dto 변환 과정은 생략
+		
+		// NOTE 프로젝션 타입으로 바로 받기 때문에 entity -> dto 변환 과정은 생략
 		
 		// 페이지네이션 데이터 세팅
 		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
@@ -259,11 +268,11 @@ public class ReportServiceImpl {
 		int code = 0;
 		String message;
 		
+		// TODO 완료통보서, 완료통보서 품목 테이블 생성 후에 참조하고 있는 성적서id가 존재하는지 체크
 		// 접수 id가 존재하는 경우, 생성된 완료통보서가 존재하는 경우 리턴
 		Long caliOrderId = request.caliOrderId();
 		if (caliOrderId != null && caliOrderId > 0) {
 			CaliOrder orderInfo = caliOrderRepository.findById(caliOrderId).orElseThrow(() -> new EntityNotFoundException("해당 접수 건이 존재하지 않습니다."));
-			// TODO 완료통보서, 완료통보서 품목 테이블 생성 후에 참조하고 있는 성적서id가 존재하는지 체크
 			// Long completionId = orderInfo.getCompletionId();
 			// if (completionId != null && completionId > 0) {
 			// 	code = -1;
@@ -271,10 +280,11 @@ public class ReportServiceImpl {
 		}
 		
 		// 타입별 반복문을 돌리면서 확인
-		Map<String, List<Long>> validateInfo = request.validateInfo();
+		Map<String, List<Long>> validateInfo = request.validateInfo();	// record 타입이기 때문에 getXX() 아님
 		if (validateInfo != null && !validateInfo.isEmpty()) {
+			// map의 key를 기준으로 순회 ('ACCREDDIT' || 'UNACCREDDIT' || 'TESTING' || 'AGCY')
 			for (String orderTypeStr : validateInfo.keySet()) {
-				List<Long> reportIds = validateInfo.get(orderTypeStr);
+				List<Long> reportIds = validateInfo.get(orderTypeStr);	// 접수타입별 id 가져오기
 				
 				OrderType orderType;
 				ReportType reportType;
@@ -283,16 +293,17 @@ public class ReportServiceImpl {
 				if ("AGCY".equals(orderTypeStr)) {
 					reportType = ReportType.AGCY;
 					isAgcy = true;
-					orderType = null;
+					orderType = null;		// 대행은 접수타입을 구분하지 않는다.
 				} else {
 					isAgcy = false;
 					reportType = ReportType.SELF;
 					orderType = OrderType.valueOf(orderTypeStr);
 				}
 				
-				// 대행의 경우엔 limit을 걸지 않고, id들을 넘겨서 가져온다.
+				// 대행의 경우엔 limit을 두지 않음. (완료유무만 판단하고, 빈 성적서번호를 허용하기 때문 - 자체성적서번호이기 때문)
 				Pageable pageable = (reportType == ReportType.AGCY) ? Pageable.unpaged() : PageRequest.of(0, reportIds.size());
 				
+				// 대행을 제외하곤 접수타입별 id개수만큼 최신순의 성적서를 가져와서 비교한다.
 				List<Report> reportList = reportRepository.getDeleteCheckReport(orderType, isAgcy, reportIds, pageable);
 				
 				// 자체/대행 분리 검증
@@ -371,14 +382,14 @@ public class ReportServiceImpl {
 			List<String> deleteReportNums = new ArrayList<>();
 			
 			for (Report report : reportList) {
-				// 자식성적서는 성적서번호, 관리번호 업데이트가 없음
 				
+				// 자식성적서는 성적서번호, 관리번호 업데이트가 없음
 				if ((report.getParentId() != null && report.getParentId() > 0) || (report.getParentScaleId() != null && report.getParentScaleId() > 0)) {
 					report.setIsVisible(YnType.n);
 					report.setDeleteDatetime(now);
 					report.setDeleteMemberId(userId);
 				}
-				// 그외 부모성적서, 대행성적서의 경우엔 '성적서번호 + [
+				// 그외 부모성적서, 대행성적서의 경우엔 '성적서번호 + 'deleted' + uuid 형태로 업데이트
 				else {
 					String uuid = UUID.randomUUID().toString();    //
 					String originReportNum = report.getReportNum();
@@ -387,6 +398,7 @@ public class ReportServiceImpl {
 					String newReportNum = originReportNum + suffix;
 					String newManageNo = originManageNo + suffix;
 					
+					// dirty checking 방식으로 영속성컨텍스트로 들어온 성적서들에 대해 모두 set을 통해 update
 					report.setReportNum(newReportNum);
 					report.setManageNo(newManageNo);
 					report.setIsVisible(YnType.n);
@@ -493,7 +505,7 @@ public class ReportServiceImpl {
 	@Transactional
 	public ResMessage<Object> updateReport(ReportDTO.ReportUpdateReq req, CustomUserDetails user) {
 		int resCode = 0;
-		String resMsg;
+		String resMessage;
 		
 		Long userId = user.getId();
 		LocalDateTime now = LocalDateTime.now();
@@ -501,7 +513,8 @@ public class ReportServiceImpl {
 		// 부모데이터를 가져온다.
 		Long id = req.id();
 		Report updateReport = reportRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("수정할 성적서 정보를 찾는 데 실패했습니다."));
-		// mapstruct를 통해 넘어온 값들을 그대로 entity에 덮어씌운다.
+		
+		// mapstruct를 통해 넘어온 값들을 그대로 영속성 컨텍스트 내 조회된 entity에 덮어씌운다.
 		reportMapper.updateEntityFromDto(req, updateReport);
 		updateReport.setUpdateDatetime(now);
 		updateReport.setUpdateMemberId(userId);
@@ -556,9 +569,9 @@ public class ReportServiceImpl {
 		}
 		
 		resCode = 1;
-		resMsg = "성적서 수정에 성공했습니다.";
+		resMessage = "성적서 수정에 성공했습니다.";
 		
-		return new ResMessage<>(resCode, resMsg, null);
+		return new ResMessage<>(resCode, resMessage, null);
 	}
 	
 	

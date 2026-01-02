@@ -17,7 +17,7 @@ $(function () {
 		$modal.param = param;
 		console.log('🚀 ~ $modal.param:', $modal.param);
 
-		caliOrderId = document.getElementById('caliOrderId').value;
+		caliOrderId = document.getElementById('caliOrderId').value; // 타임리프를 통해 값 초기화 (쿼리스트링 활용도 가능)
 
 		// 성적서 리스트 가져오기
 		$modal.data_source = {
@@ -26,7 +26,7 @@ $(function () {
 					url: '/api/report/getOrderDetailsList',
 					serializer: (grid_param) => {
 						// TODO item, item_code 테이블 생성 이후에 중분류/소분류 필터링도 검색조건 추가 필요
-						grid_param.orderType = $('form.searchForm .orderType', $modal).val() ?? ''; // 전체선택은 all로 간주
+						grid_param.orderType = $('form.searchForm .orderType', $modal).val() ?? ''; // 전체선택은 빈 값으로 넘어옴
 						grid_param.statusType = $('form.searchForm .statusType', $modal).val() ?? ''; // 진행상태
 						grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? 'all'; // 검색타입
 						grid_param.keyword = $('form.searchForm', $modal).find('#keyword').val() ?? ''; // 검색키워드
@@ -54,7 +54,7 @@ $(function () {
 					},
 				},
 				{
-					header: '접수타입',
+					header: '접수구분',
 					name: 'orderType',
 					className: 'cursor_pointer',
 					width: '80',
@@ -139,7 +139,7 @@ $(function () {
 			rowHeaders: ['checkbox'],
 			minBodyHeight: 663,
 			bodyHeight: 663,
-			data: $modal.data_source,
+			data: $modal.data_source, // 그리드의 데이터를 초기화하는 과정에서 api 호출
 			rowHeight: 'auto',
 		});
 
@@ -150,11 +150,11 @@ $(function () {
 			if (row && e.columnName != '_checked') {
 				// 자체와 대행을 구분한다.
 				const id = row.id;
-				const reportNum = row.reportNum;
-				const reportType = row.reportType;
+				const reportNum = row.reportNum; // 성적서 번호
+				const reportType = row.reportType; // 자체/대행 구분 -> 수정 모달 UI 구분위함
 				// 자체
 				if (reportType === 'SELF') {
-					// 기술책임자가 완료했거나 결재가 진행주인 건에 대해선 수정이 안 되도록 한다 (접수상세, 접수, 실무자, 기책 페이지별 구분)
+					// 기술책임자 완료 및 결재 진행중인 건에 건은 '저장' 버튼 비활성화 (접수상세, 접수, 실무자, 기책 페이지별 구분)
 					const isModifiable = row.approvalDateTime || row.reportStatus === 'SUCCESS' || row.approvalStatus !== 'IDLE' ? false : true;
 					const resModal = await g_modal(
 						'/cali/reportModify',
@@ -170,8 +170,7 @@ $(function () {
 						}
 					);
 
-					// 그리드가 닫히면 기본적으로 갱신이 일어나도록 한다.
-					console.log("🚀 ~ resModal:", resModal);
+					// 모달이 정상적으로 닫히면 갱신이 일어나도록 한다.
 					if (resModal) {
 						$modal.grid.reloadData();
 					}
@@ -187,11 +186,12 @@ $(function () {
 
 	// 페이지 내 이벤트 정의
 	$modal
-		// 성적서 등록 모달 호출
+		// 검색
 		.on('submit', '.searchForm', function (e) {
 			e.preventDefault();
 			$modal.grid.getPagination().movePageTo(1); // 변경된 페이지 옵션에 맞춰 페이지 렌더링
 		})
+		// 성적서 등록 모달 호출
 		.on('click', '.addReport', async function () {
 			const resModal = await g_modal(
 				'/cali/registerMultiReport',
@@ -215,12 +215,11 @@ $(function () {
 		})
 		// 행 수 변경
 		.on('change', '.rowLeng', function () {
-			const rowLeng = $(this).val();
-			console.log('🚀 ~ rowLeng:', rowLeng);
+			const rowLeng = $(this).val(); // 행 수
 
 			if (rowLeng > 0) {
-				$modal.grid.setPerPage(rowLeng); // perPage옵션 동적 변경
-				// $modal.grid.reaPage(1);	// setPerPage() 호출 후, 굳이 readPage() 호출할 필요없음.
+				$modal.grid.setPerPage(rowLeng); // perPage옵션이 변경된 상태로 다시 재렌더링이 일어남
+				// $modal.grid.readPage(1);	// setPerPage() 호출 후, 굳이 readPage() 호출할 필요없음.
 				// setPerPage()와 아래 getPagination().movePageTo()는 잘 사용되지 않는 옵션이라 함(내용확인!)
 				// $modal.grid.getPagination().movePageTo(1);	// 변경된 페이지 옵션에 맞춰 페이지 렌더링
 			}
@@ -241,22 +240,24 @@ $(function () {
 			try {
 				$btn.prop('disabled', true);
 
-				// TDOO 추후에 대행성적서가 추가되는 경우 조건 추가할 것
+				// TODO 추후에 대행성적서가 추가되는 경우 조건 추가할 것
 				$.each(checkedRows, (index, row) => {
-					console.log('🚀 ~ row:', row);
 					const orderType = row.orderType;
 					const reportType = row.reportType; // 자체(self)/대행(agcy)
 
 					// 자체와 대행을 분리한다.
 					if (reportType === 'SELF') {
 						if (row.workDatetime || row.approvalDateTime) {
+							// FIX 결재상태가 'IDLE'인지도 체크 필요
 							isFlag = false;
 							g_toast('결재가 진행중인 건이 존재합니다.', 'warning');
 							return false;
 						} else {
 							if (validateInfo[orderType] != undefined && Array.isArray(validateInfo[orderType])) {
 								validateInfo[orderType].push(row.id);
-							} else {
+							}
+							// 접수구분(key)에 맞는 배열이 없는 경우, 배열을 초기화해주고 id를 넣는다.
+							else {
 								validateInfo[orderType] = [];
 								validateInfo[orderType].push(row.id);
 							}
@@ -283,10 +284,7 @@ $(function () {
 						}
 					}
 				});
-
-				console.log(validateInfo);
 			} catch (err) {
-				console.log('🚀 ~ err:', err);
 				isFlag = false;
 				g_toast(`삭제처리 중 오류가 있습니다.<br>${err}`, 'error');
 			}
@@ -354,7 +352,8 @@ $(function () {
 			// 1. 브라우저 단에서 1차적으로 결재가 진행중인 건이 있는지만 판단
 			// 2. api를 두 번 탈 것(서버차원에서 검증)
 			// 3. 검증이 완료되었다면, 대상 id들만 삭제api로 보낼 것 (deletemapping 활용?)
-		});
+		})
+		;
 
 	$modal.data('modal-data', $modal);
 	$modal.addClass('modal-view-applied');

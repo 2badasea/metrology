@@ -139,11 +139,13 @@ public class Report {
 	
 	// 교정수수료
 	@Column(name = "cali_fee", nullable = false)
-	private Long caliFee = 0L;        // null 허용
+	@Builder.Default
+	private Long caliFee = 0L;
 	
 	// 추가금액
 	@Column(name = "additional_fee", nullable = false)
-	private Long additionalFee = 0L;        // null 허용
+	@Builder.Default
+	private Long additionalFee = 0L;
 	
 	// 추가금액사유
 	@Column(name = "additional_fee_cause", length = 250)

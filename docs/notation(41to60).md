@@ -328,3 +328,359 @@ void updateEntity(AgentManagerDTO.AgentManagerRowData agentManagerRowData, @Mapp
 
 ---
 
+# 📌 46번. 금액 필드 기본값(0) 처리 정리
+
+## 예시코드 (Report Entity)
+```java
+	// 교정수수료
+	@Column(name = "cali_fee", nullable = false)
+	@Builder.Default
+	private Long caliFee = 0L;
+	
+	// 추가금액
+	@Column(name = "additional_fee", nullable = false)
+	@Builder.Default
+	private Long additionalFee = 0L;
+
+```
+
+### 1) 현재 엔티티 선언은 OK
+- `nullable = false` + `0L` 초기값: `null` 방지에 유효
+- `@Builder.Default`: Lombok Builder 사용 시 기본값(0) 유지
+
+### 2) “DB 기본값 0”을 원하면 DB에도 DEFAULT 0을 반드시 적용
+- 엔티티 초기값만으로는 DB 스키마에 `DEFAULT 0`이 확실히 생긴다고 보장되지 않음(환경/DDL 설정 영향)
+- 권장 컬럼 정의 예:
+  - `cali_fee BIGINT NOT NULL DEFAULT 0`
+  - `additional_fee BIGINT NOT NULL DEFAULT 0`
+
+### 3) 주의: 부분수정(PATCH)에서 의도치 않은 0 덮어쓰기 가능
+- 요청 DTO에서 값 미전송(=변경 없음) 상황이 `0` 업데이트로 이어질 수 있음
+- 대응(택1):
+  - 금액은 항상 명시적으로 보내는 정책
+  - DTO는 nullable로 두고 `null이면 set하지 않기`(MapStruct면 null 무시 전략 적용)
+
+### 4) 타입 선택 가이드
+- 원 단위 정수: `Long` 유지(단순/권장)
+- 소수점 필요(세금/환율/단가 등): `BigDecimal` 고려
+
+### 결론(권장 조합)
+- 엔티티: `0L` 기본값 + `nullable=false` 유지
+- DB: `NOT NULL DEFAULT 0`로 스키마에도 기본값을 고정
+- 로직: 부분수정 시 `null` 처리 정책을 명확히
+
+
+
+<br><br>
+
+---
+
+# 📌 47번. 검색필터(all/ 빈값/ NULL)와 서버에서의 처리 방식
+
+## 1) 개념 구분
+- **searchType**
+  - “어떤 기준(컬럼/방식)으로 검색할지”를 의미하는 **검색 방식 값**
+- **검색필터(orderType 등)**
+  - “조건 적용/미적용”이 가능한 **필터 값**
+  - **전체선택(=조건 미적용)** 상태가 존재함
+
+## 2) 서버에서 NULL로 정규화하면 쿼리가 단순해짐
+- 리포지토리 조건식 예시
+  - `(:orderType IS NULL OR o.orderType = :orderType)`
+- `orderType`이 **NULL**이면 조건을 “미적용”으로 처리할 수 있어 쿼리 작성이 깔끔해진다.
+- 따라서 프론트에서 어떤 값을 보내든(예: `all`, `''`) 서버에서 **NULL로 통일(정규화)**하는 편이 좋다.
+
+## 3) 필터 값으로 `all`은 Enum 타입에서 위험
+- 서버 필터가 **Enum**이라면 보통 `ACCREDDIT`, `TESTING`처럼 **대문자 상수**만 유효
+- 프론트가 `all`을 보내면:
+  - Enum 변환 과정에서 유효하지 않은 값 → **type mismatch / 변환 오류** 발생 가능
+- 그래서 “전체선택” 표현은 `all`보다 **빈 문자열 `''`**가 더 안전한 경우가 많다.
+  - **왜냐하면 빈 문자열을 `Enum` 필드에 매핑하게 될 경우, NULL로 할당되기 때문.**
+
+## 4) 빈 문자열이 NULL로 바인딩되는지는 “요청 바인딩 방식”에 따라 다름 (핵심)
+### A. 폼/쿼리스트링 바인딩
+- `@ModelAttribute`, `@RequestParam`
+- `orderType=`처럼 **빈 값**은
+  - 상황에 따라 **null로 들어오거나**
+  - 서버에서 **null로 정규화하기 쉬운 형태**로 들어온다
+
+### B. JSON 바인딩
+- `@RequestBody`
+- `{ "orderType": "" }` 형태에서 DTO 필드가 **Enum**이면
+  - JSON 역직렬화 과정에서 **실패**하는 경우가 많다
+- 결론:
+  - `@RequestBody`를 쓸 때는 **Enum으로 바로 받지 말고 String으로 받는 설계**가 안전할 수 있다
+  - 또는 커스텀 역직렬화/컨버터, 필드 omit 전략 등을 고려해야 한다
+
+## 5) 프로젝트 적용 결론(Toast Grid 기준)
+- Toast Grid 요청은 보통 `@RequestBody`가 아니라 **쿼리스트링/폼 바인딩 형태**로 들어온다(프로젝트 기준).
+- 따라서 “전체선택” 검색필터 값은 프론트에서 **빈 문자열 `''`로 보내는 것이 안전**
+- 서버에서는 이를 **NULL로 정규화**한 뒤,
+  - `(:param IS NULL OR ...)` 패턴으로 조건을 깔끔하게 처리한다
+
+
+<br><br>
+
+---
+
+# 📌 48번. 자바스크립트 배열, 객체에 대한 typeof 연산과 const로 선언된 객체, 배열 데이터에 대한 수정
+
+## 예시코드
+```javascript
+const ary = [1,2,3, 4];
+typeof ary;   // 'Object'
+
+// Array.isArray(ary); // true
+
+```
+- JS에서 데이터셋의 형태가 배열인지 확인하기 위해선 typeof으로는 구분이 되지 않는다.
+  - 자바스크립트에선 배열 또한 객체로 간주되기 때문에 typeof을 통해서는 구분이 되지 않음
+- **Array.isArray(변수)** 형태로 사용 권장
+  - 데이터셋이 배일인 경우, true를 리턴하게 된다.
+
+## 배열이나 객체 데이터셋에 대해서 const 키워드를 통해 변수를 사용한 경우, 데이터 조작은 하면 안 된다? 
+- `const`의 의미는 내부 데이터 값이나 구조를 변경하면 안 된다는 의미보다는 동일한 변수명으로 재할당이 안 된다는 의미로 사용된다.
+  - 따라서, `const`로 선언하더라도 요소를 추가하거나 구조를 변경하는 것은 무관하다.
+
+<br><br>
+
+---
+
+# 📌 49번. `@RequestBody` vs `@ModelAttribute` 핵심 차이 정리
+
+## 1) 질문 배경(컨텍스트)
+- 삭제 대상 성적서를 검증하기 위해
+  - “타입별 성적서 ID 목록”
+  - “접수 ID” 등을 **서버로 함께 전달**해야 하는 상황
+- 프론트에서 데이터를 `JSON.stringify()`로 직렬화하고, 요청의 `Content-Type`을 `application/json`으로 설정해 전송하는 흐름
+
+## 2) 결론부터: `Content-Type`이 무엇이냐가 바인딩 방식 선택을 사실상 결정한다
+### `application/json`이면 → `@RequestBody`가 정석
+- JSON은 **요청 본문(HTTP Body)** 에 담겨 전달된다.
+- Spring은 `@RequestBody`를 통해 Body 내용을 읽고,
+  **JSON 역직렬화(deserialization)** 를 수행해 DTO로 매핑한다.
+
+### `@ModelAttribute`는 “파라미터 기반 데이터”에 적합
+- `@ModelAttribute`는 다음 유형과 궁합이 좋다:
+  - 쿼리스트링(Query String)
+  - form-data(멀티파트 포함)
+  - `application/x-www-form-urlencoded`
+- 즉, “URL 파라미터 / 폼 전송”처럼 **key=value 중심의 파라미터 데이터셋**을 객체로 묶는 성격이 강하다.
+
+## 3) `@RequestBody`가 하는 일(핵심 메커니즘)
+- 요청 본문(Body)의 JSON 문자열을 읽는다.
+- JSON을 자바 객체로 변환하는 **역직렬화 과정**을 거친다.
+- 이때 DTO의 **필드명(또는 JSON key)** 을 기준으로 매핑된다.
+  - 결과적으로 “DTO 필드명 ↔ JSON key”가 일치해야 자연스럽게 바인딩된다.
+- 이 과정은 단순히 “문자열 파라미터를 끼워 맞추는” 방식이 아니라,
+  **객체 변환(파싱) 단계**가 개입된다는 점이 중요하다.
+
+## 4) 실무적으로 기억할 포인트
+- `application/json` + `JSON.stringify()`로 보내는 요청은
+  - **Body 중심 통신**
+  - **역직렬화 기반 매핑**
+  - 따라서 `@RequestBody`가 맞다.
+- 반면 `@ModelAttribute`는
+  - URL/폼 기반의 **파라미터 집합을 객체로 묶는 용도**에 적합하다.
+- 즉, 둘의 차이는 단순한 “문법 차이”가 아니라,
+  **데이터가 실려 오는 위치(Body vs Parameter)** 와 **바인딩 방식(역직렬화 vs 파라미터 바인딩)** 의 차이라고 보면 된다.
+
+<br><br>
+
+---
+
+# 📌 50번. Spring Data JPA 메서드명 규칙: `Containing` vs `In`
+
+## 1) 조회 메서드 예시
+- `findByIdInOrParentIdInOrParentScaleIdIn(deleteIds, deleteIds, deleteIds)`
+- 목적: 삭제 대상 ID 목록(`deleteIds: List<Long>`)에 대해
+  - `id`가 포함되거나
+  - `parentId`가 포함되거나
+  - `parentScaleId`가 포함되는
+  레코드들을 한 번에 조회
+
+## 2) `List<Long>` 조건에는 `In`을 사용
+- Spring Data JPA에서 **컬렉션(List/Set 등)을 조건으로 전달**해서
+  “해당 컬럼 값이 이 목록 안에 포함되는지”를 체크하려면 메서드명에 `...In` 패턴을 사용한다.
+- 의미:
+  - SQL의 `IN (...)` 조건과 동일한 역할
+
+## 3) `Containing`은 문자열 검색 용도
+- `Containing`은 기본적으로 **문자열 컬럼**에서 “부분 포함(Like)” 검색을 의미한다.
+- 즉, `"abc"`가 `"xxabcxx"`에 포함되는지 같은 **부분 문자열 매칭**에 사용된다.
+- 따라서 `List<Long>` 같은 컬렉션 기반 조건에는 `Containing`이 맞지 않고,
+  의도한 동작(=IN 조건)을 표현하지 못한다.
+
+## 4) 정리
+- `List<Long>`로 “목록 포함 여부” 조건을 걸고 싶다 → **`In`**
+- 문자열 컬럼에서 “부분 문자열 포함” 검색을 하고 싶다 → **`Containing`**
+
+
+<br><br>
+
+---
+
+# 📌 51번. JPQL에서 Enum 상수를 쓸 때 “풀 패키지 경로(FQN)”가 필요한 경우 정리
+
+## 1) 언제 패키지 경로까지 써야 하나?
+### JPQL 문자열 안에 Enum 상수(리터럴)를 “직접 박는 경우”
+- 예: `... and o.caliType = CaliType.STANDARD` 처럼 쓰고 싶어도,
+  JPQL은 자바의 `import` 개념이 없어서 보통 아래처럼 **풀네임(FQN)** 이 필요하다.
+- 즉, **JPQL 문자열 내에서 Enum 상수 자체를 직접 참조할 때만** 패키지 경로가 필요하다고 보면 된다.
+
+
+## 2) 언제 패키지 경로를 생략할 수 있나?
+### A. Enum을 “파라미터로 바인딩”해서 비교할 때 (권장)
+- `... and o.caliType = :caliType`
+- 이때는 컨트롤러/서비스에서 `CaliType.STANDARD` 값을 파라미터로 넘기면 되고,
+  JPQL 문자열 안에서는 **패키지 경로를 전혀 쓰지 않는다.**
+- 장점
+  - JPQL이 단순해짐
+  - 문자열에 상수를 박는 방식보다 변경/리팩터링에 안전
+  - 테스트/재사용에 유리
+
+### B. Querydsl / Criteria API처럼 “JPQL 문자열을 직접 쓰지 않는 방식”
+- 이 경우는 자바 코드 레벨에서 Enum을 참조하므로,
+  당연히 JPQL 안에 FQN을 쓸 일이 없다.
+
+### C. Spring Data의 SpEL을 통해 `T()`로 참조하는 경우(선택지)
+- JPQL을 직접 박는 대신, 스프링 표현식으로 Enum 상수를 가져오는 패턴이 있다.
+- 다만 이 방식은 **결국 타입 참조에 FQN이 들어가므로**, “완전 생략”이라기보다는
+  “JPQL 리터럴 직접 박기”를 조금 더 관리 가능한 형태로 바꾸는 정도로 이해하면 된다.
+
+
+## 3) 왜 `@Enumerated(EnumType.STRING)`를 권장하나?
+### JPQL이 통과해도 “DB 저장 방식” 때문에 런타임 이슈가 날 수 있음
+- Enum을 DB에 저장하는 방식은 대표적으로 2가지가 있다.
+  - `EnumType.STRING` : `"STANDARD"` 같은 **이름** 저장
+  - `EnumType.ORDINAL` : `0, 1, 2` 같은 **순서(인덱스)** 저장
+- `ORDINAL`은 아래 리스크가 크다.
+  - Enum 상수의 **순서가 바뀌거나 중간에 추가**되면 기존 데이터 의미가 뒤틀림
+  - 장애로 이어질 수 있음
+- 그래서 일반적으로는 **`EnumType.STRING`이 더 안전**하다.
+
+> 단, STRING 방식도 Enum 상수명을 바꾸면 기존 데이터와 불일치가 발생할 수 있으니  
+> “상수명 변경은 곧 데이터 마이그레이션 이슈”라는 점은 인지해야 한다.
+
+
+## 4) 보충: 더 안정적으로 가려면(선택)
+- Enum 이름 자체를 저장하기보다,
+  Enum 내부에 **고정 코드값(code)** 을 두고 DB에는 그 코드를 저장하는 방식이 가장 견고하다.
+  - 예: `STANDARD`의 표시/저장 코드는 `"STD"` 처럼 고정
+- 이때는 `@Enumerated` 대신 `@Converter(AttributeConverter)`로 매핑하는 패턴을 많이 쓴다.
+- 특히 `YnType`처럼 DB가 `'y'/'n'` 등 **레거시 문자값**을 쓰는 경우,
+  Converter가 실무적으로 더 자연스럽고 안전하다.
+
+
+## 5) 한 줄 결론
+- **JPQL 문자열에 Enum 상수를 직접 쓰면(FQN 필요)**
+- **가능하면 Enum은 파라미터로 받아 비교하고(FQN 불필요, 권장)**
+- **DB 저장은 기본적으로 `EnumType.STRING` 또는 Converter 기반 “고정 코드”를 추천**
+
+
+## 6) 추가 정리
+```java
+ORDER BY
+  case
+      when r.orderType = com.bada.cali.common.enums.OrderType.ACCREDDIT then 0
+      when r.orderType = com.bada.cali.common.enums.OrderType.UNACCREDDIT then 1
+      when r.orderType = com.bada.cali.common.enums.OrderType.TESTING then 2
+          else 9
+  end asc,
+r.id asc
+```
+- 위와 같은 경우, 패키지명을 쓸 수밖에 없는 상황이지만, 리파지토리 계층으로로 보낼 때, 서비스 계층에서 각 Enum에 해당하는 값을 0, 1, 2 형태의 int타입의 파라미터로 보내는 방법도 있다.
+```java
+int orderTypeOrder = OrderType.ACCREDDIT ? 0 : 1; // 등의 형태로 orderTypeOrder만 리파지토리에 넘기는 방식
+
+// 대충 아래와 같은 형태로 가능하다.
+ORDER BY
+  case
+      when r.orderType = :orderTypeOrder
+ else 9
+ end asc  
+```
+
+<br><br>
+
+---
+
+# 📌 52번. JPA/JPQL에서 Entity가 아닌 DTO/Record/Interface로 “바로 받는 방법” 정리
+
+## 1) 큰 그림: “엔티티 조회” vs “프로젝션(Projection) 조회”
+### A. 엔티티로 조회
+- JPA의 기본 동작: `select e from Entity e` 형태로 **엔티티를 영속성 컨텍스트에 로딩**
+- 이후 서비스 계층에서 DTO로 변환(MapStruct 등)할 수 있음
+- 이 경우에는 JPQL이 DTO 생성자를 호출할 필요가 없고,
+  **변환은 애플리케이션 코드에서 수행**됨
+
+### B. 엔티티가 아닌 형태로 조회(Projection)
+- DB 결과를 엔티티가 아니라
+  - 인터페이스
+  - record
+  - DTO 클래스
+  같은 형태로 바로 받는 방식
+- 이때는 **JPQL/쿼리 단계에서 결과를 “어떤 형태로 만들지” 결정**해야 하므로,
+  표준적으로는 “생성자 호출” 또는 “프로젝션 규칙”을 따른다
+
+
+## 2) Projection 방식의 종류(핵심 3가지)
+
+## (1) Interface-based Projection (튜플/별칭 기반)
+- select 절에서 필요한 필드들을 **명시적으로 나열**하고,
+  각 필드에 **별칭(alias)** 을 맞춘 뒤,
+  결과를 인터페이스의 `getXxx()` 메서드로 매핑하는 방식
+- 특징
+  - “튜플 형태(필드 묶음)”로 받아오는 느낌
+  - DTO 생성자 호출이 아니라 **getter 매핑 규칙**으로 바인딩됨
+- 장점
+  - 간단하고 빠르게 작성 가능
+  - 필요한 필드만 가져오므로 성능에 유리할 수 있음
+- 주의
+  - 별칭과 getter 이름 매칭이 중요
+  - 복잡한 변환 로직은 한계가 있음
+
+
+## (2) DTO/Record로 바로 받기: Constructor Expression (표준 JPA 방식)
+- JPQL에서 `new`를 사용해 **DTO 생성자를 직접 호출**하는 방식
+- 핵심 문장:
+  - **“JPQL에서 엔티티가 아닌 DTO/record를 바로 받으려면 표준 JPA 메커니즘은 constructor expression이다.”**
+- 특징
+  - select 결과를 DTO 생성자 파라미터 순서대로 매핑
+  - record도 “생성자(=컴팩트 생성자)”가 있으므로 동일한 원리로 동작 가능
+- 장점
+  - 원하는 DTO 형태로 “즉시” 반환 → 서비스 변환 코드 감소
+  - 불필요한 엔티티 로딩을 피할 수 있음(필드만 select)
+- 주의(실무에서 자주 터지는 포인트)
+  - **파라미터 개수/순서/타입이 DTO 생성자와 정확히 일치**해야 함
+  - JPQL 문자열에 FQN(패키지 포함 DTO 클래스명) 필요
+  - join/alias/enum 타입 변환 등에서 타입 미스매치가 발생하면 런타임 오류로 이어짐
+
+
+## (3) 엔티티로 받은 뒤 MapStruct 등으로 변환
+- 조회는 엔티티로 하고, 반환은 DTO로 바꾸는 방식
+- 장점
+  - JPQL이 단순해짐(특히 복잡한 조인/조건식이 있을 때)
+  - 매핑 로직을 MapStruct로 표준화 가능(유지보수/테스트에 유리)
+- 단점/주의
+  - 엔티티 로딩 범위가 커지면 성능/지연로딩 이슈가 생길 수 있음
+  - “필요한 필드만 가져오기”가 어려워질 수 있음(튜닝 필요)
+
+
+## 3) 질문 내용의 요지(정리)
+- **엔티티가 아닌 결과 타입(인터페이스/record/DTO)로 직접 받으려면**
+  - (표준) **constructor expression(`new ...`)** 또는
+  - (스프링 데이터 패턴) **interface projection(getter 매핑)** 이 필요하다
+- 반대로 **엔티티로 조회하고 DTO로 변환**하는 방식은
+  - JPQL에서 DTO 생성자를 호출할 필요가 없고
+  - 서비스 계층에서 매핑(MapStruct 등)으로 해결한다
+
+
+## 4) 실무 선택 가이드(가볍게)
+- 리스트 화면/그리드처럼 “필드 일부만 필요” + “대량 조회” → **Projection/Constructor Expression 선호**
+- 도메인 로직/연관관계 활용/수정까지 이어질 가능성 → **엔티티 조회 후 DTO 변환 선호**
+- 복잡한 조회인데도 DTO로 바로 받고 싶다 → **Querydsl/Projection 조합 고려**
+
+<br><br>
+
+---
