@@ -18,7 +18,9 @@ import com.bada.cali.security.CustomUserDetails;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,23 +46,29 @@ public class ItemCodeServiceImpl {
 	// 분류코드관리 리스트
 	@Transactional(readOnly = true)
 	public TuiGridDTO.ResData<ItemCodeList> getItemCodeList(ItemCodeDTO.ItemCodeListReq req) {
+		int pageIndex = req.getPage() -1;
+		int perPage = req.getPerPage();
+		
+		Pageable pageable = PageRequest.of(pageIndex, perPage);
 		
 		// 페이지네이션을 위한 객체
 		// codelevel과 parentId로 모두 분류한다.
-		Long parentId = req.parentId();
+		Long parentId = req.getParentId();
 		if (parentId != null && parentId == 0) {
 			parentId = null;
 		}
 		
-		CodeLevel codeLevel = req.codeLevel();
-		List<ItemCodeList> pageResult = itemCodeRepository.searchItemCodeList(parentId, codeLevel);
+		CodeLevel codeLevel = req.getCodeLevel();
+		Page<ItemCodeList> pageResult = itemCodeRepository.searchItemCodeList(parentId, codeLevel, pageable);
+		List<ItemCodeList> rows = pageResult.getContent();
 		
 		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
-				.totalCount(pageResult.size())
+				.page(req.getPage())
+				.totalCount((int) pageResult.getTotalElements())
 				.build();
 		
 		return TuiGridDTO.ResData.<ItemCodeList>builder()
-				.contents(pageResult)
+				.contents(rows)
 				.pagination(pagination)
 				.build();
 	}
@@ -220,10 +228,7 @@ public class ItemCodeServiceImpl {
 	public ResMessage<List<ItemCodeList>> getItemCodeSet(CodeLevel codeLevel) {
 		int resCode = 1;
 		String resMsg = "";
-		
 		List<ItemCodeList> list = itemCodeRepository.findAllByCodeLevelAndIsVisibleOrderByIdAsc(codeLevel, YnType.y);
-		
-		
 		return new ResMessage<>(resCode, resMsg, list);
 	}
 	

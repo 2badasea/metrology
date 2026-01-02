@@ -77,6 +77,9 @@ $(function () {
 					align: 'center',
 				},
 			],
+			pageOptions: {
+				perPage: 9999
+			},
 			rowHeaders: ['checkbox'],
 			rowHeight: 'auto',
 			scrollY: true,

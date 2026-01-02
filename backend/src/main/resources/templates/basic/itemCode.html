@@ -34,11 +34,11 @@
 									<col width="100px">
 									<col width="200px">
 								</colgroup>
-								<tbody>
+								<tbody class="middleCodeBody">
 									<tr>
 										<th class="required">대분류코드</th>
 										<td>
-											<select class="form-control largeCodeSeelct" name="report_code">
+											<select class="form-control largeCodeSeelct">
 												<option value="">대분류선택</option>
 											</select>
 										</td>
@@ -46,19 +46,20 @@
 									<tr>
 										<th class="required">중분류코드</th>
 										<td>
-											<input type="hidden" name="item_code_idx">
-											<input class="form-control rounded-0" name="item_code_num">
+											<input class="form-control rounded-0" name="codeNum">
+											<input type="hidden" name="id">
+											<input type="hidden" name="isKolasStandard">
 										</td>
 									</tr>
 									<tr>
 										<th class="required">중분류명</th>
-										<td><input type="text" class="form-control rounded-0" name="item_code_name" />
+										<td><input type="text" class="form-control rounded-0" name="codeName" />
 										</td>
 									</tr>
 									<tr>
 										<th>중분류명(영문)</th>
 										<td><input type="text" class="form-control rounded-0"
-												name="item_code_name_en" /></td>
+												name="codeNameEn" /></td>
 									</tr>
 								</tbody>
 							</table>

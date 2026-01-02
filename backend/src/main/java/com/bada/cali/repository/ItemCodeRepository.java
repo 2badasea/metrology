@@ -5,6 +5,8 @@ import com.bada.cali.common.enums.YnType;
 import com.bada.cali.entity.ItemCode;
 import com.bada.cali.repository.projection.ItemCodeList;
 import com.bada.cali.repository.projection.ItemCodeRow;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -36,9 +38,10 @@ public interface ItemCodeRepository extends JpaRepository<ItemCode, Long> {
 						and (:codeLevel IS NULL OR ic.codeLevel = :codeLevel)
 			ORDER BY ic.id ASC
 			""")
-	List<ItemCodeList> searchItemCodeList(
+	Page<ItemCodeList> searchItemCodeList(
 			@Param("parentId") Long parentId,
-			@Param("codeLevel") CodeLevel codeLevel
+			@Param("codeLevel") CodeLevel codeLevel,
+			Pageable pageable
 	);
 	
 	// 삭제할 대상 분류코들르 참조하는 하위 분류코드를 조회한다.

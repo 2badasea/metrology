@@ -121,6 +121,7 @@ public class ApiBasicController {
 	@GetMapping(value = "/getItemCodeList")
 	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<ItemCodeList>>> getItemCodeList(@ModelAttribute ItemCodeDTO.ItemCodeListReq req) {
 		
+		
 		// 리스트 데이터 가져오기 (인터페이스 프로젝션 형태로 가져옴 )
 		TuiGridDTO.ResData<ItemCodeList> itemCodeGridData = itemCodeService.getItemCodeList(req);
 		
