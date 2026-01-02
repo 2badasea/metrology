@@ -216,5 +216,16 @@ public class ItemCodeServiceImpl {
 		return new ResMessage<>(resCode, resMsg, null);
 	}
 	
+	// 분류코드 데이터 가져오기
+	public ResMessage<List<ItemCodeList>> getItemCodeSet(CodeLevel codeLevel) {
+		int resCode = 1;
+		String resMsg = "";
+		
+		List<ItemCodeList> list = itemCodeRepository.findAllByCodeLevelAndIsVisibleOrderByIdAsc(codeLevel, YnType.y);
+		
+		
+		return new ResMessage<>(resCode, resMsg, list);
+	}
+	
 	
 }

@@ -1,6 +1,7 @@
 package com.bada.cali.api;
 
 import com.bada.cali.common.ResMessage;
+import com.bada.cali.common.enums.CodeLevel;
 import com.bada.cali.dto.AgentDTO;
 import com.bada.cali.dto.AgentManagerDTO;
 import com.bada.cali.dto.ItemCodeDTO;
@@ -116,7 +117,7 @@ public class ApiBasicController {
 		return ResponseEntity.ok(new ResMessage<>(resSaveAgent, null, null));
 	}
 	
-	// 분류코드 정보 가져오기
+	// 분류코드 정보 가져오기 (토스트리스트)
 	@GetMapping(value = "/getItemCodeList")
 	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<ItemCodeList>>> getItemCodeList(@ModelAttribute ItemCodeDTO.ItemCodeListReq req) {
 		
@@ -157,6 +158,16 @@ public class ApiBasicController {
 	) {
 		
 		ResMessage<Object> resMessage = itemCodeService.deleteItemCode(req, user);
+		
+		return ResponseEntity.ok(resMessage);
+	}
+	
+	@GetMapping("/getItemCodeSet")
+	public ResponseEntity<ResMessage<List<ItemCodeList>>> getItemCodeSet(
+			@RequestParam CodeLevel codeLevel
+			) {
+		
+		ResMessage<List<ItemCodeList>> resMessage = itemCodeService.getItemCodeSet(codeLevel);
 		
 		return ResponseEntity.ok(resMessage);
 	}

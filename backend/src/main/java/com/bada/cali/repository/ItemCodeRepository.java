@@ -5,7 +5,6 @@ import com.bada.cali.common.enums.YnType;
 import com.bada.cali.entity.ItemCode;
 import com.bada.cali.repository.projection.ItemCodeList;
 import com.bada.cali.repository.projection.ItemCodeRow;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -105,4 +104,6 @@ public interface ItemCodeRepository extends JpaRepository<ItemCode, Long> {
 			@Param("deleteMemberId") Long deleteMemberId
 	);
 	
+	
+	List<ItemCodeList> findAllByCodeLevelAndIsVisibleOrderByIdAsc(CodeLevel codeLevel, YnType ynType);
 }
