@@ -35,6 +35,13 @@ public class ItemCodeDTO {
 			String tracestatementInfo,
 			YnType isKolasStandard
 	){
-	
 	}
+	
+	// 삭제대상 분류코드가 삭제에 적합한지 확인
+	public record DeleteCheckReq (
+		List<Long> ids,
+		CodeLevel codeLevel
+	){}
+	
+	
 }

@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 @RestController        // @Controller + @ResponseBody의 조합으로, 자동으로 응답 데이터를 JSON 형태로 직렬화해서 리턴한다.
 @RequestMapping("/api/basic")
@@ -134,6 +135,28 @@ public class ApiBasicController {
 			@AuthenticationPrincipal CustomUserDetails user)
 	{
 		ResMessage<Object> resMessage = itemCodeService.saveItemCode(req, user);
+		
+		return ResponseEntity.ok(resMessage);
+	}
+	
+	// 삭제대상 분류코드의 데이터를 검증한다.
+	@PostMapping(value = "/deleteItemCodeCheck")
+	public ResponseEntity<ResMessage<Map<String, String>>> deleteItemCodeCheck(
+			@RequestBody ItemCodeDTO.DeleteCheckReq req
+	) {
+	
+		ResMessage<Map<String, String>> resMessage = itemCodeService.deleteItemCodeCheck(req);
+		return ResponseEntity.ok(resMessage);
+	}
+	
+	// 분류코드 최종 삭제처리
+	@PostMapping(value = "/deleteItemCode")
+	public ResponseEntity<ResMessage<Object>> deleteItemCode(
+			@RequestBody ItemCodeDTO.DeleteCheckReq req,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		
+		ResMessage<Object> resMessage = itemCodeService.deleteItemCode(req, user);
 		
 		return ResponseEntity.ok(resMessage);
 	}

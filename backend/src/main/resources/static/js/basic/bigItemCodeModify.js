@@ -104,12 +104,83 @@ $(function () {
 				$modal.grid.appendRow(emptyRow);
 			})
 			// 행 삭제
-			.on('click', '.delBigCode', function (e) {
+			.on('click', '.delBigCode', async function (e) {
 				const checkedRows = $modal.grid.getCheckedRows();
 				if (checkedRows.length === 0) {
 					g_toast('삭제할 행을 선택해주세요.<br>KOLAS 표준 분류코드의 경우 수정/삭제가 불가능합니다.', 'warning');
 					return false;
 				}
+
+				// 1. 검증 (하위 중분류가 존재할 경우, 해당 중분류를 사용하고 있는 성적서가 존재한다면 안 된다고 안내)
+				const removeRowKeys = [];
+				const ids = checkedRows.filter(itemCode => {
+					removeRowKeys.push(itemCode.rowKey);
+					return itemCode?.id > 0;
+				}).map((row) => row.id);
+				console.log("🚀 ~ ids:", ids);
+
+				// id를 담은 요소가 없다면 행만 삭제
+				if (ids.length === 0) {
+					$modal.grid.removeRows(removeRowKeys);
+					return false;
+				}
+
+				// id를 담은 요소가 있다면 서버에서 검증을 진행한다.(중분류 및 성적서가 존재하는지)
+				try {
+					g_loading_message();
+					const fetchOptions = {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json; charset=utf-8',
+						},
+						body: JSON.stringify({
+							ids: ids,
+							codeLevel: 'LARGE'
+						})
+					}
+					const resValid = await fetch('/api/basic/deleteItemCodeCheck', fetchOptions);
+					if (resValid.ok) {
+						Swal.close();
+						const resJson = await resValid.json();
+						let resMsg = resJson.msg ?? "";
+						const resData = resJson.data ?? {};
+						let confirmMsg = '';
+						if (Object.keys(resData).length > 0) {
+							confirmMsg += `<div class='text-left'>`;
+							// 객체 순회는 for...in
+							for (let key in resData) {
+								confirmMsg += `- <b>분류코드</b>: ${key}, <b>분류코드명</b>: ${resData[key]}<br>`;
+							}
+							confirmMsg += `</div><br>`;
+						}
+						resMsg += confirmMsg;
+						if (resJson?.code > 0) {
+							// 삭제여부 확인
+							const deleteConfrim = await g_message('분류코드 삭제', resMsg, 'question', 'confirm');
+							if (deleteConfrim.isConfirmed === true) {
+								// 코드가 길어지므로, 별도의 삭제 함수 호출
+								$modal.deleteCode(ids);
+
+							} else {
+								return false;
+							}
+						} 
+						// 참조하는 하위 성적서 존재
+						else {
+							await g_message('분류코드 삭제', resMsg, 'warning', 'alert');
+							return false;
+						}
+					} else {
+						Swal.close();
+						return false;
+					}
+				} catch(err) {
+					console.error(err);
+					custom_ajax_handler(err);
+				} finally {
+					Swal.close();
+				}
+
 			});
 
 		// 그리드 객체에 대한 이벤트 추가
@@ -146,6 +217,25 @@ $(function () {
 			}
 			$modal.updatedRowKey.push(rowKey);
 		})
+
+		// 삭제진행 콜백함수
+		$modal.deleteCode = async (ids) => {
+			const resDelete = await g_ajax('/api/basic/deleteItemCode', JSON.stringify({
+				ids: ids,
+				codeLevel: 'LARGE'
+			}), {
+				type: "POST",
+				contentType: 'application/json; charset=utf-8'
+			});
+
+			if (resDelete?.code > 0) {
+				await g_message('분류코드 삭제', '삭제되었습니다', 'success', 'alert');
+				location.reload();
+			} else {
+				await g_message('분류코드 삭제', '삭제에 실패했습니다.', 'error', 'alert');
+				return false;
+			}
+		}
 
 
 	}; // End of init_modal
@@ -212,9 +302,6 @@ $(function () {
 			return false;
 		}
 
-		console.log('모두 통과');
-		console.log(saveRows);	
-		
 		const $btn = $('button.btn_save', $modal_root);
 		// 저장 진행
 		try {
