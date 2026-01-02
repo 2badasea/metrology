@@ -127,4 +127,15 @@ public class ApiBasicController {
 		return ResponseEntity.ok(body);
 	}
 	
+	// 분류코드 저장
+	@PostMapping(value = "/saveItemCode")
+	public ResponseEntity<ResMessage<Object>> saveItemCode(
+			@RequestBody List<ItemCodeDTO.ItemCodeData> req,
+			@AuthenticationPrincipal CustomUserDetails user)
+	{
+		ResMessage<Object> resMessage = itemCodeService.saveItemCode(req, user);
+		
+		return ResponseEntity.ok(resMessage);
+	}
+	
 }

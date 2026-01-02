@@ -73,7 +73,7 @@ class readOnlyEditorByCondition {
 	}
 
 	getValue() {
-		return this.el.value;
+		return this.el.value.trim();
 	}
 
 	mounted() {

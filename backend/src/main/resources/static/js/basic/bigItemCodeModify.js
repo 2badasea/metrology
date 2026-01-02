@@ -93,7 +93,13 @@ $(function () {
 					codeNum: '',
 					codeName: '',
 					codeNameEn: '',
-					isKolasStandard: 'n'
+					caliCycleUnit: 'UNSPECIFIED',	// '미정'이 기본값
+					stdCali: null,
+					preCali: null,
+					parentId: null,
+					codeLevel: 'LARGE',
+					isKolasStandard: 'n',	// 임의로 추가되는 경우, 모두 비표준으로 간주
+					tracestatementInfo: null,
 				};
 				$modal.grid.appendRow(emptyRow);
 			})
@@ -131,15 +137,119 @@ $(function () {
 			});
 		});
 
-		// $modal.grid.on('response', function (e) {
-		// 	console.log('response 이벤트');
-		// });
+		$modal.grid.on('afterChange', function (e) {
+			console.log('chagne');
+			console.log(e);
+			const rowKey = e.rowKey;
+			if (!Array.isArray($modal.updatedRow)) {
+				$modal.updatedRowKey = [];
+			}
+			$modal.updatedRowKey.push(rowKey);
+		})
+
+
 	}; // End of init_modal
 
 	// 저장
 	$modal.confirm_modal = async function (e) {
 		console.log('저장클릭');
+		// getColumnValues(columnName) 활용, getRow(rowKey) 활용
+	
+		// 저장 시, 변경이벤트가 일어난 부분만 update 항목에 담을 것. 또한 KOLAS 표준은 업데이트 제외
+		$modal.grid.blur();
+		const rows = $modal.grid.getData();
 
+		// 저장대상의 데이터를 모두 담은 뒤에 값 검증 진행
+		let saveRows = [];
+		rows.forEach((row) => {
+			// KOLAS 표준의 경우, 건너뛴다.
+			if (row.isKolasStandard === 'y') {
+				return false;
+			}
+			// 신규 행은 추가
+			if (!row.id) {
+				saveRows.push(row);
+			} else {
+				// id가 존재하는 것중에서 change 이벤트가 발생한 경우에도 담는다.
+				if (Array.isArray($modal.updatedRowKey) && $modal.updatedRowKey.length > 0 && $modal.updatedRowKey.includes(row.rowKey)) {
+					saveRows.push(row);
+				}
+			}
+		});
+
+		if (saveRows.length === 0) {
+			g_toast('추가/변경된 항목이 존재하지 않습니다.', 'warning');
+			return false;
+		}
+
+		const codeNums = $modal.grid.getColumnValues('codeNum');	// 분류코드 열에 있는 값을 모두 담는다.
+		const setCodeNums = new Set(codeNums);
+		const uniqueCodeNums = [...setCodeNums];	// spread 연산자로 배열형태로 변경
+
+		if (codeNums.length !== uniqueCodeNums.length) {
+			g_toast('중복된 분류코드가 존재합니다.', 'warning');
+			return false;
+		}
+
+		// 업데이트 대상 행 유효성 검증 filter 활용해보기 -> true를 리턴한 것만 담긴다.
+		let saveFlag = true;
+		let flagMsg = "";
+		const regNum = /^[0-9]+$/;
+		saveRows = saveRows.filter(row => {
+			if (!check_input(row.codeNum) || !regNum.test(row.codeNum) || row.codeNum.length > 2) {
+				flagMsg = "분류코드는 숫자(1~2자리)로만 구성되어야 합니다.";
+				saveFlag = false;
+			}
+			if (!check_input(row.codeName.trim())) {
+				flagMsg = "분류코드명을 입력해주세요.";
+				saveFlag = false;
+			}
+			return saveFlag;
+		})
+
+		if (!saveFlag) {
+			g_toast(flagMsg, 'warning');
+			return false;
+		}
+
+		console.log('모두 통과');
+		console.log(saveRows);	
+		
+		const $btn = $('button.btn_save', $modal_root);
+		// 저장 진행
+		try {
+			$btn.prop('disabled', true);
+
+			const saveConfirm = await g_message('분류코드 저장', '저장하시겠습니까?', 'question', 'confirm');
+			if (saveConfirm.isConfirmed === true) {
+				const fetchOptions = {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json; charset=utf-8'
+					},
+					body: JSON.stringify(saveRows)
+				}
+				const resSave = await fetch('/api/basic/saveItemCode', fetchOptions);
+				console.log("🚀 ~ resSave:", resSave);
+				if (resSave.ok) {
+					const resData = await resSave.json();
+					console.log("🚀 ~ resData:", resData);
+					if (resData?.code > 0) {
+						await g_message('분류코드 저장', resData.msg ?? '저장에 성공했습니다.', 'success', 'alert');
+						location.reload();
+					} else {
+						await g_message('분류코드 저장', '분류코드 저장에 실패했습니다.', 'error', 'alert');
+					}
+				}
+			} else {
+				return false;
+			}
+			
+		} catch (err) {
+			custom_ajax_handler(err);
+		} finally {
+			$btn.prop('disabled', false);
+		}
 		// $modal_root.modal('hide');
 		// return $modal;
 	};
