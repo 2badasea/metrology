@@ -58,8 +58,11 @@ public class ItemCodeServiceImpl {
 			parentId = null;
 		}
 		
+		String keyword = req.getKeyword();
+		keyword = keyword == null ? "" : keyword;
+		
 		CodeLevel codeLevel = req.getCodeLevel();
-		Page<ItemCodeList> pageResult = itemCodeRepository.searchItemCodeList(parentId, codeLevel, pageable);
+		Page<ItemCodeList> pageResult = itemCodeRepository.searchItemCodeList(parentId, codeLevel, keyword, pageable);
 		List<ItemCodeList> rows = pageResult.getContent();
 		
 		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()

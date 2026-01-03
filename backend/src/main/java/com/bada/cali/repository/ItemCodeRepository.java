@@ -36,11 +36,17 @@ public interface ItemCodeRepository extends JpaRepository<ItemCode, Long> {
 			where ic.isVisible =  com.bada.cali.common.enums.YnType.y
 						and (:parentId IS NULL OR ic.parentId = :parentId)
 						and (:codeLevel IS NULL OR ic.codeLevel = :codeLevel)
+						and (:keyword = '' OR (
+											ic.codeNum Like %:keyword%
+										OR ic.codeName Like %:keyword%
+										OR ic.codeNameEn Like %:keyword%
+									))
 			ORDER BY ic.id ASC
 			""")
 	Page<ItemCodeList> searchItemCodeList(
 			@Param("parentId") Long parentId,
 			@Param("codeLevel") CodeLevel codeLevel,
+			@Param("keyword") String keyword,
 			Pageable pageable
 	);
 	

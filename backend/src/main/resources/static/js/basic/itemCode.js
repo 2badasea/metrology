@@ -81,6 +81,7 @@ $(function () {
 		// 중분류 리스트에서 포커스된 rowKey체크
 		$modal.middleSelectedRowKey = null;
 		$modal.middleGrid.on('focusChange', function (ev) {
+			$('.smallKeyword', $modal).val('');
 			if ($modal.middleSelectedRowKey != null && $modal.middleSelectedRowKey >= 0) {
 				$modal.middleGrid.removeRowClassName($modal.middleSelectedRowKey, 'gridFocused');
 			}
@@ -196,6 +197,7 @@ $(function () {
 				const params = {
 					parentId: largeCodeId,
 					codeLevel: 'MIDDLE',
+					keyword: $('.middleKeyword', $modal).val().trim()
 				};
 				$modal.middleGrid.readData(1, params, true);
 			}
@@ -214,6 +216,7 @@ $(function () {
 				const params = {
 					parentId: middleCodeId,
 					codeLevel: 'SMALL',
+					keyword: $('.smallKeyword', $modal).val().trim()
 				};
 				$modal.smallGrid.readData(1, params, true);
 			}
@@ -240,7 +243,7 @@ $(function () {
 		// 대분류코드 변경에 따른 중분류 그리드 리로드
 		.on('change', '.largeCodeSeelct', function () {
 			const value = $(this).val();
-
+			$('.searchKeyword', $modal).val('');
 			$modal.resetMiddleGrid(value); // 중분류 그리드 초기화
 			$modal.resetSmallGrid(); // 소분류 그리드 초기화
 		})
@@ -457,7 +460,54 @@ $(function () {
 				Swal.close();
 				return false;
 			}
-		});
+		})
+		.on('click', 'button.search', function () {
+			const $btn = $(this);
+			const codeLevel = $btn.data('type');
+
+			const keywordClass = (codeLevel === 'MIDDLE') ? 'middleKeyword' : 'smallKeyword';
+			const keyword = $(`.${keywordClass}`, $modal).val().trim();
+
+			let parentId;
+			if (codeLevel === 'MIDDLE') {
+				const largeCodeId = $('.largeCodeSeelct', $modal).val();
+				if (!largeCodeId) {
+					g_toast('대분류를 선택해주세요', 'warning');
+					return false;
+				}
+				parentId = largeCodeId;
+				$('.middleCodeBody input', $modal).val('').prop('readonly', false);
+				$('.smallCodeBody input', $modal).val('').prop('readonly', false);
+			} 
+			else {
+				const focusedCell = $modal.middleGrid.getFocusedCell();
+				const focusedRowKey = focusedCell.rowKey;
+				if (focusedRowKey == null) {
+					g_toast('중분류를 선택해주세요.', 'warning');
+					return false;
+				}
+				const focusedRow = $modal.middleGrid.getRow(focusedRowKey);
+				parentId = focusedRow.id;
+				$('.smallCodeBody input', $modal).val('').prop('readonly', false);
+			}
+
+			const targetGrid = (codeLevel === 'MIDDLE') ? $modal.middleGrid : $modal.smallGrid;
+
+			const params = {
+				parentId: parentId,
+				codeLevel: codeLevel,
+				keyword: keyword
+			};
+			targetGrid.readData(1, params, true);			
+
+		})
+		.on('keyup', '.searchKeyword', function (e) {
+			if (e.keyCode == 13) {
+				const $btn = $(this).closest('div').find('button.search');
+				$btn.trigger('click');
+			}
+		})
+		;
 
 	// 분류코드 삭제 처리 콜백
 	$modal.deleteCode = async (ids, type) => {

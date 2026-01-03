@@ -21,6 +21,7 @@ public class ItemCodeDTO {
 	public static class ItemCodeListReq extends TuiGridDTO.Request{
 		CodeLevel codeLevel;    // 분류코드 레벨(깊이)
 		Long parentId;            // 부모id
+		String keyword;			// 검색키워드
 	}
 	
 	public record ItemCodeData (
