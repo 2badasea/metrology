@@ -136,7 +136,7 @@ public class CaliOrderServiceImpl {
 		List<String> resMsgList = new ArrayList<>();        // 반환 메시지
 		
 		// 등록/수정 구분
-		Long caliOrderId = orderData.getId();        //  ! 혹시나 0으로 넘어오는 경우에도 방어 (null로 취급)
+		Long caliOrderId = orderData.getId();        //  ! 혹시나 0으로 넘	어오는 경우에도 방어 (null로 취급)
 		if (caliOrderId != null && caliOrderId == 0L) {
 			caliOrderId = null;
 		}

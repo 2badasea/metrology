@@ -19,7 +19,7 @@
 									<button type="button" class="btn btn-info manageBig">대분류 관리</button>
 									<button type="button" class="btn btn-danger delete_item_code"
 										data-type="middle">삭제</button>
-									<button type="button" class="btn btn-primary new_item_code"
+									<button type="button" class="btn btn-primary initItemCode"
 										data-type="middle">신규</button>
 									<button type="button" class="btn btn-success save_item_code"
 										data-type="middle">저장</button>
@@ -58,8 +58,7 @@
 									</tr>
 									<tr>
 										<th>중분류명(영문)</th>
-										<td><input type="text" class="form-control rounded-0"
-												name="codeNameEn" /></td>
+										<td><input type="text" class="form-control rounded-0" name="codeNameEn" /></td>
 									</tr>
 								</tbody>
 							</table>
@@ -88,7 +87,7 @@
 								<li>
 									<button type="button" class="btn btn-danger delete_item_code"
 										data-type="small">삭제</button>
-									<button type="button" class="btn btn-primary new_item_code"
+									<button type="button" class="btn btn-primary initItemCode"
 										data-type="small">신규</button>
 									<button type="button" class="btn btn-success save_item_code"
 										data-type="small">저장</button>
@@ -105,50 +104,50 @@
 									<col width="100px">
 									<col width="200px">
 								</colgroup>
-								<tbody>
+								<tbody class="smallCodeBody">
 									<tr>
 										<th class="required">소분류코드</th>
 										<td colspan="3">
-											<input type="hidden" name="item_code_idx">
-											<input type="hidden" name="parent_idx">
-											<input class="form-control rounded-0" name="item_code_num">
+											<input class="form-control rounded-0" name="codeNum">
+											<input type="hidden" name="id">
+											<input type="hidden" name="isKolasStandard">
 										</td>
 									</tr>
 									<tr>
 										<th class="required">소분류명</th>
 										<td colspan="3"><input type="text" class="form-control rounded-0"
-												name="item_code_name" /></td>
+												name="codeName" /></td>
 									</tr>
 									<tr>
 										<th class="required">소분류명(영문)</th>
 										<td colspan="3"><input type="text" class="form-control rounded-0"
-												name="item_code_name_en" /></td>
+												name="codeNameEn" /></td>
 									</tr>
 									<tr>
 										<th rowspan="3">소급성</th>
-										<td colspan="3"><input type="text" class="form-control rounded-0 excep-text"
-												name="retro_active" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 "
+												name="traceStatement" /></td>
 									</tr>
 									<tr>
-										<td colspan="3"><input type="text" class="form-control rounded-0 excep-text"
-												name="retro_active2" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 "
+												name="traceStatement2" /></td>
 									</tr>
 									<tr>
-										<td colspan="3"><input type="text" class="form-control rounded-0 excep-text"
-												name="retro_active3" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 "
+												name="traceStatement3" /></td>
 									</tr>
 									<tr>
 										<th rowspan="3">소급성(영문)</th>
-										<td colspan="3"><input type="text" class="form-control rounded-0 excep-text"
-												name="retro_active_en" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 "
+												name="traceStatementEn" /></td>
 									</tr>
 									<tr>
-										<td colspan="3"><input type="text" class="form-control rounded-0 excep-text"
-												name="retro_active_en2" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0"
+												name="traceStatementEn2" /></td>
 									</tr>
 									<tr>
-										<td colspan="3"><input type="text" class="form-control rounded-0 excep-text"
-												name="retro_active_en3" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0"
+												name="traceStatementEn3" /></td>
 									</tr>
 
 								</tbody>

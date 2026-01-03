@@ -78,6 +78,7 @@ $(function () {
 			rowHeight: 'auto',
 		});
 
+		// 중분류 리스트에서 포커스된 rowKey체크
 		$modal.middleSelectedRowKey = null;
 		$modal.middleGrid.on('focusChange', function (ev) {
 			if ($modal.middleSelectedRowKey != null && $modal.middleSelectedRowKey >= 0) {
@@ -87,12 +88,30 @@ $(function () {
 			$modal.middleGrid.addRowClassName($modal.middleSelectedRowKey, 'gridFocused');
 
 			// 포커스된 데이터의 경우, 상단에 정보를 세팅시키도록 한다.
+			$('.middleCodeBody', $modal).find('input[name]').val('');
 			const data = $modal.middleGrid.getRow(ev.rowKey);
 			$('.middleCodeBody', $modal).find('input[name]').setupValues(data);
 			$('.middleCodeBody', $modal)
 				.find('input[name]')
 				.prop('readonly', data.isKolasStandard == 'y');
+
+			// 중분류 리스트 변동에 의해 소분류 그리드도 갱신한다.
+			$modal.resetSmallGrid(data.id);
 		});
+
+		// 소분류 리스트 가져오기
+		$modal.smallDataSource = {
+			initialRequest: false, // 최초 렌더 시 자동 조회 방지 (기본 true)
+			api: {
+				readData: {
+					url: '/api/basic/getItemCodeList',
+					serializer: (grid_param) => {
+						return $.param(grid_param);
+					},
+					method: 'GET',
+				},
+			},
+		};
 
 		// 그리드 정의
 		$modal.smallGrid = new Grid({
@@ -121,12 +140,38 @@ $(function () {
 			pageOptions: {
 				perPage: 5,
 			},
-			// data: $modal.smallDataSource,
+			data: $modal.smallDataSource,
 			rowHeaders: ['checkbox'],
 			rowHeight: 'auto',
 		});
 
-		// 대분류 세팅
+		// 소분류 그리드 포커싱 row 체크
+		$modal.smallSelectedRowKey = null;
+		$modal.smallGrid.on('focusChange', function (ev) {
+			if ($modal.middleSelectedRowKey != null && $modal.smallSelectedRowKey >= 0) {
+				$modal.smallGrid.removeRowClassName($modal.smallSelectedRowKey, 'gridFocused');
+			}
+			$modal.smallSelectedRowKey = ev.rowKey;
+			$modal.smallGrid.addRowClassName($modal.smallSelectedRowKey, 'gridFocused');
+
+			// 포커스된 데이터의 경우, 상단에 정보를 세팅시키도록 한다.
+			$('.smallCodeBody', $modal).find('input[name]').val('');
+			const data = $modal.smallGrid.getRow(ev.rowKey);
+			$('.smallCodeBody', $modal).find('input[name]').setupValues(data);
+			// 소분류이 경우, 소급성문구까지 체크한다.
+			if (data.tracestatementInfo != undefined && data.tracestatementInfo) {
+				const tracestatementInfo = JSON.parse(data.tracestatementInfo);
+				for (const key in tracestatementInfo) {
+					$(`input[name=${key}]`, $modal).val(tracestatementInfo[key] ?? '');
+				}
+			}
+			// kolas 공인인 경우, readonly 처리를 해준다.
+			$('.smallCodeBody', $modal)
+				.find('input[name]')
+				.prop('readonly', data.isKolasStandard == 'y');
+		});
+
+		// 대분류 세팅 (최초 페이지 렌더링 이후 진행)
 		$modal.setLargeItemCodeSet = (data) => {
 			const largeSelect = $('.largeCodeSeelct', $modal);
 			if (data.length > 0) {
@@ -137,13 +182,41 @@ $(function () {
 			}
 		};
 
-		// 그리드 이벤트 정의
-		// $modal.grid.on('click', async function (e) {
-		// 	const row = $modal.grid.getRow(e.rowKey);
+		// 중분류 그리드 초기화 이벤트
+		$modal.resetMiddleGrid = (largeCodeId = null) => {
+			// 단순 초기화의 경우, 그리드 초기화
+			if (!largeCodeId) {
+				$modal.middleGrid.resetData([]); // 로컬 초기화 (중분류)
+			}
+			// 대분류 코드 존재 시, 하위 분류코드 세팅
+			else {
+				const params = {
+					parentId: largeCodeId,
+					codeLevel: 'MIDDLE',
+				};
+				$modal.middleGrid.readData(1, params, true);
+			}
+			// 중분류코드 입력값 모두 초기화
+			$('.middleCodeBody input', $modal).val('').prop('readonly', false);
+		};
 
-		// 	if (row && e.columnName != '_checked') {
-		// 	}
-		// });
+		// 소분류 그리드 초기화 이벤트
+		$modal.resetSmallGrid = (middleCodeId = null) => {
+			// 단순 초기화의 경우, 그리드 초기화
+			if (!middleCodeId) {
+				$modal.smallGrid.resetData([]); // 로컬 초기화 (소분류)
+			}
+			// 중분류 코드 존재 시, 하위 분류코드 세팅
+			else {
+				const params = {
+					parentId: middleCodeId,
+					codeLevel: 'SMALL',
+				};
+				$modal.smallGrid.readData(1, params, true);
+			}
+			// 소분류코드 입력값 모두 초기화
+			$('.smallCodeBody input', $modal).val('').prop('readonly', false);
+		};
 	}; // End init_modal
 
 	// 페이지 내 이벤트
@@ -164,18 +237,25 @@ $(function () {
 		// 대분류코드 변경에 따른 중분류 그리드 리로드
 		.on('change', '.largeCodeSeelct', function () {
 			const value = $(this).val();
-			if (!value || value == 0) {
-				$modal.middleGrid.resetData([]); // 로컬 초기화
-				return false;
-			} else {
-				const params = {
-					parentId: value,
-					codeLevel: 'MIDDLE',
-				};
-				$('.middleCodeBody input', $modal).val('').prop('readonly', false);
-				$modal.middleGrid.readData(1, params, true);
+
+			$modal.resetMiddleGrid(value);	// 중분류 그리드 초기화
+			$modal.resetSmallGrid();	// 소분류 그리드 초기화
+		})
+		// 신규 클릭
+		.on('click', '.initItemCode', function () {
+			const type = $(this).data('type');		// 'middle' | 'small'
+
+			// 중분류
+			if (type === 'middle') {
+				$modal.resetMiddleGrid();	// 중분류 초기화
+				$modal.resetSmallGrid();	// 소분류 초기화
+			} 
+			// 소분류
+			else {
+				$modal.resetSmallGrid();	// 소분류 초기화
 			}
-		});
+		})
+		;
 
 	$modal.data('modal-data', $modal);
 	$modal.addClass('modal-view-applied');
