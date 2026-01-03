@@ -141,7 +141,7 @@ $(function () {
 				perPage: 5,
 			},
 			minBodyHeight: 217,
-			bodyHeight: 217,			
+			bodyHeight: 217,
 			data: $modal.smallDataSource,
 			rowHeaders: ['checkbox'],
 			rowHeight: 'auto',
@@ -391,7 +391,96 @@ $(function () {
 				Swal.close();
 				return false;
 			}
+		})
+		// 분류코드 삭제
+		.on('click', '.deleteItemCode', async function () {
+			const type = $(this).data('type'); // 'SMALL' | 'MIDDLE'
+			const targetGrid = type === 'SMALL' ? $modal.smallGrid : $modal.middleGrid;
+			const checkedRows = targetGrid.getCheckedRows();
+			if (checkedRows.length === 0) {
+				g_toast('삭제할 분류코드를 선택해주세요.', 'warning');
+				return false;
+			}
+			const ids = checkedRows.filter((row) => row.isKolasStandard === 'n').map((row) => row.id);
+			if (checkedRows.length !== ids.length) {
+				g_toast('KOLAS 표준 분류코드는 삭제가 불가능합니다', 'warning');
+				return false;
+			}
+
+			// 삭제가능여부를 우선 판단
+			try {
+				g_loading_message();
+				const checkOptions = {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json; charset=utf-8',
+					},
+					body: JSON.stringify({
+						ids: ids,
+						codeLevel: type,
+					}),
+				};
+				const resCheck = await fetch('/api/basic/deleteItemCodeCheck', checkOptions);
+				if (resCheck.ok) {
+					const resJson = await resCheck.json();
+					let resMsg = resJson.msg ?? '';
+					const resData = resJson.data ?? {};
+					let confirmMsg = '';
+					if (Object.keys(resData).length > 0) {
+						confirmMsg += `<div class='text-left'>`;
+						// 객체 순회는 for...in
+						for (let key in resData) {
+							confirmMsg += `- <b>분류코드</b>: ${key}, <b>분류코드명</b>: ${resData[key]}<br>`;
+						}
+						confirmMsg += `</div><br>`;
+					}
+					resMsg += confirmMsg;
+					if (resJson?.code > 0) {
+						// 삭제여부 확인
+						const deleteConfrim = await g_message('분류코드 삭제', resMsg, 'question', 'confirm');
+						if (deleteConfrim.isConfirmed === true) {
+							// 코드가 길어지므로, 별도의 삭제 함수 호출
+							$modal.deleteCode(ids, type);
+						} else {
+							return false;
+						}
+					}
+					// 참조하는 하위 성적서 존재
+					else {
+						await g_message('분류코드 삭제', resMsg, 'warning', 'alert');
+						return false;
+					}
+				} else {
+				}
+			} catch (err) {
+			} finally {
+				Swal.close();
+				return false;
+			}
 		});
+
+	// 분류코드 삭제 처리 콜백
+	$modal.deleteCode = async (ids, type) => {
+		const resDelete = await g_ajax(
+			'/api/basic/deleteItemCode',
+			JSON.stringify({
+				ids: ids,
+				codeLevel: type,
+			}),
+			{
+				type: 'POST',
+				contentType: 'application/json; charset=utf-8',
+			}
+		);
+
+		if (resDelete?.code > 0) {
+			await g_message('분류코드 삭제', '삭제되었습니다', 'success', 'alert');
+			location.reload();
+		} else {
+			await g_message('분류코드 삭제', '삭제에 실패했습니다.', 'error', 'alert');
+			return false;
+		}
+	};
 
 	$modal.data('modal-data', $modal);
 	$modal.addClass('modal-view-applied');
