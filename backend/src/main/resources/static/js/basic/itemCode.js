@@ -140,6 +140,8 @@ $(function () {
 			pageOptions: {
 				perPage: 5,
 			},
+			minBodyHeight: 217,
+			bodyHeight: 217,			
 			data: $modal.smallDataSource,
 			rowHeaders: ['checkbox'],
 			rowHeight: 'auto',
@@ -177,6 +179,7 @@ $(function () {
 			if (data.length > 0) {
 				data.forEach((itemCode) => {
 					const option = new Option(`${itemCode.codeNum} (${itemCode.codeName})`, itemCode.id);
+					option.dataset.codeNum = itemCode.codeNum;
 					largeSelect.append(option);
 				});
 			}
@@ -238,24 +241,157 @@ $(function () {
 		.on('change', '.largeCodeSeelct', function () {
 			const value = $(this).val();
 
-			$modal.resetMiddleGrid(value);	// 중분류 그리드 초기화
-			$modal.resetSmallGrid();	// 소분류 그리드 초기화
+			$modal.resetMiddleGrid(value); // 중분류 그리드 초기화
+			$modal.resetSmallGrid(); // 소분류 그리드 초기화
 		})
 		// 신규 클릭
 		.on('click', '.initItemCode', function () {
-			const type = $(this).data('type');		// 'middle' | 'small'
+			const type = $(this).data('type'); // 'MIDDLE' | 'small'
 
 			// 중분류
-			if (type === 'middle') {
-				$modal.resetMiddleGrid();	// 중분류 초기화
-				$modal.resetSmallGrid();	// 소분류 초기화
-			} 
+			if (type === 'MIDDLE') {
+				$modal.resetMiddleGrid(); // 중분류 초기화
+				$modal.resetSmallGrid(); // 소분류 초기화
+			}
 			// 소분류
 			else {
-				$modal.resetSmallGrid();	// 소분류 초기화
+				$modal.resetSmallGrid(); // 소분류 초기화
 			}
 		})
-		;
+		// 저장 클릭
+		.on('click', '.saveItemCode', async function () {
+			const type = $(this).data('type'); // 'MIDDLE' | 'small'
+
+			const sendData = [];
+			const itemCodeInfo = {};
+			const body = type === 'SMALL' ? 'smallCodeBody' : 'middleCodeBody';
+			$(`.${body}`, $modal)
+				.find('input[name]')
+				.each(function (index, ele) {
+					let key = $(ele).attr('name');
+					let value = $(ele).val();
+					// id가 존재하지 않는 신규등록일 경우, id는 null처리해서 보낸다.
+					if (key == 'id' && !value) {
+						value = null;
+					} else if (key != 'id' && key != 'parentId') {
+						value = value.trim();
+					}
+					itemCodeInfo[key] = value;
+				});
+			// 소분류코드일 경우, 소급성문구를 JSON으로 별도로 담기
+			if (type === 'SMALL') {
+				const tracestatementInfo = {};
+				$('.tracestatementInfo', $modal).each((index, ele) => {
+					const name = $(ele).attr('name');
+					const value = $(ele).val() ?? '';
+					tracestatementInfo[name] = value;
+					itemCodeInfo.tracestatementInfo = JSON.stringify(tracestatementInfo);
+				});
+			}
+
+			// 중/소 분류별 확인사항
+			if (type == 'MIDDLE') {
+				// 선택된 대분류가 존재하는지
+				const largeCodeId = $('.largeCodeSeelct', $modal).val();
+				if (!largeCodeId) {
+					g_toast('대분류를 선택해주세요', 'warning');
+					return false;
+				}
+				itemCodeInfo.parentId = largeCodeId;
+				const largeCodeNum = $('.largeCodeSeelct', $modal).find('option:selected').data('codeNum');
+				// 분류코드는 정상적으로 3자리를 입력했고, 그게 대분류코드 prefix와 일치하는지?
+				if (
+					!check_input(itemCodeInfo.codeNum) ||
+					itemCodeInfo.codeNum.length != 3 ||
+					String(itemCodeInfo.codeNum).charAt(0) != largeCodeNum
+				) {
+					g_toast('중분류코드는 [대분류코드] + 숫자2자리만 가능합니다.', 'warning');
+					return false;
+				}
+			}
+			// 소분류
+			else {
+				// 중분류 선택된 값 있는지 확인
+				const focusedCell = $modal.middleGrid.getFocusedCell();
+				const focusedRowKey = focusedCell.rowKey;
+				if (focusedRowKey == null) {
+					g_toast('중분류를 선택해주세요.', 'warning');
+					return false;
+				}
+				const focusedRow = $modal.middleGrid.getRow(focusedRowKey);
+				itemCodeInfo.parentId = focusedRow.id; // 상위코드 담기
+				const middleCodeNum = focusedRow.codeNum;
+				if (
+					!check_input(itemCodeInfo.codeNum) ||
+					itemCodeInfo.codeNum.length != 5 ||
+					String(itemCodeInfo.codeNum).slice(0, 3) != middleCodeNum
+				) {
+					g_toast('소분류코드는 [중분류코드] + 숫자2자리만 가능합니다.', 'warning');
+					return false;
+				}
+			}
+
+			// 공통 체크사항
+			if (!check_input(itemCodeInfo.codeNum)) {
+				g_toast('분류코드를 입력해주세요', 'warning');
+				return false;
+			}
+			if (!check_input(itemCodeInfo.codeName)) {
+				g_toast('분류코드명을 입력해주세요', 'warning');
+				return false;
+			}
+
+			// 기본데이터 넣어주기
+			itemCodeInfo.codeLevel = type;
+			itemCodeInfo.caliCycleUnit = 'MONTHS'; // 기본적으로 개월 단위로 할 것
+			itemCodeInfo.stdCali = 12; // 기본 고정용 표준기 교정주기
+			itemCodeInfo.preCali = 12; // 기본 정밀기기 교정주기
+			itemCodeInfo.isKolasStandard = 'n'; // KOLAS 공인 표준코드 여부
+
+			sendData.push(itemCodeInfo); // 배열에 담는다. List로 받기 위해
+
+			try {
+				const saveTypeKr = itemCodeInfo.id ? '수정' : '등록';
+				let confirmMsg = `${type == 'MIDDLE' ? '중분류코드' : '소분류코드'} ${saveTypeKr}<br><br>`;
+				confirmMsg += `분류코드: ${itemCodeInfo.codeNum}<br>분류코드명: ${itemCodeInfo.codeName}`;
+				const confirm = await g_message('분류코드 저장', confirmMsg, 'question', 'confirm');
+				if (confirm.isConfirmed === true) {
+					g_loading_message();
+					const fetchOptions = {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json; charset=utf-8',
+						},
+						body: JSON.stringify(sendData),
+					};
+					const resSave = await fetch('/api/basic/saveItemCode', fetchOptions);
+					Swal.close();
+					if (resSave.ok) {
+						const resData = await resSave.json();
+						if (resData?.code > 0) {
+							await g_message('분류코드 저장', resData.msg ?? '저장되었습니다', 'success', 'alert');
+							if (type === 'MIDDLE') {
+								$modal.resetMiddleGrid();
+								$modal.resetSmallGrid();
+							} else {
+								$modal.resetSmallGrid();
+							}
+						} else {
+							await g_message('분류코드 저장 실패', resData.msg ?? '실패했습니다', 'error', 'alert');
+						}
+					} else {
+						await g_message('분류코드 저장 실패', '저장 요청이 정상적으로 이루어지지 않았습니다.', 'error', 'alert');
+					}
+				}
+			} catch (err) {
+				console.log('에러발생');
+				console.error(err);
+				custom_ajax_handler(err);
+			} finally {
+				Swal.close();
+				return false;
+			}
+		});
 
 	$modal.data('modal-data', $modal);
 	$modal.addClass('modal-view-applied');

@@ -18,11 +18,11 @@
 								<li>
 									<button type="button" class="btn btn-info manageBig">대분류 관리</button>
 									<button type="button" class="btn btn-danger delete_item_code"
-										data-type="middle">삭제</button>
+										data-type="MIDDLE">삭제</button>
 									<button type="button" class="btn btn-primary initItemCode"
-										data-type="middle">신규</button>
-									<button type="button" class="btn btn-success save_item_code"
-										data-type="middle">저장</button>
+										data-type="MIDDLE">신규</button>
+									<button type="button" class="btn btn-success saveItemCode"
+										data-type="MIDDLE">저장</button>
 								</li>
 							</ul>
 						</div>
@@ -46,7 +46,7 @@
 									<tr>
 										<th class="required">중분류코드</th>
 										<td>
-											<input class="form-control rounded-0" name="codeNum">
+											<input class="form-control rounded-0" name="codeNum" maxlength="3">
 											<input type="hidden" name="id">
 											<input type="hidden" name="isKolasStandard">
 										</td>
@@ -86,11 +86,11 @@
 							<ul class="ml-auto list-group list-group-horizontal">
 								<li>
 									<button type="button" class="btn btn-danger delete_item_code"
-										data-type="small">삭제</button>
+										data-type="SMALL">삭제</button>
 									<button type="button" class="btn btn-primary initItemCode"
-										data-type="small">신규</button>
-									<button type="button" class="btn btn-success save_item_code"
-										data-type="small">저장</button>
+										data-type="SMALL">신규</button>
+									<button type="button" class="btn btn-success saveItemCode"
+										data-type="SMALL">저장</button>
 								</li>
 							</ul>
 						</div>
@@ -108,7 +108,7 @@
 									<tr>
 										<th class="required">소분류코드</th>
 										<td colspan="3">
-											<input class="form-control rounded-0" name="codeNum">
+											<input class="form-control rounded-0" name="codeNum" maxlength="5">
 											<input type="hidden" name="id">
 											<input type="hidden" name="isKolasStandard">
 										</td>
@@ -119,35 +119,35 @@
 												name="codeName" /></td>
 									</tr>
 									<tr>
-										<th class="required">소분류명(영문)</th>
+										<th class="">소분류명(영문)</th>
 										<td colspan="3"><input type="text" class="form-control rounded-0"
 												name="codeNameEn" /></td>
 									</tr>
 									<tr>
 										<th rowspan="3">소급성</th>
-										<td colspan="3"><input type="text" class="form-control rounded-0 "
-												name="traceStatement" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 tracestatementInfo"
+												name="tracestatement" /></td>
 									</tr>
 									<tr>
-										<td colspan="3"><input type="text" class="form-control rounded-0 "
-												name="traceStatement2" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 tracestatementInfo"
+												name="tracestatement2" /></td>
 									</tr>
 									<tr>
-										<td colspan="3"><input type="text" class="form-control rounded-0 "
-												name="traceStatement3" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 tracestatementInfo"
+												name="tracestatement3" /></td>
 									</tr>
 									<tr>
 										<th rowspan="3">소급성(영문)</th>
-										<td colspan="3"><input type="text" class="form-control rounded-0 "
-												name="traceStatementEn" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 tracestatementInfo"
+												name="tracestatementEn" /></td>
 									</tr>
 									<tr>
-										<td colspan="3"><input type="text" class="form-control rounded-0"
-												name="traceStatementEn2" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 tracestatementInfo"
+												name="tracestatementEn2" /></td>
 									</tr>
 									<tr>
-										<td colspan="3"><input type="text" class="form-control rounded-0"
-												name="traceStatementEn3" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 tracestatementInfo"
+												name="tracestatementEn3" /></td>
 									</tr>
 
 								</tbody>

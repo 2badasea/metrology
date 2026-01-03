@@ -88,6 +88,15 @@ public class ItemCodeServiceImpl {
 			
 			Long id = itemCode.id();
 			String codeNum = itemCode.codeNum();
+			CodeLevel codeLevel = itemCode.codeLevel();
+			// 분류코드 기준으로 중복검사 진행
+			Long chkDuplicateCodeNum = itemCodeRepository.getCountDuplicateCodeNum(codeNum, codeLevel, YnType.y, id);
+			if (chkDuplicateCodeNum > 0) {
+				resCode = -1;
+				resMsg = String.format("중복된 분류코드가 존재합니다.<br>분류코드: %s", codeNum);
+				return new ResMessage<>(resCode, resMsg, null);
+			}
+			
 			String codeName = itemCode.codeName();
 			String saveTypeKr = (id == null) ? "등록" : "수정";
 			// 신규 등록
