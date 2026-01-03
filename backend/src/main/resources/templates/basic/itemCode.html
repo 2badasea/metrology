@@ -17,12 +17,12 @@
 							<ul class="ml-auto list-group list-group-horizontal">
 								<li>
 									<button type="button" class="btn btn-info manageBig">대분류 관리</button>
-									<button type="button" class="btn btn-danger delete_item_code"
-										data-type="middle">삭제</button>
-									<button type="button" class="btn btn-primary new_item_code"
-										data-type="middle">신규</button>
-									<button type="button" class="btn btn-success save_item_code"
-										data-type="middle">저장</button>
+									<button type="button" class="btn btn-danger deleteItemCode"
+										data-type="MIDDLE">삭제</button>
+									<button type="button" class="btn btn-primary initItemCode"
+										data-type="MIDDLE">신규</button>
+									<button type="button" class="btn btn-success saveItemCode"
+										data-type="MIDDLE">저장</button>
 								</li>
 							</ul>
 						</div>
@@ -46,7 +46,7 @@
 									<tr>
 										<th class="required">중분류코드</th>
 										<td>
-											<input class="form-control rounded-0" name="codeNum">
+											<input class="form-control rounded-0" name="codeNum" maxlength="3">
 											<input type="hidden" name="id">
 											<input type="hidden" name="isKolasStandard">
 										</td>
@@ -58,16 +58,15 @@
 									</tr>
 									<tr>
 										<th>중분류명(영문)</th>
-										<td><input type="text" class="form-control rounded-0"
-												name="codeNameEn" /></td>
+										<td><input type="text" class="form-control rounded-0" name="codeNameEn" /></td>
 									</tr>
 								</tbody>
 							</table>
 						</form>
 						<div class="input-group w-100 mb-1 mt-3">
-							<input type="text" class="form-control middle_keyword w-75" placeholder="중분류 검색">
+							<input type="text" class="form-control middleKeyword searchKeyword w-75" data-type="MIDDLE" placeholder="중분류 검색">
 							<div class="input-group-append">
-								<button class="btn btn-info middle_search" type="button">조회</button>
+								<button class="btn btn-info search" data-type="MIDDLE" type="button">조회</button>
 							</div>
 						</div>
 						<!-- 체크박스, 중분류코드, 중분류명, 중분류명(영문) -->
@@ -86,12 +85,12 @@
 							</ul>
 							<ul class="ml-auto list-group list-group-horizontal">
 								<li>
-									<button type="button" class="btn btn-danger delete_item_code"
-										data-type="small">삭제</button>
-									<button type="button" class="btn btn-primary new_item_code"
-										data-type="small">신규</button>
-									<button type="button" class="btn btn-success save_item_code"
-										data-type="small">저장</button>
+									<button type="button" class="btn btn-danger deleteItemCode"
+										data-type="SMALL">삭제</button>
+									<button type="button" class="btn btn-primary initItemCode"
+										data-type="SMALL">신규</button>
+									<button type="button" class="btn btn-success saveItemCode"
+										data-type="SMALL">저장</button>
 								</li>
 							</ul>
 						</div>
@@ -105,59 +104,59 @@
 									<col width="100px">
 									<col width="200px">
 								</colgroup>
-								<tbody>
+								<tbody class="smallCodeBody">
 									<tr>
 										<th class="required">소분류코드</th>
 										<td colspan="3">
-											<input type="hidden" name="item_code_idx">
-											<input type="hidden" name="parent_idx">
-											<input class="form-control rounded-0" name="item_code_num">
+											<input class="form-control rounded-0" name="codeNum" maxlength="5">
+											<input type="hidden" name="id">
+											<input type="hidden" name="isKolasStandard">
 										</td>
 									</tr>
 									<tr>
 										<th class="required">소분류명</th>
 										<td colspan="3"><input type="text" class="form-control rounded-0"
-												name="item_code_name" /></td>
+												name="codeName" /></td>
 									</tr>
 									<tr>
-										<th class="required">소분류명(영문)</th>
+										<th class="">소분류명(영문)</th>
 										<td colspan="3"><input type="text" class="form-control rounded-0"
-												name="item_code_name_en" /></td>
+												name="codeNameEn" /></td>
 									</tr>
 									<tr>
 										<th rowspan="3">소급성</th>
-										<td colspan="3"><input type="text" class="form-control rounded-0 excep-text"
-												name="retro_active" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 tracestatementInfo"
+												name="tracestatement" /></td>
 									</tr>
 									<tr>
-										<td colspan="3"><input type="text" class="form-control rounded-0 excep-text"
-												name="retro_active2" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 tracestatementInfo"
+												name="tracestatement2" /></td>
 									</tr>
 									<tr>
-										<td colspan="3"><input type="text" class="form-control rounded-0 excep-text"
-												name="retro_active3" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 tracestatementInfo"
+												name="tracestatement3" /></td>
 									</tr>
 									<tr>
 										<th rowspan="3">소급성(영문)</th>
-										<td colspan="3"><input type="text" class="form-control rounded-0 excep-text"
-												name="retro_active_en" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 tracestatementInfo"
+												name="tracestatementEn" /></td>
 									</tr>
 									<tr>
-										<td colspan="3"><input type="text" class="form-control rounded-0 excep-text"
-												name="retro_active_en2" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 tracestatementInfo"
+												name="tracestatementEn2" /></td>
 									</tr>
 									<tr>
-										<td colspan="3"><input type="text" class="form-control rounded-0 excep-text"
-												name="retro_active_en3" /></td>
+										<td colspan="3"><input type="text" class="form-control rounded-0 tracestatementInfo"
+												name="tracestatementEn3" /></td>
 									</tr>
 
 								</tbody>
 							</table>
 						</form>
 						<div class="input-group mb-1 mt-3">
-							<input type="text" class="form-control small_keyword w-75" placeholder="소분류 검색">
+							<input type="text" class="form-control smallKeyword searchKeyword w-75" data-type="SMALL" placeholder="소분류 검색">
 							<div class="input-group-append">
-								<button class="btn btn-info small_search" type="button">조회</button>
+								<button class="btn btn-info search" data-type="SMALL" type="button">조회</button>
 							</div>
 						</div>
 						<!-- 체크박스, 소분류코드, 소분류명, 소분류(영문) -->

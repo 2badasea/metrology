@@ -58,8 +58,11 @@ public class ItemCodeServiceImpl {
 			parentId = null;
 		}
 		
+		String keyword = req.getKeyword();
+		keyword = keyword == null ? "" : keyword;
+		
 		CodeLevel codeLevel = req.getCodeLevel();
-		Page<ItemCodeList> pageResult = itemCodeRepository.searchItemCodeList(parentId, codeLevel, pageable);
+		Page<ItemCodeList> pageResult = itemCodeRepository.searchItemCodeList(parentId, codeLevel, keyword, pageable);
 		List<ItemCodeList> rows = pageResult.getContent();
 		
 		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
@@ -88,6 +91,15 @@ public class ItemCodeServiceImpl {
 			
 			Long id = itemCode.id();
 			String codeNum = itemCode.codeNum();
+			CodeLevel codeLevel = itemCode.codeLevel();
+			// 분류코드 기준으로 중복검사 진행
+			Long chkDuplicateCodeNum = itemCodeRepository.getCountDuplicateCodeNum(codeNum, codeLevel, YnType.y, id);
+			if (chkDuplicateCodeNum > 0) {
+				resCode = -1;
+				resMsg = String.format("중복된 분류코드가 존재합니다.<br>분류코드: %s", codeNum);
+				return new ResMessage<>(resCode, resMsg, null);
+			}
+			
 			String codeName = itemCode.codeName();
 			String saveTypeKr = (id == null) ? "등록" : "수정";
 			// 신규 등록
@@ -129,7 +141,7 @@ public class ItemCodeServiceImpl {
 		return new ResMessage<>(resCode, resMsg, null);
 	}
 	
-	// 삭제대ㅐ상 분류코드에 대한 검증을 한다.
+	// 삭제대상 분류코드에 대한 검증을 한다.
 	@Transactional(readOnly = true)
 	public ResMessage<Map<String, String>> deleteItemCodeCheck(ItemCodeDTO.DeleteCheckReq req) {
 		int resCode = 0;
@@ -149,10 +161,26 @@ public class ItemCodeServiceImpl {
 		// 하위 분류코드가 존재하는 경우
 		if (!childCodeList.isEmpty()) {
 			List<Long> childIds = new ArrayList<>();
+			boolean chkIsKolas = false;
 			for (ItemCode childItemCode : childCodeList) {
 				childIds.add(childItemCode.getId());
+				if (childItemCode.getIsKolasStandard() == YnType.y) {
+					chkIsKolas = true;
+				}
 				// 하위 분류코드를 모두 담는다.
 				resMap.put(childItemCode.getCodeNum(), childItemCode.getCodeName());
+			}
+			
+			// KOLAS 표준이 포함된 경우, 삭제가 안 되도록 한다.
+			if (chkIsKolas) {
+				resCode = -1;
+				// 중분류를 삭제하려고 한 경우
+				if (codeLevel == MIDDLE) {
+					resMsg = "하위 분류코드 중 KOLAS 표준 분류코드가 존재합니다";
+				} else {
+					resMsg = "분류코드 중 KOLAS 표준 분류코드가 존재합니다.";
+				}
+				return new ResMessage<>(resCode, resMsg, null);
 			}
 			
 			// 자식 분류코드를 참고하고 있는 성적서를 조회한다.
