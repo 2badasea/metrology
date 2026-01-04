@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="98b44280-0d68-43b3-b271-b4d8efe16792" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="98b44280-0d68-43b3-b271-b4d8efe16792" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -59,10 +57,11 @@
     "RequestMappingsPanelWidth0": "75",
     "RequestMappingsPanelWidth1": "75",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.CaliApplication.executor": "Run",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "feature/item__code",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/BadaDev/cali/src/main/resources/static",
+    "last_opened_file_path": "C:/BadaDev/cali",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -106,6 +105,7 @@
       <option name="presentableId" value="Default" />
       <updated>1762995354383</updated>
       <workItem from="1762995356314" duration="12215000" />
+      <workItem from="1767520831152" duration="110000" />
     </task>
     <servers />
   </component>
