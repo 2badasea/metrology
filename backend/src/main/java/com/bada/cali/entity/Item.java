@@ -69,8 +69,8 @@ public class Item {
 	@Builder.Default
 	private Long fee = 0L;
 	
-	// 교정주기
-	@Column(name = "cali_cycle", nullable = false)
+	// 교정주기 (NULL 허용)
+	@Column(name = "cali_cycle")
 	private Integer caliCycle;
 	
 	// 당사가능여부

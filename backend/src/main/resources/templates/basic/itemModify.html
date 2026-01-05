@@ -1,0 +1,79 @@
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<div layout:fragment="content">
+    <div class="d-flex flex-wrap">
+        <div class="col-lg-12 col-md-12 pr-1 pl-0">
+            <form class="itemModifyForm" name="itemModifyForm">
+
+                <table class="table table-bordered text-center mb-0">
+                    <colgroup>
+                        <col width="30px;" />
+                        <col width="100px;" />
+                        <col width="30px;" />
+                        <col width="100px;" />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <th class="required">중분류</th>
+                            <td>
+                                <select class="form-control form-control-sm middleItemCode" name="middleItemCodeId">
+                                    <option value="">선택하세요.</option>
+                                </select>
+                            </td>
+                            <th class="required">소분류</th>
+                            <td>
+                                <select class="form-control form-control-sm smallItemCode" name="smallItemCodeId">
+                                    <option value="">선택하세요.</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="required">기기명</th>
+                            <td><input class="form-control rounded-0 required" name="name" /></td>
+                            <th>기기명(영문)</th>
+                            <td><input class="form-control rounded-0" name="nameEn" /></td>
+                        </tr>
+                        <tr>
+                            <th>제작회사(국문)</th>
+                            <td><input class="form-control rounded-0 " name="makeAgent" /></td>
+                            <th>제작회사(영문)</th>
+                            <td><input class="form-control rounded-0 " name="makeAgentEn" /></td>
+                        </tr>
+                        <tr>
+                            <th>형식
+                            </th>
+                            <td><input class="form-control rounded-0" name="format" /></td>
+                            <th>교정주기</th>
+                            <td>
+                                <select class="form-control rounded-0 caliCycle" name="caliCycle">
+                                    <option value="">선택하세요.</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>기기번호</th>
+                            <td><input class="form-control rounded-0" name="num" /></td>
+                            <th>당사가능여부</th>
+                            <td>
+                                <div class="btn-group btn-group-toggle w-100" data-toggle="buttons">
+                                    <label class="btn btn-outline-info rounded-0">
+                                        <input type="radio" name="isInhousePossible" id="option100" autocomplete="off"
+                                            value="y">Y
+                                    </label>
+                                    <label class="btn btn-outline-info rounded-0">
+                                        <input type="radio" name="isInhousePossible" id="option200" autocomplete="off"
+                                            value="n">N
+                                    </label>
+                                </div>
+                            </td>
+
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </div>
+</div>
+
+</html>
