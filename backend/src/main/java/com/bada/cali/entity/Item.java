@@ -1,5 +1,6 @@
 package com.bada.cali.entity;
 
+import com.bada.cali.common.enums.CreateType;
 import com.bada.cali.common.enums.YnType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -24,6 +25,12 @@ public class Item {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	
+	// 생성타입 (BASIC: 기본, AUTO: 자동등록)
+	@Column(name = "create_type", nullable = false, length = 50)
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private CreateType createType = CreateType.BASIC;
 	
 	// 중분류 코드 고유 id
 	@Column(name = "middle_item_code_id")

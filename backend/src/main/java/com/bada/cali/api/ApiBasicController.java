@@ -173,4 +173,11 @@ public class ApiBasicController {
 		return ResponseEntity.ok(resMessage);
 	}
 	
+	@GetMapping(value = "/getItemCodeInfos")
+	public ResponseEntity<ResMessage<ItemCodeDTO.ItemCodeInfosRes>> getItemCodeSet() {
+		ResMessage<ItemCodeDTO.ItemCodeInfosRes> resMessage = itemCodeService.getItemCodeInfos();
+		
+		return ResponseEntity.ok(resMessage);
+	}
+	
 }

@@ -82,4 +82,10 @@ public class BasicController {
 	public String bigItemCodeModify() {
 		return "basic/bigItemCodeModify";
 	}
+	
+	// 품목관리
+	@GetMapping(value = "/item")
+	public String item() {
+		return "basic/item";
+	}
 }

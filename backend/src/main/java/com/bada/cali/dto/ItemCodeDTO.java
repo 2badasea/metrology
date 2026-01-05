@@ -4,10 +4,12 @@ package com.bada.cali.dto;
 import com.bada.cali.common.enums.CaliCycleUnit;
 import com.bada.cali.common.enums.CodeLevel;
 import com.bada.cali.common.enums.YnType;
+import com.bada.cali.repository.projection.ItemCodeList;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Map;
 
 public class ItemCodeDTO {
 	
@@ -44,6 +46,12 @@ public class ItemCodeDTO {
 		List<Long> ids,
 		CodeLevel codeLevel
 	){}
+	
+	// 중분류/소분류 데이터셋 반환
+	public record ItemCodeInfosRes(
+			List<ItemCodeList> middleCodeInfos,
+			Map<Long, List<ItemCodeList>> smallCodeInfos
+	) {}
 	
 	
 }

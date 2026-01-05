@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <div layout:fragment="content">
+        <div class="wrapper">
+            <form class="searchForm mb-1" name="searchForm">
+                <div class="d-flex">
+                    <ul class="list-group list-group-horizontal font-weight-bold mr-auto">
+                        <li>
+                            <button type="button" class="btn btn-danger deleteItem">삭제</button>
+                            <button type="button" class="btn btn-primary addItem">등록</button>
+                        </li>
+                    </ul>
+                    <ul class="ml-auto list-group list-group-horizontal" id="searchFormUl">
+                        <!-- 행 수 -->
+                        <li class="mr-1">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text" id="basic-addon1">행 수</span>
+                                </div>
+                                <select class="form-control rowLeng">
+                                    <option value="20">20</option>;
+                                    <option value="50">50</option>;
+                                    <option value="100">100</option>;
+                                    <option value="200">200</option>;
+                                </select>
+                            </div>
+                        </li>
+                        <li class="mr-1">
+                            <select class="form-control isInhousePossible" name="isInhousePossible">
+                                <!-- 전체선택(여부)의 경우, 빈값으로 값을 보낸다. -->
+                                <option value="">당사가능여부</option>
+                                <option value="y" selected>가능</option>
+                                <option value="n">불가</option>
+                            </select>
+                        </li>                        
+                        <li class="mr-1">
+                            <select class="select2 form-control middleCodeSelect" style="width: 100px !important;">
+                                <option value="">중분류전체</option>
+                            </select>
+                        </li>
+                        <li class="mr-1">
+                            <select class="select2 form-control smallCodeSelect" style="width: 100px !important;">
+                                <option value="">소분류전체</option>
+                            </select>
+                        </li>
+                        <li class="mr-1 d-flex">
+                            <div class="input-group">
+                                <select class="form-control searchType" name="searchType" id="searchType">
+                                    <!-- 전체선택의 경우 빈 문자열을 보낸다. -->
+                                    <option value="">전체선택</option>
+                                    <option value="name">기기명</option>
+                                    <option value="makeAgent">제작회사</option>
+                                    <option value="format">형식</option>
+                                    <option value="num">기기번호</option>
+                                </select>
+                                <div class="input-group-append">
+                                    <input type="input" class="form-control" id="keyword" name="keyword" value="" />
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+            <div class="grid itemList"></div>
+        </div>
+    </div>
+</body>
+
+</html>
