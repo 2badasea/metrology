@@ -7,7 +7,7 @@ $(function () {
 	let $modal_root = $modal.closest('.modal');
 
 	let smallItemCodeSet = {};
-    let middleItemCodeSet = [];
+	let middleItemCodeSet = [];
 
 	$modal.init_modal = async (param) => {
 		$modal.param = param;
@@ -25,7 +25,7 @@ $(function () {
 			if (resGetItemCodeSet?.code > 0) {
 				const itemCodeSet = resGetItemCodeSet.data;
 				if (itemCodeSet.middleCodeInfos) {
-                    middleItemCodeSet = itemCodeSet.middleCodeInfos; 
+					middleItemCodeSet = itemCodeSet.middleCodeInfos;
 					// 반복문으로 세팅
 					const $middleCodeSelect = $('.middleCodeSelect', $modal);
 					$.each(itemCodeSet.middleCodeInfos, function (index, row) {
@@ -130,12 +130,12 @@ $(function () {
 				width: '70',
 				className: 'cursor_pointer',
 				align: 'center',
-				formatter: function ({value}) {
-                    if (!value || value == 0) {
-                        return '-';
-                    } else {
-                        return `${Number(value)}개월`;
-                    }
+				formatter: function ({ value }) {
+					if (!value || value == 0) {
+						return '-';
+					} else {
+						return `${Number(value)}개월`;
+					}
 				},
 			},
 			{
@@ -212,6 +212,8 @@ $(function () {
 						'/basic/itemModify',
 						{
 							id: row.id,
+							smallItemCodeSetObj: smallItemCodeSet, // 소분류 데이터
+							middleItemCodeSetAry: middleItemCodeSet, // 중분류데이터
 						},
 						{
 							size: 'xl',
@@ -231,16 +233,16 @@ $(function () {
 			}
 		}
 	});
-    
-    // 그리드 렌더링 시, 검색결과 갯수를 표시한다.
-    $modal.grid.on('response', function (e) {
-        let jsonRow = JSON.parse(e.xhr.response);
-        const totalCnt = jsonRow.data.pagination.totalCount ?? 0;
-        const rowCnt = jsonRow.data.contents.length ?? 0;
-        $modal.grid.setSummaryColumnContent('name', {
-            template: () => `총 ${number_format(totalCnt)} 건 중 ${number_format(rowCnt)} 건 조회`
-        });        
-    })
+
+	// 그리드 렌더링 시, 검색결과 갯수를 표시한다.
+	$modal.grid.on('response', function (e) {
+		let jsonRow = JSON.parse(e.xhr.response);
+		const totalCnt = jsonRow.data.pagination.totalCount ?? 0;
+		const rowCnt = jsonRow.data.contents.length ?? 0;
+		$modal.grid.setSummaryColumnContent('name', {
+			template: () => `총 ${number_format(totalCnt)} 건 중 ${number_format(rowCnt)} 건 조회`,
+		});
+	});
 
 	// 페이지 내 이벤트
 	$modal
@@ -268,7 +270,10 @@ $(function () {
 			try {
 				const resModal = await g_modal(
 					'/basic/itemModify',
-					{},
+					{
+						smallItemCodeSetObj: smallItemCodeSet, // 소분류 데이터
+						middleItemCodeSetAry: middleItemCodeSet, // 중분류데이터
+					},
 					{
 						title: '품목 등록',
 						size: 'xl',

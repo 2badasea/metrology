@@ -48,6 +48,13 @@
                             <td>
                                 <select class="form-control rounded-0 caliCycle" name="caliCycle">
                                     <option value="">선택하세요.</option>
+                                    <option value="3">3개월</option>
+                                    <option value="6">6개월</option>
+                                    <option value="12">12개월</option>
+                                    <option value="18">18개월</option>
+                                    <option value="24">24개월</option>
+                                    <option value="36">36개월</option>
+                                    <option value="60">60개월</option>
                                 </select>
                             </td>
                         </tr>
@@ -72,6 +79,11 @@
                     </tbody>
                 </table>
             </form>
+            <div class="m-1">
+                <button type="button" class="btn btn-info mr-auto addFeeHistory">이력 추가</button>
+                <button type="button" class="btn btn-danger mr-auto delFeeHistory">이력 삭제</button>
+            </div>
+            <div class="grid feeHistoryGrid"></div>
         </div>
     </div>
 </div>

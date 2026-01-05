@@ -271,3 +271,46 @@ class number_format_editor {
     this.el.removeEventListener('click', this._stop);
   }
 }
+
+
+// 날짜 선택
+class DateEditor {
+  constructor(props) {
+    const el = document.createElement('input');
+    el.type = 'date';
+
+    // 셀 꽉 채우기
+    el.style.width = '100%';
+    el.style.height = '100%';
+    el.style.boxSizing = 'border-box';
+    el.style.border = '0';
+    el.style.outline = '0';
+    el.style.background = 'transparent';
+	el.style.textAlign = 'center';
+
+    // 값 세팅: DB가 YYYY-MM-DD면 그대로, 그 외면 빈 값
+    const v = props.value;
+    el.value = (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) ? v : '';
+
+    // required만 옵션으로 지원(원하면)
+    const opt = props.columnInfo?.editor?.options ?? {};
+    if (opt.required) el.required = true;
+
+    this.el = el;
+  }
+
+  getElement() {
+    return this.el;
+  }
+
+  getValue() {
+    // type="date"는 "YYYY-MM-DD" 또는 "" 로만 나온다
+    return this.el.value;
+  }
+
+  mounted() {
+    this.el.focus();
+  }
+
+  beforeDestroy() {}
+}

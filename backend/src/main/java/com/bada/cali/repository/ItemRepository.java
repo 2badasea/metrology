@@ -2,6 +2,7 @@ package com.bada.cali.repository;
 
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.entity.Item;
+import com.bada.cali.repository.projection.ItemFeeHistory;
 import com.bada.cali.repository.projection.ItemList;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
@@ -45,6 +48,20 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 			@Param("keyword") String keyword,
 			Pageable pageable
 	);
+	
+	// 품목관리 수수료 이력 리스트 반환
+	@Query("""
+			select
+				ih.id as id,
+				ih.itemId as itemId,
+				ih.baseDate as baseDate,
+				ih.baseFee as baseFee,
+				ih.remark as remark
+			from ItemFeeHistory  as ih
+			where ih.isVisible = 'y'
+			order by ih.baseDate DESC, ih.id DESC
+			""")
+	List<ItemFeeHistory> getItemFeeHistory(@Param("itemId") Long itemId);
 	
 	
 	
