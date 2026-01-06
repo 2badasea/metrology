@@ -2,23 +2,30 @@ package com.bada.cali.service;
 
 import com.bada.cali.common.ResMessage;
 import com.bada.cali.common.enums.YnType;
-import com.bada.cali.dto.CaliDTO;
 import com.bada.cali.dto.ItemDTO;
 import com.bada.cali.dto.TuiGridDTO;
 import com.bada.cali.entity.Item;
+import com.bada.cali.entity.Log;
+import com.bada.cali.entity.ItemFeeHistory;
+import com.bada.cali.mapper.ItemFeeHistoryMapper;
 import com.bada.cali.mapper.ItemMapper;
+import com.bada.cali.repository.ItemFeeHistoryRepository;
 import com.bada.cali.repository.ItemRepository;
-import com.bada.cali.repository.projection.ItemFeeHistory;
+import com.bada.cali.repository.LogRepository;
+import com.bada.cali.repository.projection.ItemFeeHistoryList;
 import com.bada.cali.repository.projection.ItemList;
+import com.bada.cali.security.CustomUserDetails;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -27,7 +34,9 @@ public class ItemServiceImpl {
 	
 	private final ItemRepository itemRepository;
 	private final ItemMapper itemMapper;
-	private final RestClient.Builder builder;
+	private final LogRepository logRepository;
+	private final ItemFeeHistoryMapper itemFeeHistoryMapper;
+	private final ItemFeeHistoryRepository itemFeeHistoryRepository;
 	
 	// 품목관리 리스트 반환
 	@Transactional(readOnly = true)
@@ -69,7 +78,7 @@ public class ItemServiceImpl {
 		// 최종 리턴
 		return TuiGridDTO.ResData.<ItemList>builder()
 				.contents(rows)
-				.pagination(pagination).build() ;
+				.pagination(pagination).build();
 	}
 	
 	// 개별 품목정보 반환
@@ -88,21 +97,132 @@ public class ItemServiceImpl {
 	
 	// 품목 히스토리 확인
 	@Transactional(readOnly = true)
-	public TuiGridDTO.ResData<ItemFeeHistory> getItemFeeHistory(Long id) {
+	public TuiGridDTO.ResData<ItemFeeHistoryList> getItemFeeHistory(Long id) {
 		
 		// 페이징 객체도 필요없이 컨텐츠만 모두 내보낸다.
-		List<ItemFeeHistory> itemFeeList = itemRepository.getItemFeeHistory(id);
+		List<ItemFeeHistoryList> itemFeeList = itemRepository.getItemFeeHistory(id);
 		
 		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
 				.page(0)
 				.totalCount(itemFeeList.size())
 				.build();
 		
-		return TuiGridDTO.ResData.<ItemFeeHistory>builder()
+		return TuiGridDTO.ResData.<ItemFeeHistoryList>builder()
 				.contents(itemFeeList)
 				.pagination(null)
 				.build();
 		
+	}
+	
+	// 품목 저장
+	@Transactional
+	public ResMessage<?> saveItem(ItemDTO.SaveItemData req, CustomUserDetails user) {
+		int resCode = 0;
+		String resMsg = "";
+		
+		LocalDateTime now = LocalDateTime.now();
+		String workerName = user.getUsername();
+		Long userId = user.getId();
+		
+		ItemDTO.ItemData itemData = req.itemData();
+		Long itemId = itemData.id();
+		
+		String saveType = itemId == null ? "i" : "u";
+		String saveTypeKr = itemId == null ? "등록" : "수정";
+		
+		// null인 경우 등록
+		if (itemId == null) {
+			// dto(record) -> entity 변환
+			Item entity = itemMapper.toEntityFromRecord(itemData);
+			entity.setCreateDatetime(now);
+			entity.setCreateMemberId(userId);
+			// 저장진행
+			Item savedEntity = itemRepository.save(entity);
+			itemId = savedEntity.getId();
+		}
+		// 수정인 경우 dirty checking
+		else {
+			Item originItem = itemRepository.findById(itemId).orElseThrow(() -> new EntityNotFoundException("수정하려는 품목 정보가 존재하지 않습니다."));
+			
+			// 넘어온 값으로 덮어씌우기
+			itemMapper.updateEntityFromRecord(itemData, originItem);
+			originItem.setUpdateDatetime(now);
+			originItem.setUpdateMemberId(userId);
+		}
+		
+		String logContent = String.format("[품목 %s] 품목명: %s - 고유번호: %d", saveTypeKr, itemData.name(), itemId);
+		
+		// 로그 남기기
+		Log saveLog = Log.builder()
+				.logType(saveType)
+				.refTable("item")
+				.refTableId(itemId)
+				.createDatetime(now)
+				.createMemberId(userId)
+				.workerName(workerName)
+				.logContent(logContent)
+				.build();
+		logRepository.save(saveLog);
+		
+		List<Long> delFeeHistoryIds = req.delHistoryIds();
+		// 삭제대상 수수료 이력이 존재한다면 업데이트(is_visible = 'n')
+		if (!delFeeHistoryIds.isEmpty()) {
+			int resDelCount = itemRepository.deleteItemFeeHistory(itemId, YnType.n, delFeeHistoryIds, now, userId);
+			
+			if (resDelCount > 0) {
+				String delIds = delFeeHistoryIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+				
+				Log delFeeLog = Log.builder()
+						.logType("d")
+						.refTable("item_fee_history")
+						.refTableId(itemId)
+						.createDatetime(now)
+						.createMemberId(userId)
+						.workerName(workerName)
+						.logContent(String.format("[품목 교정수수료 삭제] 품목 고유번호: %d, - 삭제 수수료 고유번호: %s", itemId, delIds))
+						.build();
+				logRepository.save(delFeeLog);
+			}
+		}
+		
+		// 교정수수료 이력을 등록/수정 한다.
+		List<ItemDTO.ItemFeeData> itemFeeDataList = req.itemFeeHistoryList();
+		if (!itemFeeDataList.isEmpty()) {
+			for (ItemDTO.ItemFeeData itemFeeData : itemFeeDataList) {
+				// id존재 유뮤로 등록/수정 판단
+				Long itemFeeHistoryId = itemFeeData.id();
+				if (itemFeeHistoryId == null) {
+					ItemFeeHistory itemFeeHistory = itemFeeHistoryMapper.toEntityFromRecord(itemFeeData);
+					itemFeeHistory.setCreateDatetime(now);
+					itemFeeHistory.setCreateMemberId(userId);
+					itemFeeHistory.setItemId(itemId);
+					ItemFeeHistory savedEntity =  itemFeeHistoryRepository.save(itemFeeHistory);
+					
+					// 새로 추가된 것만 남기기
+					Log saveFeeLog = Log.builder()
+							.logType("i")
+							.workerName(workerName)
+							.createMemberId(userId)
+							.createDatetime(now)
+							.refTable("item_fee_history")
+							.refTableId(savedEntity.getId())
+							.logContent(String.format("[품목 수수료 추가] 품목 고유번호: %d, - 고유번호: %d", itemId, savedEntity.getId()))
+							.build();
+					
+				} else {
+					ItemFeeHistory originEntity = itemFeeHistoryRepository.findById(itemFeeHistoryId).orElseThrow(() -> new EntityNotFoundException("수정할 교정수수료 정보가 없습니다."));
+					
+					itemFeeHistoryMapper.updateEntityFromRecord(itemFeeData, originEntity);
+					originEntity.setUpdateDatetime(now);
+					originEntity.setUpdateMemberId(userId);
+				}
+			}
+		}	// End 교정수수료 등록/수정
+		
+		resCode = 1;
+		resMsg = "저장되었습니다.";
+		
+		return new ResMessage<>(resCode, resMsg, null);
 	}
 	
 }

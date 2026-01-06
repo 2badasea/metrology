@@ -1,10 +1,11 @@
 package com.bada.cali.dto;
 
-import com.bada.cali.common.enums.CaliType;
-import com.bada.cali.common.enums.CreateType;
 import com.bada.cali.common.enums.YnType;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.LocalDate;
+import java.util.List;
 
 public class ItemDTO {
 	
@@ -28,7 +29,6 @@ public class ItemDTO {
 	// 품목정보 record
 	public record ItemData(
 			Long id,
-			CreateType createType,
 			Long middleItemCodeId,
 			Long smallItemCodeId,
 			String name,
@@ -39,11 +39,25 @@ public class ItemDTO {
 			String num,
 			Long fee,
 			Integer caliCycle,
-			YnType isInhousePossible,
-			YnType isVisible
+			YnType isInhousePossible
 	) {
-	
 	}
+	
+	public record SaveItemData(
+			ItemDTO.ItemData itemData,
+			List<Long> delHistoryIds,
+			List<ItemFeeData> itemFeeHistoryList
+			
+	){}
+	
+	// 품목수수료 데이터
+	public record ItemFeeData(
+		Long id,
+		Long itemId,
+		LocalDate baseDate,
+		Long baseFee,
+		String remark
+	){}
 	
 	
 }

@@ -2,7 +2,7 @@ package com.bada.cali.repository.projection;
 
 import java.time.LocalDate;
 
-public interface ItemFeeHistory {
+public interface ItemFeeHistoryList {
 	Long getId();
 	Long getItemId();
 	LocalDate getBaseDate();

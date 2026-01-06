@@ -4,12 +4,14 @@ import com.bada.cali.common.ResMessage;
 import com.bada.cali.dto.CaliDTO;
 import com.bada.cali.dto.ItemDTO;
 import com.bada.cali.dto.TuiGridDTO;
-import com.bada.cali.repository.projection.ItemFeeHistory;
+import com.bada.cali.repository.projection.ItemFeeHistoryList;
 import com.bada.cali.repository.projection.ItemList;
+import com.bada.cali.security.CustomUserDetails;
 import com.bada.cali.service.ItemServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -44,12 +46,25 @@ public class ApiItemController {
 	
 	// 교정수수료 히스토리 세팅
 	@GetMapping("/getItemFeeHistory/{itemId}")
-	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<ItemFeeHistory>>> getItemFeeHistory(@PathVariable Long itemId) {
+	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<ItemFeeHistoryList>>> getItemFeeHistory(@PathVariable Long itemId) {
 		
-		TuiGridDTO.ResData<ItemFeeHistory> rows = itemService.getItemFeeHistory(itemId);
+		TuiGridDTO.ResData<ItemFeeHistoryList> rows = itemService.getItemFeeHistory(itemId);
 		
-		TuiGridDTO.Res<TuiGridDTO.ResData<ItemFeeHistory>> body = new TuiGridDTO.Res<>(true, rows);
+		TuiGridDTO.Res<TuiGridDTO.ResData<ItemFeeHistoryList>> body = new TuiGridDTO.Res<>(true, rows);
 		
 		return ResponseEntity.ok(body);
+	}
+	
+	// 품목 등록/수정
+	@PostMapping(value = "/saveItem")
+	public ResponseEntity<ResMessage<?>> saveItem(
+			@RequestBody ItemDTO.SaveItemData saveItemData,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		log.info("품목 등록/수정 호출");
+		
+		ResMessage<?> resMessage = itemService.saveItem(saveItemData, user);
+		
+		return ResponseEntity.ok(resMessage);
 	}
 }

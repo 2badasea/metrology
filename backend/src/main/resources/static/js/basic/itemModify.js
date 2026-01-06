@@ -18,7 +18,7 @@ $(function () {
 		middleItemCodeSetAry = $modal.param.middleItemCodeSetAry;
 
 		// 중분류 세팅
-		const resSetMiddleCode = await $modal.setMiddleCode();
+		await $modal.setMiddleCode();
 		// await new Promise(resolve => setTimeout(resolve, 500)); // 지연시간 주기
 
 		// 업체id로 초기화 하기(수정)
@@ -36,7 +36,6 @@ $(function () {
 				);
 				if (resGetItemInfo?.code > 0) {
 					const itemInfo = resGetItemInfo.data;
-					console.log('🚀 ~ itemInfo:', itemInfo);
 					$('form[name=itemModifyForm]', $modal).find('input[name], select[name]').setupValues(itemInfo);
 					$(`input[name=isInhousePossible][value=${itemInfo.isInhousePossible}]`, $modal).trigger('click'); // 당사가능여부 세팅
 					$modal.setSmallCode(itemInfo.middleItemCodeId, itemInfo.smallItemCodeId, 500); // 중소분류 세팅
@@ -58,12 +57,20 @@ $(function () {
 					},
 				},
 			};
+
+		} else {
+			// 등록 시 당사가능여부 기본값 체크
+			$(`input[name=isInhousePossible][value='y']`, $modal).trigger('click'); 
 		}
 
 		// 업체 담당자 그리드
 		$modal.grid = new Grid({
 			el: document.querySelector('.feeHistoryGrid'),
 			columns: [
+				{
+					name: 'id',
+					hidden: true,
+				},
 				{
 					header: '기준일자',
 					name: 'baseDate',
@@ -82,6 +89,9 @@ $(function () {
 					width: '200',
 					className: 'cursor_pointer',
 					align: 'right',
+					formatter: function (data) {
+						return number_format(data.value);
+					},
 				},
 				{
 					header: '비고',
@@ -198,20 +208,16 @@ $(function () {
 		const $form = $('.itemModifyForm', $modal);
 		const formData = $form.serialize_object();
 		$modal.grid.blur();
-		console.log('🚀 ~ formData:', formData);
 
 		// 중분류, 소분류, 품목명 체크
 		const name = formData.name;
-		console.log('🚀 ~ name:', name);
 		if (!check_input(name)) {
 			g_toast('품목명을 입력해주세요.', 'warning');
 			return false;
 		}
 
 		const middleItemCodeId = formData.middleItemCodeId;
-		console.log('🚀 ~ middleItemCodeId:', middleItemCodeId);
 		const smallItemCodeId = formData.smallItemCodeId;
-		console.log('🚀 ~ smallItemCodeId:', smallItemCodeId);
 		if (!middleItemCodeId || !smallItemCodeId) {
 			g_toast('중분류, 소분류는 필수입니다.', 'warning');
 			return false;
@@ -223,6 +229,91 @@ $(function () {
 			g_toast('수수료 이력은 최소 1개는 존재해야 합니다.', 'warning');
 			return false;
 		}
+		// 반복문 순회로 체크해야 할 부분 1. 기준일자 값, 중복여부, 기준금액 존재여부, 가장 큰 금액이 본 품목의 교정수수료가 됨. (콤마제거해서 삽입할 것)
+		let isValid = true;
+		const baseDateMap = new Map();
+		rowDatas.forEach((row, index) => {
+			// 순회 중 요건 불충족 시, 바로 중단
+			if (!isValid) {
+				return false;
+			}
+			// 1. 기준일자 체크
+			if (!row.baseDate) {
+				g_toast('기준일자를 선택해주세요', 'warning');
+				isValid = false;
+				return false;
+			}
+			if (!row.baseFee || Number(row.baseFee) == 0) {
+				g_toast('기준금액은 0원 이상이어야 합니다.', 'warning');
+				isValid = false;
+				return false;
+			}
+			if (baseDateMap.has(row.baseDate)) {
+				g_toast('기준일자는 중복이 될 수 없습니다.', 'warning');
+				isValid = false;
+				return false;
+			}
+			baseDateMap.set(row.baseDate, row.baseFee);
+		});
+		if (!isValid) {
+			return false;
+		}
+
+		// 교정수수료 중에서 가장 최신값 조회
+		const mapIterator = baseDateMap.keys(); // Map Iterator(반복자) 를 반환
+		const baseDateAry = [...mapIterator]; // 배열화
+		baseDateAry.sort(); // 오름차순 정렬
+		const recentFee = baseDateMap.get(baseDateAry.at(-1)); // 가장 최신 긍액
+
+		formData.fee = recentFee; // 금액정보 담기
+
+		formData.id = itemId; // 수정일 땐 값 존재. 등록일 땐 null
+		formData.createType = 'BASIC';		// 기본
+
+		const saveFormData = {};
+		saveFormData.itemData = formData;
+		saveFormData.delHistoryIds = delHistoryIds;
+		saveFormData.itemFeeHistoryList = rowDatas;
+
+		try {
+			const confirm = await g_message('품목 저장', '저장하시겠습니까?', 'question', 'confirm');
+			// 저장진행
+			if (confirm.isConfirmed === true) {
+				g_loading_message();
+
+				const options = {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json; charset=utf-8',
+					},
+					body: JSON.stringify(saveFormData),
+				};
+				const resSave = await fetch('/api/item/saveItem', options);
+				Swal.close();
+				if (resSave.ok) {
+					const resData = await resSave.json();
+					if (resData?.code > 0) {
+						await g_message('품목 저장', resData.msg ?? '저장되었습니다', 'success', 'alert');
+						// NOTE 모달 닫히면서 갱신되는지 확인
+						$modal_root.modal('hide');
+						return true;
+					} else {
+						await g_message('품목 저장', resData.msg ?? '저장에 실패했습니다', 'warning', 'alert');
+					}
+				} else {
+					throw new Error('저장에 실패했습니다.');
+				}
+			} else {
+				return false;
+			}
+		} catch (err) {
+			Swal.close();
+			console.log(err);
+			custom_ajax_handler(err);
+		} finally {
+		}
+
+		// NOTE 삭제대상 교정수수료도 담아야 함. 있는지 체크 필요`
 	};
 
 	$modal.data('modal-data', $modal);
