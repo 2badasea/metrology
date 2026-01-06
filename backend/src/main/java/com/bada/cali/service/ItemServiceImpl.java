@@ -225,4 +225,71 @@ public class ItemServiceImpl {
 		return new ResMessage<>(resCode, resMsg, null);
 	}
 	
+	// 품목복사
+	@Transactional
+	public ResMessage<?> copyItem(Long id, CustomUserDetails user) {
+		int resCode = 0;
+		String resMsg = "";
+		
+		LocalDateTime now = LocalDateTime.now();
+		Long userId = user.getId();
+		String workerName = user.getUsername();
+		
+		// 기존 엔티티 정보를 가져온 다음 새로운 entity에 넣어서 save()처리.
+		Item targetItem = itemRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("복사할 대상 품목이 존재하지 않습니다."));
+		
+		Item copiedItem = new Item();
+		
+		String originName = targetItem.getName();
+		String copiedName = originName + " [복사]";
+		
+		copiedItem.setFee(targetItem.getFee());
+		copiedItem.setMiddleItemCodeId(targetItem.getMiddleItemCodeId());
+		copiedItem.setSmallItemCodeId(targetItem.getSmallItemCodeId());
+		copiedItem.setFormat(targetItem.getFormat());
+		copiedItem.setCaliCycle(targetItem.getCaliCycle());
+		copiedItem.setCreateType(targetItem.getCreateType());
+		copiedItem.setIsInhousePossible(targetItem.getIsInhousePossible());
+		copiedItem.setMakeAgent(targetItem.getMakeAgent());
+		copiedItem.setMakeAgentEn(targetItem.getMakeAgentEn());
+		copiedItem.setName(copiedName);
+		copiedItem.setNameEn(targetItem.getNameEn());
+		copiedItem.setNum(targetItem.getNum());
+		copiedItem.setCreateDatetime(now);
+		copiedItem.setCreateMemberId(userId);
+		
+		Item savedItem = itemRepository.save(copiedItem);
+		Long itemId = savedItem.getId();
+		String logContent = String.format("[품목 복사] 복사품목: %s - 고유번호: %d", originName, itemId);
+		Log saveLog = Log.builder()
+				.logType("i")
+				.refTableId(itemId)
+				.refTable("item")
+				.createDatetime(now)
+				.createMemberId(userId)
+				.workerName(workerName)
+				.logContent(logContent)
+				.build();
+		logRepository.save(saveLog);
+		
+		// 교정수수료 이력이 존재할 경우, 같이 복사한다.
+		List<ItemFeeHistoryList> itemFeeHistoryListProjection = itemRepository.getItemFeeHistory(itemId);
+		
+		if (!itemFeeHistoryListProjection.isEmpty()) {
+			for (ItemFeeHistoryList itemFee : itemFeeHistoryListProjection) {
+				ItemFeeHistory itemFeeHistory = new ItemFeeHistory();
+				itemFeeHistory.setItemId(itemId);
+				itemFeeHistory.setBaseFee(itemFee.getBaseFee());
+				itemFeeHistory.setBaseDate(itemFee.getBaseDate());
+				itemFeeHistory.setRemark(itemFee.getRemark());
+				itemFeeHistory.setCreateDatetime(now);
+				itemFeeHistory.setCreateMemberId(userId);
+				
+				itemFeeHistoryRepository.save(itemFeeHistory);
+			}
+		}
+		resCode = 1;
+		return new ResMessage<>(resCode, resMsg, null);
+	}
+	
 }

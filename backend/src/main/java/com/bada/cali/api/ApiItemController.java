@@ -67,4 +67,14 @@ public class ApiItemController {
 		
 		return ResponseEntity.ok(resMessage);
 	}
+	
+	// 품목 복사
+	@PostMapping("/copyItem")
+	public ResponseEntity<ResMessage<?>> copyItem(
+			@RequestParam Long id,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		ResMessage<?> resMessage = itemService.copyItem(id, user);
+		return ResponseEntity.ok(resMessage);
+	}
 }

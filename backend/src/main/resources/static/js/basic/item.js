@@ -170,7 +170,10 @@ $(function () {
 				name: 'grid_btn_copy',
 				width: '60',
 				className: 'cursor_pointer',
-				align: 'center',
+				formatter: () => {
+					return `<button type="button" class="btn btn-secondary w-100 h-100 rounded-0 itemCopy"><i class="bi bi-pencil-square"></i></button>
+							`;
+				},
 			},
 		],
 		pageOptions: {
@@ -204,6 +207,35 @@ $(function () {
 			// 복사
 			if (e.columnName == 'grid_btn_copy') {
 				console.log('품목복사 클릭');
+				const copyConfirm = await g_message('품목 복사', '해당 품목을 복사하시겠습니까?', 'question', 'confirm');
+				if (copyConfirm.isConfirmed === true) {
+					g_loading_message();
+					try {
+						const options = {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json; charset=utf-8',
+							},
+						};
+						const resCopy = await fetch(`/api/item/copyItem?id=${row.id}`, options);
+						if (resCopy.ok) {
+							const resData = await resCopy.json();
+							if (resData?.code > 0) {
+								await g_message('품목 복사', '복사되었습니다', 'success', 'alert');
+								$modal.grid.reloadData();
+							} else {
+								await g_message('품목 복사', '복사에 실패했습니다.', 'error', 'alert');
+							}
+						}
+						
+					} catch (err) {
+						console.error(err);
+						custom_ajax_handler(err);
+					} finally {
+						Swal.close();
+
+					}
+				}
 			}
 			// 접수수정
 			else {
@@ -316,7 +348,7 @@ $(function () {
 						};
 
 						const resDelete = await g_ajax(
-							'/api/basic/deleteItem',
+							'/api/item/deleteItem',
 							JSON.stringify(sendData),
 
 							{

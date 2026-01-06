@@ -61,6 +61,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 				ih.remark as remark
 			from ItemFeeHistory  as ih
 			where ih.isVisible = 'y'
+						and ih.itemId = :itemId
 			order by ih.baseDate DESC, ih.id DESC
 			""")
 	List<ItemFeeHistoryList> getItemFeeHistory(@Param("itemId") Long itemId);
@@ -82,5 +83,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 			@Param("deleteDatetime") LocalDateTime deleteDatetime,
 			@Param("deleteMemberId") Long deleteMemberId
 	);
+	
+	// 품목id 기준으로 하위
 	
 }
