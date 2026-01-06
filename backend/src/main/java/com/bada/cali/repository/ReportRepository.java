@@ -84,12 +84,18 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 						r.workDatetime as workDatetime,
 						
 						r.workStatus as workStatus,
-						r.approvalStatus as approvalStatus
+						r.approvalStatus as approvalStatus,
+						mic.codeNum as middleCodeNum,
+						sic.codeNum as smallCodeNum
 			    	from Report r
+					JOIN ItemCode mic ON mic.id = r.middleItemCodeId
+					JOIN ItemCode sic ON sic.id = r.smallItemCodeId
 			    	where r.isVisible = 'y'
 			    	and r.parentId IS NULL
 			    	and r.parentScaleId IS NULL
 					and r.caliOrderId = :caliOrderId
+					and (:middleItemCodeId IS NULL OR r.middleItemCodeId = :middleItemCodeId)
+					and (:smallItemCodeId IS NULL OR r.smallItemCodeId = :smallItemCodeId)
 			    	and (:orderType IS NULL OR r.orderType = :orderType)
 			    	and (
 			    		:keyword = '' OR
@@ -136,6 +142,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			@Param("searchType") String searchType,
 			@Param("keyword") String keyword,
 			@Param("caliOrderId") Long caliOrderId,
+			@Param("middleItemCodeId") Long middleItemCodeId,
+			@Param("smallItemCodeId") Long smallItemCodeId,
 			Pageable pageable
 			);
 	

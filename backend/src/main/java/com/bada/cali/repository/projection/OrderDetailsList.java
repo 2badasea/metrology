@@ -49,4 +49,9 @@ public interface OrderDetailsList {
 	AppStatus getWorkStatus();		// 실무자 결재상태
 	
 	AppStatus getApprovalStatus();	// 기술책임자 결재상태
+	
+	String getMiddleCodeNum();	// 중분류코드
+	
+	String getSmallCodeNum();	// 소분류코드
+	
 }

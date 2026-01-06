@@ -156,8 +156,8 @@ class middle_code_selectbox_renderer {
 		el.append(new Option('선택', ''));
 
 		for (const item of items) {
-			const opt = new Option(item.text, item.value);
-			if (String(value) === String(item.value)) opt.selected = true; // ✅ value 기준
+			const opt = new Option(item.codeName, item.id);
+			if (String(value) === String(item.id)) opt.selected = true; // ✅ value 기준
 			el.append(opt);
 		}
 

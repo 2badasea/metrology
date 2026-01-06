@@ -135,7 +135,7 @@ $(function () {
 	// 모달 내 이벤트 정의
 	$modal
 		// 중분류코드 변경 시
-		.on('change', '.middleItemCode', function () {
+		.on('change', '.middleCodeSelect', function () {
 			const middleCodeId = $(this).val();
 			$modal.setSmallCode(middleCodeId);
 		})
@@ -177,7 +177,7 @@ $(function () {
 
 	// 중분류 세팅 함수
 	$modal.setMiddleCode = async () => {
-		const $middleItemCodeSelect = $('.middleItemCode', $modal);
+		const $middleItemCodeSelect = $('.middleCodeSelect', $modal);
 		if (middleItemCodeSetAry.length > 0) {
 			$.each(middleItemCodeSetAry, function (index, mCodeInfo) {
 				const mOption = new Option(`${mCodeInfo.codeNum} ${mCodeInfo.codeName}`, mCodeInfo.id);
@@ -189,7 +189,7 @@ $(function () {
 
 	// 중분류 선택에 따른 소분류 세팅 함수
 	$modal.setSmallCode = (middleCodeId, smallCodeId, layInitTime = 0) => {
-		const $smallCodeSelect = $('.smallItemCode', $modal);
+		const $smallCodeSelect = $('.smallCodeSelect', $modal);
 		const basicOption = new Option('소분류전체', '');
 		$($smallCodeSelect).find('option').remove();
 		$smallCodeSelect.append(basicOption);

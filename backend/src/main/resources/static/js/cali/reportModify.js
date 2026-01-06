@@ -13,11 +13,16 @@ $(function () {
 	let $modal_root = $modal.closest('.modal');
 
 	let id = null; // 성적서 id
+	let middleItemCodeSet = [];		// 중분류정보
+	let smallItemCodeSet = {};		// 소분류정보
 	// TODO 어드민페이지에서 본사정보를 수정할 수 있는 경우, 고정표준실<->현자교정 변경 시 소재지 주소도 변겨되도록하기
 
 	$modal.init_modal = async (param) => {
 		$modal.param = param;
-		console.log('🚀 ~ $modal.param:', $modal.param);
+
+		// 중분류와 소분류 정보를 가져와서 초기화를 진행한다. 
+		await $modal.initItemCodeSet();
+
 
 		id = $modal.param.id;
 		// 성적서 데이터를 가져온다.(자식성적서 및 표준장비 데이터 포함)
@@ -36,7 +41,9 @@ $(function () {
 
 					// 데이터 세팅
 					if (parentInfo) {
-						$('form.reportModifyForm', $modal).find('input[name], textarea[name], select[name]').setupValues(parentInfo);
+						$('form.reportModifyForm', $modal).find('input[name], textarea[name], select[name]')
+														.not('select[name=middleItemCodeId], select[name=smallItemCodeId]')
+														.setupValues(parentInfo);
 
 						// 접수구분 비활성화 처리 (성적서 수정 모달 내에선 수정 불가)
 						$('input[name=orderType]', $modal).prop('disabled', true);
@@ -64,6 +71,9 @@ $(function () {
 								$(`input[name=${key}]`, $modal).val(value);
 							});
 						}
+
+						// 중소분류 세팅
+						await $modal.setItemCode(parentInfo.middleItemCodeId, parentInfo.smallItemCodeId);
 
 						// 자식성적서가 존재하는 경우, 세팅
 						if (childInfos.length > 0) {
@@ -121,8 +131,78 @@ $(function () {
 		});
 	}; // End of init_modal
 
+	// 중분류와 소분류코드를 가져와서 중분류select 세팅 및 소분류코드 데이터를 초기화시킨다.
+	$modal.initItemCodeSet = async () => {
+
+		try {
+			const resGetItemCodeSet = await g_ajax(
+				'/api/basic/getItemCodeInfos',
+				{},
+				{
+					type: 'GET',
+				}
+			);
+			if (resGetItemCodeSet?.code > 0) {
+				const itemCodeSet = resGetItemCodeSet.data;
+				if (itemCodeSet.middleCodeInfos) {
+					middleItemCodeSet = itemCodeSet.middleCodeInfos;
+					// 반복문으로 세팅
+					const $middleCodeSelect = $('.middleCodeSelect', $modal);
+					$.each(itemCodeSet.middleCodeInfos, function (index, row) {
+						const option = new Option(row.codeNum, row.id);
+						$middleCodeSelect.append(option);
+					});
+				}
+				if (itemCodeSet.smallCodeInfos) {
+					smallItemCodeSet = itemCodeSet.smallCodeInfos;
+				}
+			} else {
+				console.log('호출실패');
+				throw new Error('/api/basic/getItemCodeInfos 호출 실패');
+			}
+		} catch (xhr) {
+			console.error('통신에러');
+			custom_ajax_handler(xhr);
+		}		
+	}
+
+	// (parentInfo.middleItemCodeId, parentInfo.smallItemCodeId)	
+	$modal.setItemCode = (middleItemCodeId, smallItemCodeId, layInitTime = 0) => {
+		const $middleCodeSelect = $('.middleCodeSelect', $modal);
+		if (middleItemCodeId) {
+			$middleCodeSelect.val(middleItemCodeId);
+		}
+		const $smallCodeSelect = $('.smallCodeSelect', $modal);
+		const basicOption = new Option('소분류전체', '');
+		$($smallCodeSelect).find('option').remove();
+		$smallCodeSelect.append(basicOption);
+
+		setTimeout(() => {
+			if (!middleItemCodeId) {
+				$smallCodeSelect.val(''); // '소분류전체'로 세팅
+			} else {
+				if (smallItemCodeSet[middleItemCodeId] != undefined && smallItemCodeSet[middleItemCodeId].length > 0) {
+					const smallItemCodes = smallItemCodeSet[middleItemCodeId];
+					smallItemCodes.forEach((row, index) => {
+						const option = new Option(`${row.codeNum} ${row.codeName}`, row.id);
+						$smallCodeSelect.append(option);
+					});
+					if (smallItemCodeId > 0) {
+						$smallCodeSelect.val(smallItemCodeId);
+					}
+				}
+			}
+		}, layInitTime);
+
+	}
+
 	// 모달 내 이벤트 정의
 	$modal
+		// 중분류 변경
+		.on('change', '.middleCodeSelect', function () {
+			const middleItemCodeId = $(this).val();
+			$modal.setItemCode(middleItemCodeId);
+		})
 		// 교정유형 선택
 		.on('change', 'input[name=caliType]', function () {
 			const caliType = $(this).val();	// 변경된 타입
@@ -327,7 +407,6 @@ $(function () {
 				const resSave = await fetch('/api/report/updateReport', options);
 				if (resSave.ok) {
 					const resData = await resSave.json();
-					console.log('🚀 ~ resData:', resData);
 					if (resData?.code > 0) {
 						await g_message('성적서 수정', resData.msg ?? '수정되었습니다', 'success', 'alert');
 						$modal_root.modal('hide');

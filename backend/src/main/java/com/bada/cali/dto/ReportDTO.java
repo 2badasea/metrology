@@ -56,6 +56,8 @@ public class ReportDTO {
 		private String statusType;        // 진행상태
 		private OrderType orderType;        // 접수구분
 		private Long caliOrderId;            // 접수id
+		private Long middleItemCodeId;        // 중분류코드id
+		private Long smallItemCodeId;        // 소분류코드id
 	}
 	
 	// 클라이언트에 반환할 데이터
