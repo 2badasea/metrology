@@ -116,6 +116,10 @@ public interface ItemCodeRepository extends JpaRepository<ItemCode, Long> {
 	
 	List<ItemCodeList> findAllByCodeLevelAndIsVisibleOrderByIdAsc(CodeLevel codeLevel, YnType ynType);
 	
+	// 소분류 한정
+	List<ItemCodeList> findAllByCodeLevelAndIsVisibleOrderByParentIdAscIdAsc(CodeLevel codeLevel, YnType isVisible);
+	
+	
 	
 	// 분류코드 중복검사 진행
 	@Query("""

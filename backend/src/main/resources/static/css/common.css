@@ -97,53 +97,53 @@ ol {
 	z-index: 10;
 }
 
-.topbar-actions-wrap{
-  min-height: 40px;
-  background-color: ghostwhite;
-  display: flex;
-  justify-content: flex-end; /* 우측 정렬 */
-  align-items: center;       /* 세로 중앙 정렬 */
-  padding: 0 12px;
+.topbar-actions-wrap {
+	min-height: 40px;
+	background-color: ghostwhite;
+	display: flex;
+	justify-content: flex-end; /* 우측 정렬 */
+	align-items: center; /* 세로 중앙 정렬 */
+	padding: 0 12px;
 }
 
-.topbar-actions{
-  list-style: none;
-  display: flex;
-  align-items: center;       /* 아이콘/텍스트 세로 중앙 */
-  gap: 10px;
-  margin: 0;
-  padding: 0;
+.topbar-actions {
+	list-style: none;
+	display: flex;
+	align-items: center; /* 아이콘/텍스트 세로 중앙 */
+	gap: 10px;
+	margin: 0;
+	padding: 0;
 }
 
-.topbar-actions .action{
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-  color: #2b5bd7;            /* 현재 UI 블루 톤에 맞춤(필요 시 변경) */
+.topbar-actions .action {
+	display: inline-flex;
+	align-items: center;
+	text-decoration: none;
+	color: #2b5bd7; /* 현재 UI 블루 톤에 맞춤(필요 시 변경) */
 }
 
-.topbar-actions .action i{
-  font-size: 18px;
-  line-height: 1;
+.topbar-actions .action i {
+	font-size: 18px;
+	line-height: 1;
 }
 
 /* 업데이트 공지: 아이콘+텍스트 간격 */
-.topbar-actions .action-notice .label{
-  margin-left: 6px;
-  font-size: 13px;
-  font-weight: 600;
+.topbar-actions .action-notice .label {
+	margin-left: 6px;
+	font-size: 13px;
+	font-weight: 600;
 }
 
 /* 아이콘 버튼(사용자/로그아웃): 클릭 영역 확보 + 호버 */
-.topbar-actions .action-icon{
-  width: 32px;
-  height: 32px;
-  justify-content: center;
-  border-radius: 8px;
+.topbar-actions .action-icon {
+	width: 32px;
+	height: 32px;
+	justify-content: center;
+	border-radius: 8px;
 }
 
-.topbar-actions .action-icon:hover{
-  background: rgba(0,0,0,0.06);
+.topbar-actions .action-icon:hover {
+	background: rgba(0, 0, 0, 0.06);
 }
 
 .customBreadcrumb {
@@ -152,7 +152,6 @@ ol {
 	padding-top: 10px;
 	padding-left: 20px;
 }
-
 
 /* 본문: 나머지 영역 꽉 채움 */
 .content {
@@ -285,35 +284,34 @@ i.close:hover {
 	width: 75px !important;
 }
 
-
 /* 사이즈 (높이/너비) 커스텀 */
 .w140 {
 	width: 140px !important;
 }
 
-
-
 /* 토스트 그리드 관련 */
-
-
-td[data-column-name*="grid_btn_"] .tui-grid-cell-content {
+td[data-column-name*='grid_btn_'] .tui-grid-cell-content {
 	padding: 0px !important;
-	/* height: 33.5px !important; */
-	height: 46.5px !important;
-	/* height: 100% !important; */
+	height: 100%;
+	display: flex;
+	align-items: stretch; /* 세로로 꽉 */
 
 	.btn > i {
 		margin: 0px !important;
 	}
 }
-
+.tui-grid td[data-column-name^='grid_btn_'] .tui-grid-cell-content > .btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
 
 /* 단, i 태그만 제외 */
 .tui-grid-container button {
-  box-sizing: border-box !important;
+	box-sizing: border-box !important;
 }
 
-.modal-footer i{
+.modal-footer i {
 	margin-right: 5px !important;
 }
 

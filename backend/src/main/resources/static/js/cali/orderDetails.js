@@ -3,21 +3,27 @@ $(function () {
 
 	const $candidates = $('.modal-view:not(.modal-view-applied)');
 	let $modal;
-	const $bodyCandidate = $candidates.filter('.modal-body');
-	if ($bodyCandidate.length) {
-		$modal = $bodyCandidate.first();
-	} else {
-		// 페이지로 직접 열렸을 수도 있으니, 그때는 그냥 첫 번째 modal-view 사용
-		$modal = $candidates.first();
-	}
+	// const $bodyCandidate = $candidates.filter('.modal-body');
+	// if ($bodyCandidate.length) {
+	// 	$modal = $bodyCandidate.first();
+	// } else {
+	// 	// 페이지로 직접 열렸을 수도 있으니, 그때는 그냥 첫 번째 modal-view 사용
+	$modal = $candidates.first();
+	// }
 	let $modal_root = $modal.closest('.modal');
 
+	let smallItemCodeSet = {};
+	let middleItemCodeSet = [];
+
 	let caliOrderId = null;
-	$modal.init_modal = (param) => {
+	$modal.init_modal = async (param) => {
 		$modal.param = param;
 		console.log('🚀 ~ $modal.param:', $modal.param);
 
 		caliOrderId = document.getElementById('caliOrderId').value; // 타임리프를 통해 값 초기화 (쿼리스트링 활용도 가능)
+
+		// 중/소분류 세팅 작업
+		await $modal.initItemCodeInfos();
 
 		// 성적서 리스트 가져오기
 		$modal.data_source = {
@@ -25,9 +31,10 @@ $(function () {
 				readData: {
 					url: '/api/report/getOrderDetailsList',
 					serializer: (grid_param) => {
-						// TODO item, item_code 테이블 생성 이후에 중분류/소분류 필터링도 검색조건 추가 필요
 						grid_param.orderType = $('form.searchForm .orderType', $modal).val() ?? ''; // 전체선택은 빈 값으로 넘어옴
 						grid_param.statusType = $('form.searchForm .statusType', $modal).val() ?? ''; // 진행상태
+						grid_param.middleItemCodeId = Number($('form.searchForm .middleCodeSelect', $modal).val() ?? 0); // 전체선택(''), null, undefined 모두 커버
+						grid_param.smallItemCodeId = Number($('form.searchForm .smallCodeSelect', $modal).val() ?? 0);						
 						grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? 'all'; // 검색타입
 						grid_param.keyword = $('form.searchForm', $modal).find('#keyword').val() ?? ''; // 검색키워드
 						grid_param.caliOrderId = caliOrderId; // 접수 id
@@ -65,16 +72,16 @@ $(function () {
 				},
 				{
 					header: '중분류코드',
-					name: 'middleItemCodeNum',
+					name: 'middleCodeNum',
 					className: 'cursor_pointer',
-					width: '100',
+					width: '80',
 					align: 'center',
 				},
 				{
 					header: '소분류코드',
-					name: 'smallItemCodeNum',
+					name: 'smallCodeNum',
 					className: 'cursor_pointer',
-					width: '100',
+					width: '80',
 					align: 'center',
 				},
 				{
@@ -159,7 +166,7 @@ $(function () {
 					const resModal = await g_modal(
 						'/cali/reportModify',
 						{
-							id: id,
+							id: id
 						},
 						{
 							title: `성적서 수정 [성적서번호 - ${reportNum}]`,
@@ -197,6 +204,8 @@ $(function () {
 				'/cali/registerMultiReport',
 				{
 					caliOrderId: caliOrderId,
+					smallItemCodeSetObj: smallItemCodeSet, // 소분류 데이터
+					middleItemCodeSetAry: middleItemCodeSet, // 중분류데이터
 				},
 				{
 					title: '성적서 등록',
@@ -353,7 +362,60 @@ $(function () {
 			// 2. api를 두 번 탈 것(서버차원에서 검증)
 			// 3. 검증이 완료되었다면, 대상 id들만 삭제api로 보낼 것 (deletemapping 활용?)
 		})
-		;
+		// 중분류 변경
+		.on('change', '.middleCodeSelect', function () {
+			const middleCodeId = $(this).val();
+			const $smallCodeSelect = $('.smallCodeSelect', $modal);
+			const basicOption = new Option('소분류전체', '');
+			$($smallCodeSelect).find('option').remove();
+			$smallCodeSelect.append(basicOption);
+			if (!middleCodeId) {
+				$smallCodeSelect.val(''); // '소분류전체'로 세팅
+			} else {
+				if (smallItemCodeSet[middleCodeId] != undefined && smallItemCodeSet[middleCodeId].length > 0) {
+					const smallItemCodes = smallItemCodeSet[middleCodeId];
+					smallItemCodes.forEach((row, index) => {
+						const option = new Option(`${row.codeNum}`, row.id);
+						$smallCodeSelect.append(option);
+					});
+				}
+			}
+		});
+
+	// 중분류 세팅 및 소분류코드 초기화
+	$modal.initItemCodeInfos = async () => {
+		try {
+			const resGetItemCodeSet = await g_ajax(
+				'/api/basic/getItemCodeInfos',
+				{},
+				{
+					type: 'GET',
+				}
+			);
+
+			if (resGetItemCodeSet?.code > 0) {
+				const itemCodeSet = resGetItemCodeSet.data;
+				if (itemCodeSet.middleCodeInfos) {
+					middleItemCodeSet = itemCodeSet.middleCodeInfos;
+					// 반복문으로 세팅
+					const $middleCodeSelect = $('.middleCodeSelect', $modal);
+					$.each(itemCodeSet.middleCodeInfos, function (index, row) {
+						const option = new Option(row.codeNum, row.id);
+						$middleCodeSelect.append(option);
+					});
+				}
+				if (itemCodeSet.smallCodeInfos) {
+					smallItemCodeSet = itemCodeSet.smallCodeInfos;
+				}
+			} else {
+				console.log('호출실패');
+				throw new Error('/api/basic/getItemCodeInfos 호출 실패');
+			}
+		} catch (xhr) {
+			console.error('통신에러');
+			custom_ajax_handler(xhr);
+		}
+	};
 
 	$modal.data('modal-data', $modal);
 	$modal.addClass('modal-view-applied');

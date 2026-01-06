@@ -73,8 +73,8 @@ public class ReportServiceImpl {
 		}
 		// 접수구분별 성적서번호 시작 넘버링 세팅
 		for (LastReportNumByOrderType p : reportRepository.findLastReportNumsByOrderType(caliOrderId)) {
-			OrderType orderType = OrderType.valueOf(p.getOrderType());		// 접수구분
-			String reportNum = p.getReportNum();			// 접수구분별 가장 마지막 성적서번호
+			OrderType orderType = OrderType.valueOf(p.getOrderType());        // 접수구분
+			String reportNum = p.getReportNum();            // 접수구분별 가장 마지막 성적서번호
 			if (reportNum == null || reportNum.isBlank()) {
 				continue;
 				// // NOTE java에서는 substring에 음수 인덱스를 못 받기 때문에 아래와 같이 사용한다.
@@ -226,6 +226,15 @@ public class ReportServiceImpl {
 		String statusType = request.getStatusType();
 		statusType = (statusType == null || statusType.isBlank()) ? null : statusType;
 		
+		Long middleItemCodeId = request.getMiddleItemCodeId();
+		if (middleItemCodeId != null && middleItemCodeId == 0L) {
+			middleItemCodeId = null;
+		}
+		Long smallItemCodeId = request.getSmallItemCodeId();
+		if (smallItemCodeId != null && smallItemCodeId == 0L) {
+			smallItemCodeId = null;
+		}
+		
 		// 3. 검색타입
 		String searchType = request.getSearchType();    // 전체선택은 all
 		if (searchType == null || searchType.isBlank()) {
@@ -245,7 +254,7 @@ public class ReportServiceImpl {
 		Long caliOrderId = request.getCaliOrderId();
 		
 		// 프로젝션(인터페이스)를 통해서 바로 dto로 넘겨줄 데이터를 받기 때문에, Page<> 타입으로 받지 않음
-		List<OrderDetailsList> pageResult = reportRepository.searchOrderDetails(orderType, statusType, searchType, keyword, caliOrderId, pageable);
+		List<OrderDetailsList> pageResult = reportRepository.searchOrderDetails(orderType, statusType, searchType, keyword, caliOrderId, middleItemCodeId, smallItemCodeId, pageable);
 		
 		// NOTE 프로젝션 타입으로 바로 받기 때문에 entity -> dto 변환 과정은 생략
 		
@@ -280,11 +289,11 @@ public class ReportServiceImpl {
 		}
 		
 		// 타입별 반복문을 돌리면서 확인
-		Map<String, List<Long>> validateInfo = request.validateInfo();	// record 타입이기 때문에 getXX() 아님
+		Map<String, List<Long>> validateInfo = request.validateInfo();    // record 타입이기 때문에 getXX() 아님
 		if (validateInfo != null && !validateInfo.isEmpty()) {
 			// map의 key를 기준으로 순회 ('ACCREDDIT' || 'UNACCREDDIT' || 'TESTING' || 'AGCY')
 			for (String orderTypeStr : validateInfo.keySet()) {
-				List<Long> reportIds = validateInfo.get(orderTypeStr);	// 접수타입별 id 가져오기
+				List<Long> reportIds = validateInfo.get(orderTypeStr);    // 접수타입별 id 가져오기
 				
 				OrderType orderType;
 				ReportType reportType;
@@ -293,7 +302,7 @@ public class ReportServiceImpl {
 				if ("AGCY".equals(orderTypeStr)) {
 					reportType = ReportType.AGCY;
 					isAgcy = true;
-					orderType = null;		// 대행은 접수타입을 구분하지 않는다.
+					orderType = null;        // 대행은 접수타입을 구분하지 않는다.
 				} else {
 					isAgcy = false;
 					reportType = ReportType.SELF;
@@ -564,7 +573,7 @@ public class ReportServiceImpl {
 					// 신규 등록
 					reportRepository.save(newChildReport);
 				}
-			
+				
 			}
 		}
 		

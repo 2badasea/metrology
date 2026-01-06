@@ -5,16 +5,13 @@
 <body>
     <div layout:fragment="content">
         <div class="wrapper">
-            <input type="hidden" id="caliOrderId" th:value="${caliOrderId}">
             <form class="searchForm mb-1" name="searchForm">
                 <div class="d-flex">
                     <ul class="list-group list-group-horizontal font-weight-bold mr-auto">
                         <li>
-                            <button type="button" class="btn btn-danger deleteReport">삭제</button>
-                            <button type="button" class="btn btn-primary addReport">등록</button>
+                            <button type="button" class="btn btn-danger deleteItem">삭제</button>
+                            <button type="button" class="btn btn-primary addItem">등록</button>
                         </li>
-                    </ul>
-                    <ul class="list-group list-group-horizontal font-weight-bold pt-2">
                     </ul>
                     <ul class="ml-auto list-group list-group-horizontal" id="searchFormUl">
                         <!-- 행 수 -->
@@ -32,35 +29,21 @@
                             </div>
                         </li>
                         <li class="mr-1">
-                            <select class="select2 form-control middleCodeSelect" style="width: 130px !important;">
+                            <select class="form-control isInhousePossible" name="isInhousePossible">
+                                <!-- 전체선택(여부)의 경우, 빈값으로 값을 보낸다. -->
+                                <option value="">당사가능여부</option>
+                                <option value="y" selected>가능</option>
+                                <option value="n">불가</option>
+                            </select>
+                        </li>
+                        <li class="mr-1">
+                            <select class=" form-control middleCodeSelect" style="width: 100px !important;">
                                 <option value="">중분류전체</option>
                             </select>
                         </li>
                         <li class="mr-1">
-                            <select class="select2 form-control smallCodeSelect" style="width: 130px !important;">
+                            <select class=" form-control smallCodeSelect" style="width: 100px !important;">
                                 <option value="">소분류전체</option>
-                            </select>
-                        </li>
-                        <li class="mr-1">
-                            <!-- 중분류코드/소분류코드 -->
-                            <!-- 접수구분 -->
-                            <select class="form-control orderType" name="orderType">
-                                <option value="" selected>접수구분</option>
-                                <option value="ACCREDDIT">공인</option>
-                                <option value="UNACCREDDIT">비공인</option>
-                                <option value="TESTING">시험</option>
-                            </select>
-                        </li>
-                        <li class="mr-1">
-                            <select class="form-control statusType" name="statusType">
-                                <!-- 진행상태 구분 -->
-                                <option value="" selected>진행전체</option>
-                                <option value="wait">대기</option>
-                                <option value="cancel">취소</option>
-                                <option value="impossible">불가</option>
-                                <option value="return">반려</option>
-                                <option value="progress">진행중</option>
-                                <option value="success">완료</option>
                             </select>
                         </li>
                         <li class="mr-1 d-flex">
@@ -68,12 +51,10 @@
                                 <select class="form-control searchType" name="searchType" id="searchType">
                                     <!-- 전체선택의 경우 빈 문자열을 보낸다. -->
                                     <option value="">전체선택</option>
-                                    <option value="reportNum">성적서번호</option>
-                                    <option value="manageNo">관리번호</option>
-                                    <option value="itemName">기기명</option>
-                                    <option value="itemMakeAgent">제작회사</option>
-                                    <option value="itemFormat">형식</option>
-                                    <option value="itemNum">기기번호</option>
+                                    <option value="name">기기명</option>
+                                    <option value="makeAgent">제작회사</option>
+                                    <option value="format">형식</option>
+                                    <option value="num">기기번호</option>
                                 </select>
                                 <div class="input-group-append">
                                     <input type="input" class="form-control" id="keyword" name="keyword" value="" />
@@ -86,7 +67,7 @@
                     </ul>
                 </div>
             </form>
-            <div class="grid reportList"></div>
+            <div class="grid itemList"></div>
         </div>
     </div>
 </body>

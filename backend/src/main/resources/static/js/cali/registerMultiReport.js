@@ -3,16 +3,18 @@ $(function () {
 
 	const $candidates = $('.modal-view:not(.modal-view-applied)');
 	let $modal;
-	const $bodyCandidate = $candidates.filter('.modal-body');
-	if ($bodyCandidate.length) {
-		$modal = $bodyCandidate.first();
-	} else {
-		// 페이지로 직접 열렸을 수도 있으니, 그때는 그냥 첫 번째 modal-view 사용
-		$modal = $candidates.first();
-	}
+	// const $bodyCandidate = $candidates.filter('.modal-body');
+	// if ($bodyCandidate.length) {
+	// 	$modal = $bodyCandidate.first();
+	// } else {
+	// 	// 페이지로 직접 열렸을 수도 있으니, 그때는 그냥 첫 번째 modal-view 사용
+	$modal = $candidates.first();
+	// }
 	let $modal_root = $modal.closest('.modal');
 
 	let caliOrderId = null; // 접수id
+	let middleItemCodeSetAry = [];
+	let smallItemCodeSetObj = {};
 
 	// 임의 데이터1
 	const ORDER_TYPE_ITEMS = [
@@ -33,28 +35,19 @@ $(function () {
 	// TODO 2) 토스트 그리드에는 relation을 이용하여 동적으로 데이터를 변경이 가능하므로, 다음엔 relation 활용
 	// https://nhn.github.io/tui.grid/latest/tutorial-example05-relation-columns 페이지 참조
 	// 중분류/소분류 코드에 대한 부분도 우선 하드코딩으로 넣어준다.
-	const tmpMiddleCode = [
-		{ text: '101', value: '10' },
-		{ text: '102', value: '11' },
-	];
-	// 임시 소분류
-	const tmpSmallCode = [
-		{ text: '10101', value: '12', middleCodeId: '10' },
-		{ text: '10102', value: '13', middleCodeId: '10' },
-		{ text: '10103', value: '14', middleCodeId: '10' },
-		{ text: '10104', value: '15', middleCodeId: '10' },
-		{ text: '10105', value: '16', middleCodeId: '10' },
-
-		{ text: '10201', value: '17', middleCodeId: '11' },
-		{ text: '10202', value: '18', middleCodeId: '11' },
-		{ text: '10203', value: '19', middleCodeId: '11' },
-		{ text: '10204', value: '20', middleCodeId: '11' },
-		{ text: '10205', value: '21', middleCodeId: '11' },
-	];
 
 	$modal.init_modal = async (param) => {
 		$modal.param = param;
 		caliOrderId = $modal.param.caliOrderId;
+		middleItemCodeSetAry = $modal.param.middleItemCodeSetAry; // 중분류 데이터
+		smallItemCodeSetObj = $modal.param.smallItemCodeSetObj; // 소분류 데이터
+
+		const middleListItems = await $modal.buildMiddleListItems(middleItemCodeSetAry); // 중분류 데이터 가공
+		const smallMapListItems = await $modal.buildSmallMapListItems(smallItemCodeSetObj); // 소분류 데이터 가공
+
+		console.log('확인');
+		console.log('🚀 ~ middleItemCodeSetAry:', middleListItems);
+		console.log('🚀 ~ smallItemCodeSetObj:', smallMapListItems);
 
 		// 그리드 정의
 		$modal.grid = new Grid({
@@ -111,9 +104,22 @@ $(function () {
 					width: 90,
 					align: 'center',
 					editor: {
-						type: middle_code_selectbox_renderer,
-						options: { listItems: tmpMiddleCode },
+						type: 'select',
+						options: { listItems: middleListItems },
 					},
+					relations: [
+						{
+							targetNames: ['smallItemCodeId'],
+							listItems({ value }) {
+								// value === middleId
+								return smallMapListItems[String(value)] || [{ text: '선택', value: '' }];
+							},
+							disabled({ value }) {
+								// 중분류가 없으면 소분류 비활성화
+								return !value;
+							},
+						},
+					],
 					formatter: 'listItemText',
 				},
 				{
@@ -122,12 +128,10 @@ $(function () {
 					className: 'cursor_pointer',
 					width: 90,
 					align: 'center',
+					formatter: 'listItemText',
 					editor: {
-						type: small_code_selectbox_renderer,
-						options: { listItems: tmpSmallCode }, // 기본은 비워둠
-					},
-					formatter: function (data) {
-						return $modal.fmtSmallCodeNum(data);
+						type: 'select',
+						options: { listItems: [] }, // relations가 채워줌
 					},
 				},
 				{
@@ -220,7 +224,6 @@ $(function () {
 			}
 		});
 
-		// NOTE 추후 relation을 활용해서 대체가 가능하면 아래 소스 수정할 것
 		$modal.grid.on('afterChange', (ev) => {
 			ev.changes.forEach(({ rowKey, columnName }) => {
 				// 중분류코드 변경 시, 소분류코드 초기화
@@ -235,21 +238,21 @@ $(function () {
 			return {
 				hierarchyType, // parent: 부모, child: 자식
 				orderType,
-				middleItemCodeId: null,		// id관련 컬럼은 기본적으로 NULL을 준다.
+				middleItemCodeId: null, // id관련 컬럼은 기본적으로 NULL을 준다.
 				smallItemCodeId: null,
 				itemId: null,
 				itemName: '',
 				itemMakeAgent: '',
 				itemFormat: '',
 				itemNum: '',
-				itemCaliCycle: 0,		// TODO 교정주기 품목테이블에서 교정주기가 없거나, 시간단위, 또는 '수시'인 경우 고민 필요)
+				itemCaliCycle: 0, // TODO 교정주기 품목테이블에서 교정주기가 없거나, 시간단위, 또는 '수시'인 경우 고민 필요)
 				remark: '',
 			};
 		};
 
 		// 자식 row 추가 ('하위' 버튼 클릭 시)
 		$modal.grid.addChildRow = (parentRowKey) => {
-			const depth = $modal.grid.getDepth(parentRowKey);	// 클릭이 발생한 row의 깊이 (부모는 1임)
+			const depth = $modal.grid.getDepth(parentRowKey); // 클릭이 발생한 row의 깊이 (부모는 1임)
 			if (depth >= 2) {
 				g_toast('하위 성적서는 그 하위 성적서를<br>가질 수 없습니다.', 'warning');
 				return false;
@@ -349,7 +352,7 @@ $(function () {
 				}
 			});
 
-			$modal_root
+		$modal_root
 			// 그리드가 아닌 영역 클릭 시, 그리드에 대한 blur() 처리를 해준다.
 			.on('click', '.modal-dialog', function (e) {
 				if ($(e.target).closest('.addReportList').length === 0 && !$(e.target).hasClass('insertRows')) {
@@ -478,14 +481,17 @@ $(function () {
 		}
 	};
 
-	// 소분류코드 반환
-	$modal.fmtSmallCodeNum = (data) => {
-		const middleId = data.row.middleItemCodeId;
-		const found = tmpSmallCode.find((obj) => String(obj.middleCodeId) === String(middleId) && String(obj.value) === String(data.value)); // boolean
-		return found ? found.text : '선택';
+	$modal.buildMiddleListItems = (middleItemCodeSetAry) => {
+		return [{ text: '선택', value: '' }, ...middleItemCodeSetAry.map((x) => ({ text: x.codeNum, value: String(x.id) }))];
 	};
 
-	// 담당자 그리드 초기화
+	$modal.buildSmallMapListItems = (smallItemCodeSetObj) => {
+		const map = {};
+		for (const [middleId, list] of Object.entries(smallItemCodeSetObj || {})) {
+			map[String(middleId)] = [{ text: '선택', value: '' }, ...(list || []).map((x) => ({ text: x.codeNum, value: String(x.id) }))];
+		}
+		return map;
+	};
 
 	$modal.data('modal-data', $modal);
 	$modal.addClass('modal-view-applied');

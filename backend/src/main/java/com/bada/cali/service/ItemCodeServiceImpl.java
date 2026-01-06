@@ -25,10 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.bada.cali.common.enums.CodeLevel.*;
@@ -260,5 +257,19 @@ public class ItemCodeServiceImpl {
 		return new ResMessage<>(resCode, resMsg, list);
 	}
 	
+	
+	// 분류코드 데이터 가져오기 (중/소분류 포함)
+	@Transactional(readOnly = true)
+	public ResMessage<ItemCodeDTO.ItemCodeInfosRes> getItemCodeInfos() {
+		
+		List<ItemCodeList> middleCodeInfos = itemCodeRepository.findAllByCodeLevelAndIsVisibleOrderByIdAsc(MIDDLE, YnType.y);
+		List<ItemCodeList> smallCodeInfos = itemCodeRepository.findAllByCodeLevelAndIsVisibleOrderByParentIdAscIdAsc(SMALL, YnType.y);
+		
+		Map<Long, List<ItemCodeList>> smallCodeInfo = smallCodeInfos.stream().collect(Collectors.groupingBy(ItemCodeList::getParentId, LinkedHashMap::new, Collectors.toList()));
+		
+		ItemCodeDTO.ItemCodeInfosRes itemCodeInfosRes = new ItemCodeDTO.ItemCodeInfosRes(middleCodeInfos, smallCodeInfo);
+		
+		return new ResMessage<>(1, "", itemCodeInfosRes);
+	}
 	
 }
