@@ -227,13 +227,11 @@ $(function () {
 								await g_message('품목 복사', '복사에 실패했습니다.', 'error', 'alert');
 							}
 						}
-						
 					} catch (err) {
 						console.error(err);
 						custom_ajax_handler(err);
 					} finally {
 						Swal.close();
-
 					}
 				}
 			}
@@ -334,38 +332,35 @@ $(function () {
 				return false;
 			} else {
 				// 각 접수의 id를 담는다.
-				let delItemIds = $.map(checkedRows, function (row, index) {
-					return row.id;
+				let deletItemInfo = [];
+				$.each(checkedRows, function (index, row) {
+					deletItemInfo.push({
+						id: row.id,
+						name: row.name,
+					});
 				});
 
 				// 2. 삭제유무 confirm 확인
-				if (confirm('정말 삭제하시겠습니까?\n')) {
+				const delConfirm = await g_message('품목 삭제', '품목을 삭제하시겠습니까?', 'warning', 'confirm');
+				if (delConfirm.isConfirmed === true) {
 					g_loading_message('삭제 처리 중입니다...');
 
 					try {
-						const sendData = {
-							ids: delItemIds,
-						};
-
-						const resDelete = await g_ajax(
-							'/api/item/deleteItem',
-							JSON.stringify(sendData),
-
-							{
-								contentType: 'application/json; charset=utf-8',
-							}
-						);
+						const resDelete = await g_ajax('/api/item/deleteItem', JSON.stringify(deletItemInfo), {
+							type: 'DELETE',
+							contentType: 'application/json; charset=utf-8',
+						});
 						if (resDelete?.code === 1) {
-							Swal.fire({
-								icon: 'success',
-								title: '삭제 완료',
-							});
+							await g_message('품목 삭제', '품목이 삭제되었습니다', 'success', 'alert');
 							// 그리드 갱신
 							$modal.grid.reloadData();
+						} else {
+							await g_message('품목 삭제', resDelete.msg ?? '삭제에 실패했습니다.', 'error', 'alert');
 						}
 					} catch (err) {
 						custom_ajax_handler(err);
 					} finally {
+						Swal.close();
 					}
 				} else {
 					return false;

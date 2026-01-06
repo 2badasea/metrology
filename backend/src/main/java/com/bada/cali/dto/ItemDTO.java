@@ -59,5 +59,13 @@ public class ItemDTO {
 		String remark
 	){}
 	
+	// 삭제대상 품목 정보
+	public record DeleteItemData(
+			Long id,
+			String name
+	) {
+	
+	}
+	
 	
 }

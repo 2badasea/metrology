@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -289,6 +290,52 @@ public class ItemServiceImpl {
 			}
 		}
 		resCode = 1;
+		return new ResMessage<>(resCode, resMsg, null);
+	}
+	
+	// 품목삭제
+	@Transactional
+	public ResMessage<?> deleteItem(List<ItemDTO.DeleteItemData> deleteItemData, CustomUserDetails user) {
+		int resCode = 0;
+		String resMsg = "";
+		
+		LocalDateTime now = LocalDateTime.now();
+		Long userId = user.getId();
+		String workerName = user.getUsername();
+		
+		if (!deleteItemData.isEmpty()) {
+			List<Long> delItemIds = new ArrayList<>();
+			List<String> delItemInfo = new ArrayList<>();
+			for (ItemDTO.DeleteItemData deleteItem : deleteItemData) {
+				delItemIds.add(deleteItem.id());
+				delItemInfo.add(String.format("[품목 삭제] 품목명: %s - 고유번호: %d", deleteItem.name(), deleteItem.id()));
+			}
+			
+			int resDeleteCnt = itemRepository.deleteItem(delItemIds, YnType.n, now, userId);
+			if (resDeleteCnt > 0) {
+				resCode = 1;
+				resMsg = "삭제되었습니다.";
+				// 로그를 남긴다.
+				String logContent = String.join(", ", delItemInfo);
+				Log deleteLog = Log.builder()
+						.logType("d")
+						.refTable("item")
+						.logContent(logContent)
+						.createDatetime(now)
+						.createMemberId(userId)
+						.workerName(workerName)
+						.build();
+				logRepository.save(deleteLog);
+				
+			} else {
+				resCode = -1;
+				resMsg = "삭제가 정상적으로 이루어지지 않았습니다.";
+			}
+		} else {
+			resCode = -1;
+			resMsg = "삭제할 품목정보가 없습니다.";
+		}
+		
 		return new ResMessage<>(resCode, resMsg, null);
 	}
 	

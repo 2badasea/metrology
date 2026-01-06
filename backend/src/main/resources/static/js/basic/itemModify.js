@@ -57,10 +57,9 @@ $(function () {
 					},
 				},
 			};
-
 		} else {
 			// 등록 시 당사가능여부 기본값 체크
-			$(`input[name=isInhousePossible][value='y']`, $modal).trigger('click'); 
+			$(`input[name=isInhousePossible][value='y']`, $modal).trigger('click');
 		}
 
 		// 업체 담당자 그리드
@@ -107,6 +106,17 @@ $(function () {
 		});
 
 		// 그리드 이벤트
+		$modal.grid.on('onGridMounted', function (e) {
+			const rowCnt = $modal.grid.getRowCount();
+			if (rowCnt == 0) {
+				$modal.grid.appendRow(
+					{
+						baseFee: 0,
+					},
+					{ at: 0 }
+				);
+			}
+		});
 		$modal.grid.on('response', function (e) {
 			setTimeout(() => {
 				const rowCnt = $modal.grid.getRowCount();
@@ -268,7 +278,7 @@ $(function () {
 		formData.fee = recentFee; // 금액정보 담기
 
 		formData.id = itemId; // 수정일 땐 값 존재. 등록일 땐 null
-		formData.createType = 'BASIC';		// 기본
+		formData.createType = 'BASIC'; // 기본
 
 		const saveFormData = {};
 		saveFormData.itemData = formData;

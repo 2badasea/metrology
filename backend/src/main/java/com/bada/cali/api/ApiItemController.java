@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @Log4j2
 @RequestMapping("/api/item")
@@ -77,4 +79,15 @@ public class ApiItemController {
 		ResMessage<?> resMessage = itemService.copyItem(id, user);
 		return ResponseEntity.ok(resMessage);
 	}
+	
+	// 품목삭제
+	@DeleteMapping("/deleteItem")
+	public ResponseEntity<ResMessage<?>> deleteItem(
+			@RequestBody List<ItemDTO.DeleteItemData> deleteItem,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		ResMessage<?> resMessage = itemService.deleteItem(deleteItem, user);
+		return ResponseEntity.ok(resMessage);
+	}
+	
 }

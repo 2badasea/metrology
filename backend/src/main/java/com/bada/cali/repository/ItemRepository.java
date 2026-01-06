@@ -84,6 +84,21 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 			@Param("deleteMemberId") Long deleteMemberId
 	);
 	
-	// 품목id 기준으로 하위
+	// 품목삭제
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+				UPDATE Item AS i
+					SET i.isVisible = :isVisible,
+						i.deleteDatetime = :deleteDatetime,
+						i.deleteMemberId = :deleteMemberId
+				WHERE i.id IN (:itemIds)
+			""")
+	int deleteItem(
+			@Param("itemIds") List<Long> itemIds,
+			@Param("isVisible") YnType isVisible,
+			@Param("deleteDatetime") LocalDateTime deleteDatetime,
+			@Param("deleteMemberId") Long deleteMemberId
+	);
+	
 	
 }
