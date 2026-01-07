@@ -13,16 +13,15 @@ $(function () {
 	let $modal_root = $modal.closest('.modal');
 
 	let id = null; // 성적서 id
-	let middleItemCodeSet = [];		// 중분류정보
-	let smallItemCodeSet = {};		// 소분류정보
+	let middleItemCodeSet = []; // 중분류정보
+	let smallItemCodeSet = {}; // 소분류정보
 	// TODO 어드민페이지에서 본사정보를 수정할 수 있는 경우, 고정표준실<->현자교정 변경 시 소재지 주소도 변겨되도록하기
 
 	$modal.init_modal = async (param) => {
 		$modal.param = param;
 
-		// 중분류와 소분류 정보를 가져와서 초기화를 진행한다. 
+		// 중분류와 소분류 정보를 가져와서 초기화를 진행한다.
 		await $modal.initItemCodeSet();
-
 
 		id = $modal.param.id;
 		// 성적서 데이터를 가져온다.(자식성적서 및 표준장비 데이터 포함)
@@ -41,9 +40,11 @@ $(function () {
 
 					// 데이터 세팅
 					if (parentInfo) {
-						$('form.reportModifyForm', $modal).find('input[name], textarea[name], select[name]')
-														.not('select[name=middleItemCodeId], select[name=smallItemCodeId]')
-														.setupValues(parentInfo);
+						$('form.reportModifyForm', $modal)
+							.find('input[name], textarea[name], select[name]')
+							.not('select[name=middleItemCodeId], select[name=smallItemCodeId]')
+							.not('.childTable input[name]') // 자식요소도 제외
+							.setupValues(parentInfo);
 
 						// 접수구분 비활성화 처리 (성적서 수정 모달 내에선 수정 불가)
 						$('input[name=orderType]', $modal).prop('disabled', true);
@@ -56,7 +57,7 @@ $(function () {
 						// 환경정보 세팅
 						// NOTE 서버에서 record 클래스 내 환경정보를 String으로 받고 있기 때문에 문자열 형태로 매핑된 상태로 브라우저에 응답한 것
 						if (parentInfo.environmentInfo != undefined && parentInfo.environmentInfo) {
-							const environmentInfo = JSON.parse(parentInfo.environmentInfo);	// JSON 형태로 파싱(역직렬화)
+							const environmentInfo = JSON.parse(parentInfo.environmentInfo); // JSON 형태로 파싱(역직렬화)
 
 							// key별로 항목에 세팅한다.
 							Object.entries(environmentInfo).forEach(([key, value]) => {
@@ -133,7 +134,6 @@ $(function () {
 
 	// 중분류와 소분류코드를 가져와서 중분류select 세팅 및 소분류코드 데이터를 초기화시킨다.
 	$modal.initItemCodeSet = async () => {
-
 		try {
 			const resGetItemCodeSet = await g_ajax(
 				'/api/basic/getItemCodeInfos',
@@ -163,10 +163,10 @@ $(function () {
 		} catch (xhr) {
 			console.error('통신에러');
 			custom_ajax_handler(xhr);
-		}		
-	}
+		}
+	};
 
-	// (parentInfo.middleItemCodeId, parentInfo.smallItemCodeId)	
+	// (parentInfo.middleItemCodeId, parentInfo.smallItemCodeId)
 	$modal.setItemCode = (middleItemCodeId, smallItemCodeId, layInitTime = 0) => {
 		const $middleCodeSelect = $('.middleCodeSelect', $modal);
 		if (middleItemCodeId) {
@@ -193,8 +193,7 @@ $(function () {
 				}
 			}
 		}, layInitTime);
-
-	}
+	};
 
 	// 모달 내 이벤트 정의
 	$modal
@@ -205,7 +204,7 @@ $(function () {
 		})
 		// 교정유형 선택
 		.on('change', 'input[name=caliType]', function () {
-			const caliType = $(this).val();	// 변경된 타입
+			const caliType = $(this).val(); // 변경된 타입
 			// 함수를 통해서 값 세팅
 			$modal.setCaliType(caliType);
 		})
@@ -262,6 +261,8 @@ $(function () {
 			newTable.find('tbody tr').eq(0).remove();
 			const newTrEle = `<tr>
 								<input type='hidden' name="id">
+								<input type='hidden' name="middleItemCodeId">
+								<input type='hidden' name="smallItemCodeId">								
 								<th colspan="3" class="border-0 text-left"><span
 										class="pl-3 childTitle"></span> </th>
 								<th class="border-0 "><button class="btn btn-danger deleteChild float-right"
@@ -284,6 +285,18 @@ $(function () {
 			const dateString = year + '-' + month + '-' + day;
 
 			$('input[name=caliDate]', $modal).val(dateString);
+		})
+		.on('click', '.itemSearch', async function (e) {
+			const $btn = $(this);
+			const $targetTable = $btn.closest('table');
+			$modal.itemSearch($targetTable);
+		})
+		.on('keydown', 'input[name=itemName]', async function (e) {
+			if (e.keyCode == 13) {
+				const $input = $(this);
+				const $targetTable = $input.closest('table');
+				await $modal.itemSearch($targetTable);
+			}
 		});
 
 	// 저장
@@ -351,14 +364,16 @@ $(function () {
 		// 자식성적서가 존재하는 경우, 별도로 받을 것
 		const $childTables = $('.childTable', $modal);
 		if ($childTables.length > 0) {
-			let isValid = true;		// 기기명이 존재하지 않을 경우 리턴
+			let isValid = true; // 기기명이 존재하지 않을 경우 리턴
 			$.each($childTables, function (index, table) {
 				const childObj = {};
 				if (!isValid) {
 					return false;
 				}
 				// <tabel> 요소 내부의 input들에 대해서도 순회로 검증 및 데이터 담기
-				$(table).find('input[name]').each(function (idx, input) {
+				$(table)
+					.find('input[name]')
+					.each(function (idx, input) {
 						const key = $(input).attr('name');
 						let val = $(input).val();
 
@@ -436,6 +451,43 @@ $(function () {
 		return $modal.param;
 	};
 
+	// 품목조회 데이터 세팅
+	$modal.itemSearch = async (table) => {
+		const isParent = table.hasClass('childTable') ? false : true;
+
+		const resModal = await g_modal(
+			'/basic/searchItemList',
+			{},
+			{
+				size: 'xxxl',
+				title: '교정 품목 리스트',
+				show_close_button: true,
+			}
+		);
+
+		// 반환된 데이터 존재 시 삽입
+		if (resModal.jsonData != undefined) {
+			const d = resModal.jsonData;
+			console.log(d);
+			table.find('input[name=itemId]').val(d.id);
+			table.find('input[name=itemCaliCycle]').val(d.caliCycle);
+			table.find('input[name=itemName]').val(d.name);
+			table.find('input[name=itemNameEn]').val(d.nameEn);
+			table.find('input[name=itemMakeAgent]').val(d.makeAgent);
+			table.find('input[name=itemMakeAgentEn]').val(d.makeAgentEn);
+			table.find('input[name=itemFormat]').val(d.format);
+			table.find('input[name=itemNum]').val(d.num);
+			table.find('input[name=caliFee]').val(comma(d.fee ?? 0));
+			// 부모와 자식의 중분류소분류는 별도로 한다.
+			if (isParent) {
+				$modal.setItemCode(d.middleItemCodeId, d.smallItemCodeId, 500);
+			} else {
+				table.find('input[name=middleItemCodeId]').val(d.middleItemCodeId);
+				table.find('input[name=smallItemCodeId]').val(d.smallItemCodeId);
+			}
+		}
+	};
+
 	// 자식성적서 넘버링 세팅
 	$modal.setChildNumbering = () => {
 		const childReportTitle = $('.childTitle', $modal); // span
@@ -448,7 +500,7 @@ $(function () {
 	$modal.setChildInfo = (rows) => {
 		// 부모성적서 table 요소
 		const $parentItemTable = $('.itemTable', $modal).eq(0);
-		const $itemTd = $('.itemList', $modal);	// 자식성적서를 붙여줄 요소
+		const $itemTd = $('.itemList', $modal); // 자식성적서를 붙여줄 요소
 
 		// 반복문만큼 세팅한다.
 		$.each(rows, function (index, row) {
@@ -456,14 +508,16 @@ $(function () {
 			childTable.find('tbody tr').eq(0).remove(); // 첫 번째 tr 삭제 -> 반복문으로 새롭게 세팅
 			const newEleTr = `<tr>
 								<input type='hidden' name="id">
+								<input type='hidden' name="middleItemCodeId">
+								<input type='hidden' name="smallItemCodeId">
 								<th colspan="3" class="border-0 text-left"><span
 										class="pl-3 childTitle"></span> </th>
 								<th class="border-0 "><button class="btn btn-danger deleteChild float-right"
 										type="button">삭제</button></th>
                                 </tr>`;
-			$(childTable).find('tbody').prepend(newEleTr);	// 자식성적서는 새로운 tr로 교체
-			$(childTable).find('input[name]').setupValues(row);	// 자식성적서의 id도 세팅됨
-			$(childTable).addClass('childTable');	// 부모테이블, 자식테이블 구분
+			$(childTable).find('tbody').prepend(newEleTr); // 자식성적서는 새로운 tr로 교체
+			$(childTable).find('input[name]').setupValues(row); // 자식성적서의 id도 세팅됨
+			$(childTable).addClass('childTable'); // 부모테이블, 자식테이블 구분
 			$itemTd.append(childTable);
 		});
 
