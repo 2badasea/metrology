@@ -58,13 +58,12 @@ public class ReportServiceImpl {
 		
 		// 접수정보
 		CaliOrder orderInfo = caliOrderRepository.findById(caliOrderId).orElseThrow(() -> new EntityNotFoundException("접수정보를 알 수 없습니다."));
-		
 		ReportLang orderReportLang = orderInfo.getReportLang();    // 접수의 발행타입(KR, EN, BOTH)
 		String orderNum = orderInfo.getOrderNum();        // 접수번호
 		int orderYear = orderInfo.getOrderDate().getYear();    // 접수일 연도 (관리번호 조회용)
-		PriorityType priorityType = orderInfo.getPriorityType();
-		CaliType caliType = orderInfo.getCaliType();
-		CaliTakeType caliTakeType = orderInfo.getCaliTakeType();
+		PriorityType priorityType = orderInfo.getPriorityType();	// 우선순위
+		CaliType caliType = orderInfo.getCaliType();				// 교정유형
+		CaliTakeType caliTakeType = orderInfo.getCaliTakeType();	// 교정상세유형
 		
 		// 접수구분별 성적서번호 enumMap
 		Map<OrderType, Integer> nextReportNums = new EnumMap<>(OrderType.class);
@@ -133,6 +132,13 @@ public class ReportServiceImpl {
 			
 			// FIX 성적서 관련 작업 이후, 품목관리, 수수료관리, 품목코드관리 등의 작업 이후에 아래 로직 수정할 것
 			// TODO 품목을 조회하지 않은 경우, 해당 품목 정보를 기준으로 item 테이블에 추가한다.
+			
+			// dto -> entity 변환하기 전 itemId를 확인한다. id가 null이거나 0인 경우, 품목조회 후 자동삽입
+			Long parentItemId = dto.getItemId();
+			if (parentItemId == null || parentItemId == 0) {
+				// 품목명, 제작회사, 형식을 기준으로 enitty 조회 -> 있으면
+			}
+			
 			
 			// entity 변환 (mapstruct)
 			Report reportEntity = reportMapper.toEntity(dto);

@@ -80,6 +80,12 @@ $(function () {
 						if (childInfos.length > 0) {
 							await $modal.setChildInfo(childInfos);
 						}
+
+						// 품목관련 정보는 수정이 불가능하도록 막을 것(금액, 비고, 추가금액사유 제외)
+						$modal
+							.find('.itemTable input[name]')
+							.not('.itemTable input[name=additionalFee], input[name=caliFee], input[name=remark], input[name=additionalFeeCause]')
+							.prop('readonly', true);
 					}
 				}
 
@@ -149,7 +155,7 @@ $(function () {
 					// 반복문으로 세팅
 					const $middleCodeSelect = $('.middleCodeSelect', $modal);
 					$.each(itemCodeSet.middleCodeInfos, function (index, row) {
-						const option = new Option(row.codeNum, row.id);
+						const option = new Option(`${row.codeNum} ${row.codeName}`, row.id);
 						$middleCodeSelect.append(option);
 					});
 				}
@@ -297,7 +303,13 @@ $(function () {
 				const $targetTable = $input.closest('table');
 				await $modal.itemSearch($targetTable);
 			}
-		});
+		})
+		// 품목정보 수정 안 되는 것 안내
+		.on('click', '.notMoidfy', function () {
+			g_toast('성적서 수정 시, 품목정보 변경은 조회로만 가능합니다.', 'warning');
+			return false;
+		})
+		;
 
 	// 저장
 	$modal.confirm_modal = async function (e) {
@@ -306,7 +318,6 @@ $(function () {
 
 		// TODO 1. 표준장비 그리드 구현 시, 별도 처리 필요
 		// TODO 2. 품목관리 페이지 구현 시, 품목 자동저장 로직 추가할 것
-
 		const $form = $('.reportModifyForm', $modal);
 
 		// form 요소중에 자식 테이블의 하위 요소를 제외한 요소들을 대상으로 값을 담는다.
