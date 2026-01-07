@@ -2,9 +2,11 @@ package com.bada.cali.service;
 
 import com.bada.cali.common.ResMessage;
 import com.bada.cali.common.enums.*;
+import com.bada.cali.dto.ItemDTO;
 import com.bada.cali.dto.ReportDTO;
 import com.bada.cali.dto.TuiGridDTO;
 import com.bada.cali.entity.CaliOrder;
+import com.bada.cali.entity.Item;
 import com.bada.cali.entity.Log;
 import com.bada.cali.entity.Report;
 import com.bada.cali.mapper.ReportMapper;
@@ -16,7 +18,6 @@ import com.bada.cali.repository.projection.LastReportNumByOrderType;
 import com.bada.cali.repository.projection.OrderDetailsList;
 import com.bada.cali.security.CustomUserDetails;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -37,6 +38,7 @@ public class ReportServiceImpl {
 	private final CaliOrderRepository caliOrderRepository;
 	private final LogRepository logRepository;
 	private final ReportMapper reportMapper;
+	private final ItemServiceImpl itemService;
 	
 	/**
 	 * 성적서 등록
@@ -61,9 +63,9 @@ public class ReportServiceImpl {
 		ReportLang orderReportLang = orderInfo.getReportLang();    // 접수의 발행타입(KR, EN, BOTH)
 		String orderNum = orderInfo.getOrderNum();        // 접수번호
 		int orderYear = orderInfo.getOrderDate().getYear();    // 접수일 연도 (관리번호 조회용)
-		PriorityType priorityType = orderInfo.getPriorityType();	// 우선순위
-		CaliType caliType = orderInfo.getCaliType();				// 교정유형
-		CaliTakeType caliTakeType = orderInfo.getCaliTakeType();	// 교정상세유형
+		PriorityType priorityType = orderInfo.getPriorityType();    // 우선순위
+		CaliType caliType = orderInfo.getCaliType();                // 교정유형
+		CaliTakeType caliTakeType = orderInfo.getCaliTakeType();    // 교정상세유형
 		
 		// 접수구분별 성적서번호 enumMap
 		Map<OrderType, Integer> nextReportNums = new EnumMap<>(OrderType.class);
@@ -130,18 +132,21 @@ public class ReportServiceImpl {
 				itemCaliCycle = 12;
 			}
 			
-			// FIX 성적서 관련 작업 이후, 품목관리, 수수료관리, 품목코드관리 등의 작업 이후에 아래 로직 수정할 것
-			// TODO 품목을 조회하지 않은 경우, 해당 품목 정보를 기준으로 item 테이블에 추가한다.
-			
 			// dto -> entity 변환하기 전 itemId를 확인한다. id가 null이거나 0인 경우, 품목조회 후 자동삽입
 			Long parentItemId = dto.getItemId();
 			if (parentItemId == null || parentItemId == 0) {
-				// 품목명, 제작회사, 형식을 기준으로 enitty 조회 -> 있으면
+				
+				ItemDTO.ItemCheckData itemCheckData = new ItemDTO.ItemCheckData(dto.getItemName(), dto.getItemMakeAgent(), dto.getItemFormat());
+				ItemDTO.FindOrInsertItemParams findOrInsertItemParams = new ItemDTO.FindOrInsertItemParams(itemCheckData, dto.getCaliFee(), dto.getMiddleItemCodeId(), dto.getSmallItemCodeId(), dto.getItemCaliCycle());
+				
+				Item getItemEntity = itemService.findOrInsertItem(findOrInsertItemParams, user);
+				parentItemId = getItemEntity.getId();
 			}
 			
 			
 			// entity 변환 (mapstruct)
 			Report reportEntity = reportMapper.toEntity(dto);
+			reportEntity.setItemId(parentItemId);
 			reportEntity.setCreateDatetime(now);
 			reportEntity.setCreateMemberId(workerId);
 			reportEntity.setReportNum(reportNum);
@@ -180,9 +185,20 @@ public class ReportServiceImpl {
 						childCaliCycle = 12;
 					}
 					
+					// 자식도 마찬가지로 품목의 중복여부를 판단한다.
+					Long childItemId = c.getItemId();
+					if (childItemId == null || childItemId == 0) {
+						ItemDTO.ItemCheckData childItemCheckData = new ItemDTO.ItemCheckData(c.getItemName(), c.getItemMakeAgent(), c.getItemFormat());
+						ItemDTO.FindOrInsertItemParams childFindOrInsertItemParams = new ItemDTO.FindOrInsertItemParams(childItemCheckData, c.getCaliFee(), c.getMiddleItemCodeId(), c.getSmallItemCodeId(), c.getItemCaliCycle());
+						
+						Item getItemEntity = itemService.findOrInsertItem(childFindOrInsertItemParams, user);
+						childItemId = getItemEntity.getId();
+					}
+					
 					Report childEntity = reportMapper.toEntity(c);
 					// 자식성적서의 경우, 성적서번호와 관리번호는 존재하지 않는다. (NULL 허용)
 					childEntity.setCaliOrderId(caliOrderId);
+					childEntity.setItemId(childItemId);
 					childEntity.setReportLang(orderReportLang);    // 자식성적서도 접수 건의 발행타입으로 초기화
 					childEntity.setCreateDatetime(now);
 					childEntity.setCreateMemberId(workerId);
@@ -244,13 +260,7 @@ public class ReportServiceImpl {
 		// 3. 검색타입
 		String searchType = request.getSearchType();    // 전체선택은 all
 		if (searchType == null || searchType.isBlank()) {
-			searchType = null;
-		}
-		if (searchType != null) {
-			searchType = switch (searchType) {
-				case "all", "reportNum", "manageNo", "itemName", "itemMakeAgent", "itemFormat", "itemNum" -> searchType;
-				default -> "all";
-			};
+			searchType = "all";
 		}
 		
 		String keyword = request.getKeyword();
@@ -260,6 +270,7 @@ public class ReportServiceImpl {
 		Long caliOrderId = request.getCaliOrderId();
 		
 		// 프로젝션(인터페이스)를 통해서 바로 dto로 넘겨줄 데이터를 받기 때문에, Page<> 타입으로 받지 않음
+		
 		List<OrderDetailsList> pageResult = reportRepository.searchOrderDetails(orderType, statusType, searchType, keyword, caliOrderId, middleItemCodeId, smallItemCodeId, pageable);
 		
 		// NOTE 프로젝션 타입으로 바로 받기 때문에 entity -> dto 변환 과정은 생략

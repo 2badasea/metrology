@@ -387,6 +387,12 @@ $(function () {
 					return false;
 				}
 
+				// 기기명, 제작회사, 형식, 기기번호의 경우 좌우공백을 제거한다.
+				item.itemName = itemName.trim();
+				item.itemMakeAgent = (item.itemMakeAgent ?? '').trim();
+				item.itemFormat = (item.itemFormat ?? '').trim();
+				item.itemNum = (item.itemNum ?? '').trim();
+
 				if (!caliFee || caliFee == '') {
 					item.caliFee = 0;
 				}
@@ -405,7 +411,6 @@ $(function () {
 
 				item.reportType = 'SELF'; // 성적서타입(self)
 
-				//
 				if (item.hierarchyType === 'parent') {
 					item.child = [];
 					sendData.push(item);
@@ -430,7 +435,7 @@ $(function () {
 
 		let confirmMsg = `저장하시겠습니까?`;
 		if (notSearchItemList.length > 0) {
-			confirmMsg += '<br>품목을 조회하지 않은 아래 데이터의 경우, 품목에 자동으로 등록됩니다.<br><br>';
+			confirmMsg += '<br>품목을 조회하지 않은 아래 데이터의 경우, 중복검증 후 품목관리에 자동으로 등록됩니다.<br><br>';
 			confirmMsg += `<div class='text-left'>`;
 			// 최대 10건까지만 보여주고, 넘어갈 경우 ...로 표시
 			$.each(notSearchItemList, function (idx, item) {

@@ -1,6 +1,7 @@
 package com.bada.cali.service;
 
 import com.bada.cali.common.ResMessage;
+import com.bada.cali.common.enums.CreateType;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.ItemDTO;
 import com.bada.cali.dto.TuiGridDTO;
@@ -23,9 +24,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -203,7 +206,7 @@ public class ItemServiceImpl {
 					itemFeeHistory.setCreateDatetime(now);
 					itemFeeHistory.setCreateMemberId(userId);
 					itemFeeHistory.setItemId(itemId);
-					ItemFeeHistory savedEntity =  itemFeeHistoryRepository.save(itemFeeHistory);
+					ItemFeeHistory savedEntity = itemFeeHistoryRepository.save(itemFeeHistory);
 					
 					// 새로 추가된 것만 남기기
 					Log saveFeeLog = Log.builder()
@@ -224,7 +227,7 @@ public class ItemServiceImpl {
 					originEntity.setUpdateMemberId(userId);
 				}
 			}
-		}	// End 교정수수료 등록/수정
+		}    // End 교정수수료 등록/수정
 		
 		resCode = 1;
 		resMsg = "저장되었습니다.";
@@ -345,4 +348,103 @@ public class ItemServiceImpl {
 		return new ResMessage<>(resCode, resMsg, null);
 	}
 	
+	// 품목정보를 기준으로 중복여부를 체크한 다음 없는 경우 save 후 entity 반환
+	@Transactional
+	public Item findOrInsertItem(ItemDTO.FindOrInsertItemParams params, CustomUserDetails user) {
+		LocalDateTime now = LocalDateTime.now();
+		Long userId = user.getId();
+		String workerName = user.getName();
+		
+		ItemDTO.ItemCheckData chkData = params.itemCheckData();    // 기기명, 제작회사, 형식 담김
+		
+		YnType isVisible = YnType.y;
+		String name = chkData.name();
+		String makeAgent = chkData.makeAgent();
+		String format = chkData.format();
+		
+		Optional<Item> optItem = itemRepository.findFirstByIsVisibleAndNameAndMakeAgentAndFormat(isVisible, name, makeAgent, format);
+		
+		// 존재하는 경우, 해당 entity를 반환
+		if (optItem.isPresent()) {
+			return optItem.get();
+		}
+		// 조회 결과 존재하지 않는 경우, 새롭게 등록한다.
+		else {
+			Long middleItemCodeId = params.middleItemCodeId();
+			if (middleItemCodeId == null || middleItemCodeId == 0) {
+				middleItemCodeId = null;
+			}
+			Long smallItemCodeId = params.smallItemCodeId();
+			if (smallItemCodeId == null || smallItemCodeId == 0) {
+				smallItemCodeId = null;
+			}
+			Integer caliCycle = params.caliCycle();
+			// 교정주기의 경우, 값이 없으면 기본 12개월 추가
+			if (caliCycle == null || caliCycle == 0) {
+				caliCycle = 12;
+			}
+			Long fee = params.fee();
+			if (fee == null) {
+				fee = 0L;
+			}
+			
+			Item newItem = new Item();
+			newItem.setName(name);
+			newItem.setMakeAgent(makeAgent);
+			newItem.setFormat(format);
+			newItem.setFee(fee);
+			newItem.setSmallItemCodeId(smallItemCodeId);
+			newItem.setMiddleItemCodeId(middleItemCodeId);
+			newItem.setCaliCycle(caliCycle);
+			newItem.setIsInhousePossible(YnType.y);
+			newItem.setIsVisible(isVisible);
+			newItem.setCreateDatetime(now);
+			newItem.setCreateMemberId(userId);
+			newItem.setCreateType(CreateType.AUTO);    // 자동추가(auto) 구분
+			
+			Item savedItem = itemRepository.save(newItem);
+			Long newItemId = savedItem.getId();
+			
+			// 자동으로 추가된 품목에 대한 이력을 남기고, 교정수수료가 0원이 넘으면 이력에 추가한다.
+			String logContent = String.format("[품목 자동등록] 품목명: %s - 고유번호: %d", name, newItemId);
+			Log newItemLog = Log.builder()
+					.logType("i")
+					.createMemberId(userId)
+					.createDatetime(now)
+					.refTableId(newItemId)
+					.refTable("item")
+					.workerName(workerName)
+					.logContent(logContent)
+					.build();
+			logRepository.save(newItemLog);
+			
+			// 교정수수료가 0이상인 경우 품목수수료이력에도 추갛나다.
+			if (newItem.getFee() > 0) {
+				
+				ItemFeeHistory newIfhEntity = new ItemFeeHistory();
+				newIfhEntity.setBaseFee(newItem.getFee());
+				newIfhEntity.setBaseDate(LocalDate.now());
+				newIfhEntity.setCreateDatetime(now);
+				newIfhEntity.setCreateMemberId(userId);
+				newIfhEntity.setItemId(newItemId);
+				newIfhEntity.setIsVisible(isVisible);
+				ItemFeeHistory savedIfhEntity = itemFeeHistoryRepository.save(newIfhEntity);
+				
+				String ifhLogContent = String.format("[품목 수수료 추가] 품목명: %s (수수료: %d) - 고유번호: %d", name, savedIfhEntity.getBaseFee(), savedIfhEntity.getId());
+				Log newIfhLog = Log.builder()
+						.logType("i")
+						.createMemberId(userId)
+						.createDatetime(now)
+						.refTableId(savedIfhEntity.getId())
+						.refTable("item_fee_history")
+						.workerName(workerName)
+						.logContent(ifhLogContent)
+						.build();
+				logRepository.save(newIfhLog);
+			}
+			
+			// 새로 추가된 Entity를 반환한다.
+			return savedItem;
+		}
+	}
 }

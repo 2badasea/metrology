@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
@@ -89,6 +90,9 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 			@Param("deleteDatetime") LocalDateTime deleteDatetime,
 			@Param("deleteMemberId") Long deleteMemberId
 	);
+	
+	// 품목 중복 체크
+	Optional<Item> findFirstByIsVisibleAndNameAndMakeAgentAndFormat(YnType isVisible, String name, String makeAgent, String format);
 	
 	
 }

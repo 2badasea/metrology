@@ -4,6 +4,7 @@ import com.bada.cali.common.enums.YnType;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -67,7 +68,29 @@ public class ItemDTO {
 			Long id,
 			String name
 	) {
+	}
 	
+	// 품목정보 중복체크용 데이터 가공(기기명, 제작회사, 형식)
+	public record ItemCheckData(
+			String name,
+			String makeAgent,
+			String format
+	) {
+		// 생성자
+		public ItemCheckData {
+			name = normedData(name);
+			makeAgent = normedData(makeAgent);
+			format = normedData(format);
+		}
+		
+		// 클라이언트 단에서도 trim()을 처리해주지만, 서버에서 한번 더 처리해준다.
+		private static String normedData(String s) {
+			return s == null ? "" : s.trim();
+		}
+	}
+	
+	// 중복체크용 데이터의 가공된 형태와 교정수수료 묶음
+	public record FindOrInsertItemParams(ItemCheckData itemCheckData, Long fee, Long middleItemCodeId, Long smallItemCodeId, Integer caliCycle) {
 	}
 	
 	

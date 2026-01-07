@@ -82,14 +82,14 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			
 						r.approvalDatetime as approvalDatetime,
 						r.workDatetime as workDatetime,
-						
+			
 						r.workStatus as workStatus,
 						r.approvalStatus as approvalStatus,
 						mic.codeNum as middleCodeNum,
 						sic.codeNum as smallCodeNum
 			    	from Report r
-					JOIN ItemCode mic ON mic.id = r.middleItemCodeId
-					JOIN ItemCode sic ON sic.id = r.smallItemCodeId
+					LEFT JOIN ItemCode mic ON mic.id = r.middleItemCodeId
+					LEFT JOIN ItemCode sic ON sic.id = r.smallItemCodeId
 			    	where r.isVisible = 'y'
 			    	and r.parentId IS NULL
 			    	and r.parentScaleId IS NULL
@@ -100,19 +100,19 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			    	and (
 			    		:keyword = '' OR
 			    		(
-			    			(:searchType = 'reportNum' AND r.reportNum LIKE %:keyword%)
-			    			OR (:searchType = 'manageNo' AND r.manageNo LIKE %:keyword%)
-			    			OR (:searchType = 'itemName' AND r.itemName LIKE %:keyword%)
-			    			OR (:searchType = 'itemMakeAgent' AND r.itemMakeAgent LIKE %:keyword%)
-			    			OR (:searchType = 'itemFormat' AND r.itemFormat LIKE %:keyword%)
-			    			OR (:searchType = 'itemNum' AND r.itemNum LIKE %:keyword%)
+			    			(:searchType = 'reportNum' AND r.reportNum LIKE concat('%', :keyword, '%'))
+			    			OR (:searchType = 'manageNo' AND r.manageNo LIKE concat('%', :keyword, '%'))
+			    			OR (:searchType = 'itemName' AND r.itemName LIKE concat('%', :keyword, '%'))
+			    			OR (:searchType = 'itemMakeAgent' AND r.itemMakeAgent LIKE concat('%', :keyword, '%'))
+			    			OR (:searchType = 'itemFormat' AND r.itemFormat LIKE concat('%', :keyword, '%'))
+			    			OR (:searchType = 'itemNum' AND r.itemNum LIKE concat('%', :keyword, '%'))
 			    			OR (:searchType = 'all' AND (
-														    			r.reportNum LIKE %:keyword%
-														    			OR r.manageNo LIKE %:keyword%
-														    			OR r.itemName LIKE %:keyword%
-														    			OR r.itemMakeAgent LIKE %:keyword%
-														    			OR r.itemFormat LIKE %:keyword%
-														    			OR r.itemNum LIKE %:keyword%
+														    			r.reportNum LIKE concat('%', :keyword, '%')
+														    			OR r.manageNo LIKE concat('%', :keyword, '%')
+														    			OR r.itemName LIKE concat('%', :keyword, '%')
+														    			OR r.itemMakeAgent LIKE concat('%', :keyword, '%')
+														    			OR r.itemFormat LIKE concat('%', :keyword, '%')
+														    			OR r.itemNum LIKE concat('%', :keyword, '%')
 			    									)
 			    			)
 			    		)
