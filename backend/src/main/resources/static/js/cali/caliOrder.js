@@ -344,7 +344,8 @@ $(function () {
 		if (row && e.columnName != '_checked') {
 			// 접수내역 호출
 			if (e.columnName == 'grid_btn_orderDetails') {
-				window.open(`/cali/orderDetails?caliOrderId=${row.id}`, '_blank');
+				// TODO 나중에 window.open 방식을 get이 아닌 from으로 변경할 수 있도록 할 것
+				window.open(`/cali/orderDetails?caliOrderId=${row.id}&custAgent=${row.custAgent}&reportAgent=${row.reportAgent}`, '_blank');
 			}
 			// 접수수정
 			else {

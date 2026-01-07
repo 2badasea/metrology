@@ -210,7 +210,6 @@ public class ReportDTO {
 			// 자식성적서
 			List<ChildReportInfo> childReportInfos
 	) {
-	
 	}
 	
 	

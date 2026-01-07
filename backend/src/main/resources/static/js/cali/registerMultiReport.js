@@ -23,7 +23,7 @@ $(function () {
 		{ text: '시험', value: 'TESTING' },
 	];
 	const CALI_CYCLE_TYPES = [
-		{ text: '자동(기본 12개월)', value: '0' },
+		{ text: '자동(기본 12개월)', value: '' },
 		{ text: '3개월', value: '3' },
 		{ text: '6개월', value: '6' },
 		{ text: '12개월', value: '12' },
@@ -31,10 +31,6 @@ $(function () {
 		{ text: '24개월', value: '24' },
 		{ text: '36개월', value: '36' },
 	];
-	// TODO 1)	품목코드 관리 테이블 및 메뉴 생성 이후에 하드코딩이아닌 db에서 가져오도록 변경할 것
-	// TODO 2) 토스트 그리드에는 relation을 이용하여 동적으로 데이터를 변경이 가능하므로, 다음엔 relation 활용
-	// https://nhn.github.io/tui.grid/latest/tutorial-example05-relation-columns 페이지 참조
-	// 중분류/소분류 코드에 대한 부분도 우선 하드코딩으로 넣어준다.
 
 	$modal.init_modal = async (param) => {
 		$modal.param = param;
@@ -44,10 +40,6 @@ $(function () {
 
 		const middleListItems = await $modal.buildMiddleListItems(middleItemCodeSetAry); // 중분류 데이터 가공
 		const smallMapListItems = await $modal.buildSmallMapListItems(smallItemCodeSetObj); // 소분류 데이터 가공
-
-		console.log('확인');
-		console.log('🚀 ~ middleItemCodeSetAry:', middleListItems);
-		console.log('🚀 ~ smallItemCodeSetObj:', smallMapListItems);
 
 		// 그리드 정의
 		$modal.grid = new Grid({
@@ -138,7 +130,8 @@ $(function () {
 					header: '기기명',
 					name: 'itemName',
 					className: 'cursor_pointer',
-					editor: 'text',
+					// editor: 'text',
+					editor: itemSearchEditor,
 					// width: '200',
 					align: 'center',
 				},
@@ -146,7 +139,8 @@ $(function () {
 					header: '제작회사',
 					name: 'itemMakeAgent',
 					className: 'cursor_pointer',
-					editor: 'text',
+					// editor: 'text',
+					editor: itemSearchEditor,
 					width: '200',
 					align: 'center',
 				},
@@ -154,7 +148,8 @@ $(function () {
 					header: '형식',
 					name: 'itemFormat',
 					className: 'cursor_pointer',
-					editor: 'text',
+					// editor: 'text',
+					editor: itemSearchEditor,
 					width: '200',
 					align: 'center',
 				},
@@ -162,7 +157,8 @@ $(function () {
 					header: '기기번호',
 					name: 'itemNum',
 					className: 'cursor_pointer',
-					editor: 'text',
+					// editor: 'text',
+					editor: itemSearchEditor,
 					width: '200',
 					align: 'center',
 				},
@@ -391,6 +387,12 @@ $(function () {
 					return false;
 				}
 
+				// 기기명, 제작회사, 형식, 기기번호의 경우 좌우공백을 제거한다.
+				item.itemName = itemName.trim();
+				item.itemMakeAgent = (item.itemMakeAgent ?? '').trim();
+				item.itemFormat = (item.itemFormat ?? '').trim();
+				item.itemNum = (item.itemNum ?? '').trim();
+
 				if (!caliFee || caliFee == '') {
 					item.caliFee = 0;
 				}
@@ -409,7 +411,6 @@ $(function () {
 
 				item.reportType = 'SELF'; // 성적서타입(self)
 
-				//
 				if (item.hierarchyType === 'parent') {
 					item.child = [];
 					sendData.push(item);
@@ -434,7 +435,7 @@ $(function () {
 
 		let confirmMsg = `저장하시겠습니까?`;
 		if (notSearchItemList.length > 0) {
-			confirmMsg += '<br>품목을 조회하지 않은 아래 데이터의 경우, 품목에 자동으로 등록됩니다.<br><br>';
+			confirmMsg += '<br>품목을 조회하지 않은 아래 데이터의 경우, 중복검증 후 품목관리에 자동으로 등록됩니다.<br><br>';
 			confirmMsg += `<div class='text-left'>`;
 			// 최대 10건까지만 보여주고, 넘어갈 경우 ...로 표시
 			$.each(notSearchItemList, function (idx, item) {

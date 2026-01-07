@@ -59,7 +59,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.CaliApplication.executor": "Run",
-    "git-widget-placeholder": "feature/item__code",
+    "git-widget-placeholder": "feature/item",
     "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "C:/BadaDev/cali",
     "node.js.detected.package.eslint": "true",
@@ -106,6 +106,7 @@
       <updated>1762995354383</updated>
       <workItem from="1762995356314" duration="12215000" />
       <workItem from="1767520831152" duration="110000" />
+      <workItem from="1767744051593" duration="94000" />
     </task>
     <servers />
   </component>

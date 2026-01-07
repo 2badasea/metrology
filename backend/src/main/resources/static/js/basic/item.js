@@ -55,8 +55,9 @@ $(function () {
 					grid_param.isInhousePossible = $('form.searchForm', $modal).find('.isInhousePossible').val() ?? ''; // 전체선택 또는 값이 없을 땐 빈 값
 					grid_param.middleItemCodeId = Number($('form.searchForm .middleCodeSelect', $modal).val() ?? 0); // 전체선택(''), null, undefined 모두 커버
 					grid_param.smallItemCodeId = Number($('form.searchForm .smallCodeSelect', $modal).val() ?? 0);
-					grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? ''; // 검색타입
-					grid_param.keyword = $('form.searchForm', $modal).find('#keyword').val() ?? ''; // 검색키워드
+					grid_param.name = $('form.searchForm', $modal).find('input[name=name]').val().trim() ?? ''; // 품목명
+					grid_param.makeAgent = $('form.searchForm', $modal).find('input[name=makeAgent]').val().trim() ?? ''; // 제작회사
+					grid_param.format = $('form.searchForm', $modal).find('input[name=format]').val().trim() ?? ''; // 형식
 					return $.param(grid_param);
 				},
 				method: 'GET',

@@ -21,6 +21,13 @@ $(function () {
 		console.log('🚀 ~ $modal.param:', $modal.param);
 
 		caliOrderId = document.getElementById('caliOrderId').value; // 타임리프를 통해 값 초기화 (쿼리스트링 활용도 가능)
+		urlSearch = new URLSearchParams(location.search); // 쿼리스트링 가져오기 (get으로 파라미터값을 가져올 수 있다.)
+		const custAgent = urlSearch.get('custAgent');
+		const reportAgent = urlSearch.get('reportAgent');
+
+		// 접수상세내역 타이틀 표시
+		const menuPath = `접수상세내역 - 신청업체 [${custAgent}] 성적서발행처 [${reportAgent}]`;
+		$('.topbar-inner .customBreadcrumb').text(menuPath);
 
 		// 중/소분류 세팅 작업
 		await $modal.initItemCodeInfos();
@@ -34,7 +41,7 @@ $(function () {
 						grid_param.orderType = $('form.searchForm .orderType', $modal).val() ?? ''; // 전체선택은 빈 값으로 넘어옴
 						grid_param.statusType = $('form.searchForm .statusType', $modal).val() ?? ''; // 진행상태
 						grid_param.middleItemCodeId = Number($('form.searchForm .middleCodeSelect', $modal).val() ?? 0); // 전체선택(''), null, undefined 모두 커버
-						grid_param.smallItemCodeId = Number($('form.searchForm .smallCodeSelect', $modal).val() ?? 0);						
+						grid_param.smallItemCodeId = Number($('form.searchForm .smallCodeSelect', $modal).val() ?? 0);
 						grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? 'all'; // 검색타입
 						grid_param.keyword = $('form.searchForm', $modal).find('#keyword').val() ?? ''; // 검색키워드
 						grid_param.caliOrderId = caliOrderId; // 접수 id
@@ -166,7 +173,7 @@ $(function () {
 					const resModal = await g_modal(
 						'/cali/reportModify',
 						{
-							id: id
+							id: id,
 						},
 						{
 							title: `성적서 수정 [성적서번호 - ${reportNum}]`,
