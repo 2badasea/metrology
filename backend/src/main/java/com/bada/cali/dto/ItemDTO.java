@@ -22,8 +22,9 @@ public class ItemDTO {
 		private YnType isInhousePossible;    // 당사가능여부 (전체일 경우 null로 초기화됨)
 		private Long middleItemCodeId;        // 중분류코드id
 		private Long smallItemCodeId;        // 소분류코드id
-		private String searchType;        // 검색타입
-		private String keyword;            // 검색 입력 키워드
+		private String name;        // 품목명
+		private String makeAgent;        // 제작회사
+		private String format;        // 형식
 	}
 	
 	// 품목정보 record
@@ -47,17 +48,19 @@ public class ItemDTO {
 			ItemDTO.ItemData itemData,
 			List<Long> delHistoryIds,
 			List<ItemFeeData> itemFeeHistoryList
-			
-	){}
+	
+	) {
+	}
 	
 	// 품목수수료 데이터
 	public record ItemFeeData(
-		Long id,
-		Long itemId,
-		LocalDate baseDate,
-		Long baseFee,
-		String remark
-	){}
+			Long id,
+			Long itemId,
+			LocalDate baseDate,
+			Long baseFee,
+			String remark
+	) {
+	}
 	
 	// 삭제대상 품목 정보
 	public record DeleteItemData(

@@ -1,6 +1,7 @@
 package com.bada.cali.controller;
 
 import com.bada.cali.dto.FileInfoDTO;
+import com.bada.cali.dto.ItemDTO;
 import com.bada.cali.entity.FileInfo;
 import com.bada.cali.service.FileServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -10,10 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -93,5 +91,11 @@ public class BasicController {
 	@PostMapping(value = "/itemModify")
 	public String itemModify() {
 		return "basic/itemModify";
+	}
+	
+	// 품목 검색
+	@PostMapping(value = "/searchItemList")
+	public String searchItemList() {
+		return "basic/searchItemList";
 	}
 }

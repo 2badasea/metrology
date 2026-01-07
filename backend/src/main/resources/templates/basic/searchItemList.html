@@ -1,0 +1,28 @@
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<div layout:fragment="content">
+    <form class="searchForm">
+        <div class="input-group mb-1">
+            <div class="input-group-append">
+                <button class="btn btn-success" type="button" id="refresh"><i
+                        class="bi bi-arrow-clockwise"></i></button>
+            </div>
+            <select class="form-control middleCodeSelect" style="max-width: 300px !important;">
+                <option value="0">중분류선택</option>
+            </select>
+            <select class="form-control smallCodeSelect" style="max-width: 300px !important;">
+                <option value="0">소분류선택</option>
+            </select>
+            <input type="input" class="form-control" name="name" placeholder="품목명을 입력해주세요." />
+            <input type="input" class="form-control" name="makeAgent" placeholder="제작회사를 입력해주세요." />
+            <input type="input" class="form-control" name="format" placeholder="형식을 입력해주세요." />
+            <div class="input-group-append">
+                <button class="btn btn-info searchAgent" type="submit">조회</button>
+            </div>
+        </div>
+    </form>
+    <div class="grid searchItemList"></div>
+</div>
+
+</html>

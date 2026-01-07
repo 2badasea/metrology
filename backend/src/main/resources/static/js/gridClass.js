@@ -42,6 +42,67 @@ class contact_num_editor {
 	beforeDestroy() {}
 }
 
+// 품목을 조회할 수 있도록 한다.
+class itemSearchEditor {
+	constructor(props) {
+		const { grid, rowKey, value } = props;
+
+		const el = document.createElement('input');
+		el.type = 'text';
+		el.value = String(props.value ?? '');
+		el.style.width = '100%';
+		el.style.height = '100%';
+		this.grid = grid;
+		let $modal = $(grid.el).closest('.modal');
+
+		// input 요소에 키 이벤트 바인딩
+		$(el).on('keydown', async function (e) {
+			if (e.keyCode === 13) {
+				grid.blur();
+				const rowData = grid.getRow(rowKey);
+				const resModal = await g_modal('/basic/searchItemList', rowData, {
+					size: 'xxxl',
+					title: '교정 품목 리스트',
+					show_close_button: true,
+				});
+				if (resModal) {
+					if (resModal.jsonData != undefined) {
+						const d = resModal.jsonData;
+						// (중요) 타입 일치: listItems.value가 보통 문자열이므로 String으로 맞추는 게 안전
+						grid.setValue(rowKey, 'middleItemCodeId', String(d.middleItemCodeId ?? ''));
+						grid.setValue(rowKey, 'smallItemCodeId', String(d.smallItemCodeId ?? ''));
+						grid.setValue(rowKey, 'itemCaliCycle', String(d.caliCycle ?? ''));
+						grid.setValue(rowKey, 'itemId', d.id);
+						grid.setValue(rowKey, 'itemName', d.name);
+						grid.setValue(rowKey, 'itemNameEn', d.nameEn);
+						grid.setValue(rowKey, 'itemMakeAgent', d.makeAgent);
+						grid.setValue(rowKey, 'itemMakeAgentEn', d.makeAgentEn);
+						grid.setValue(rowKey, 'itemFormat', d.format);
+						grid.setValue(rowKey, 'itemNum', d.num);
+						grid.setValue(rowKey, 'caliFee', d.fee);
+					}
+				}
+			}
+		});
+		this.el = el;
+	}
+
+	getElement() {
+		return this.el;
+	}
+
+	getValue() {
+		return this.el.value;
+	}
+
+	mounted() {
+		this.el.focus();
+		this.el.select();
+	}
+
+	beforeDestroy() {}
+}
+
 // editor에서 특정조건이 있는 경우엔 편집이 안 되도록 설정한다.
 class readOnlyEditorByCondition {
 	constructor(props) {
@@ -55,15 +116,14 @@ class readOnlyEditorByCondition {
 		el.value = String(props.value ?? '');
 		el.style.width = '100%';
 		el.style.height = '100%';
-		el.style.textAlign = "center";
+		el.style.textAlign = 'center';
 
-		
 		Object.entries(condition).forEach(([key, value]) => {
 			if (rowData[key] == value) {
 				el.readOnly = true;
 				el.disabled = true;
 			}
-		})
+		});
 
 		this.el = el;
 	}
@@ -183,134 +243,133 @@ class middle_code_selectbox_renderer {
 
 // 금액만 입력가능
 class number_format_editor {
-  constructor(props) {
-    const el = document.createElement('input');
-    el.type = 'text';
-    el.inputMode = 'numeric';      // 모바일 키패드 숫자 유도
-    el.autocomplete = 'off';
-    el.spellcheck = false;
+	constructor(props) {
+		const el = document.createElement('input');
+		el.type = 'text';
+		el.inputMode = 'numeric'; // 모바일 키패드 숫자 유도
+		el.autocomplete = 'off';
+		el.spellcheck = false;
 
-    el.style.width = '100%';
-    el.style.height = '100%';
-    el.style.boxSizing = 'border-box';
+		el.style.width = '100%';
+		el.style.height = '100%';
+		el.style.boxSizing = 'border-box';
 
-    // 그리드 편집 종료(blur) 트리거 방지용(필요 시)
-    const stop = (e) => e.stopPropagation();
-    el.addEventListener('mousedown', stop);
-    el.addEventListener('click', stop);
-    this._stop = stop;
+		// 그리드 편집 종료(blur) 트리거 방지용(필요 시)
+		const stop = (e) => e.stopPropagation();
+		el.addEventListener('mousedown', stop);
+		el.addEventListener('click', stop);
+		this._stop = stop;
 
-    // 초기값 세팅
-    el.value = this._format(props.value);
+		// 초기값 세팅
+		el.value = this._format(props.value);
 
-    // - / + / e / . 등 차단 (type="number"에서 흔히 허용되는 것들)
-    el.addEventListener('keydown', (e) => {
-      const blocked = ['-', '+', 'e', 'E', '.', ',']; // 콤마는 우리가 자동 삽입하므로 직접 입력은 차단
-      if (blocked.includes(e.key)) e.preventDefault();
-    });
+		// - / + / e / . 등 차단 (type="number"에서 흔히 허용되는 것들)
+		el.addEventListener('keydown', (e) => {
+			const blocked = ['-', '+', 'e', 'E', '.', ',']; // 콤마는 우리가 자동 삽입하므로 직접 입력은 차단
+			if (blocked.includes(e.key)) e.preventDefault();
+		});
 
-    // 붙여넣기 방어: 숫자 외 제거 후 포맷 적용
-    el.addEventListener('paste', (e) => {
-      e.preventDefault();
-      const text = (e.clipboardData || window.clipboardData).getData('text') || '';
-      const digits = text.replace(/[^\d]/g, '');
-      el.value = this._format(digits);
-    });
+		// 붙여넣기 방어: 숫자 외 제거 후 포맷 적용
+		el.addEventListener('paste', (e) => {
+			e.preventDefault();
+			const text = (e.clipboardData || window.clipboardData).getData('text') || '';
+			const digits = text.replace(/[^\d]/g, '');
+			el.value = this._format(digits);
+		});
 
-    // 입력될 때마다 숫자만 남기고 콤마 포맷
-    el.addEventListener('input', () => {
-      const digits = this._digits(el.value);
-      el.value = this._format(digits);
-      // 커서 위치를 정교하게 유지하려면 추가 로직이 필요하지만,
-      // 대부분 “끝으로 이동”도 UX에 무리가 없습니다.
-    });
+		// 입력될 때마다 숫자만 남기고 콤마 포맷
+		el.addEventListener('input', () => {
+			const digits = this._digits(el.value);
+			el.value = this._format(digits);
+			// 커서 위치를 정교하게 유지하려면 추가 로직이 필요하지만,
+			// 대부분 “끝으로 이동”도 UX에 무리가 없습니다.
+		});
 
-    this.el = el;
-  }
+		this.el = el;
+	}
 
-  _digits(v) {
-    return String(v ?? '').replace(/[^\d]/g, ''); // 숫자만
-  }
+	_digits(v) {
+		return String(v ?? '').replace(/[^\d]/g, ''); // 숫자만
+	}
 
-  _format(v) {
-    const digits = this._digits(v);
+	_format(v) {
+		const digits = this._digits(v);
 
-    // 빈 값 허용 여부: "0 이상"이지만 사용자가 지우는 과정이 있으니 입력 중엔 빈값 허용
-    if (digits === '') return '';
+		// 빈 값 허용 여부: "0 이상"이지만 사용자가 지우는 과정이 있으니 입력 중엔 빈값 허용
+		if (digits === '') return '';
 
-    // 선행 0 정리(예: 00012 -> 12), 단 "0" 자체는 유지
-    const normalized = digits.replace(/^0+(?=\d)/, '');
+		// 선행 0 정리(예: 00012 -> 12), 단 "0" 자체는 유지
+		const normalized = digits.replace(/^0+(?=\d)/, '');
 
-    // 천 단위 콤마
-    return normalized.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  }
+		// 천 단위 콤마
+		return normalized.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	}
 
-  getElement() {
-    return this.el;
-  }
+	getElement() {
+		return this.el;
+	}
 
-  getValue() {
-    const digits = this._digits(this.el.value);
+	getValue() {
+		const digits = this._digits(this.el.value);
 
-    // 빈 값 처리 정책:
-    // - 금액 필드가 NOT NULL이면 0으로 저장하는 게 보통 더 안전
-    if (digits === '') return 0;
+		// 빈 값 처리 정책:
+		// - 금액 필드가 NOT NULL이면 0으로 저장하는 게 보통 더 안전
+		if (digits === '') return 0;
 
-    const n = Number(digits);
-    return Number.isFinite(n) ? n : 0;
-  }
+		const n = Number(digits);
+		return Number.isFinite(n) ? n : 0;
+	}
 
-  mounted() {
-    this.el.focus();
-    this.el.select();
-  }
+	mounted() {
+		this.el.focus();
+		this.el.select();
+	}
 
-  beforeDestroy() {
-    // (선택) 이벤트 정리
-    this.el.removeEventListener('mousedown', this._stop);
-    this.el.removeEventListener('click', this._stop);
-  }
+	beforeDestroy() {
+		// (선택) 이벤트 정리
+		this.el.removeEventListener('mousedown', this._stop);
+		this.el.removeEventListener('click', this._stop);
+	}
 }
-
 
 // 날짜 선택
 class DateEditor {
-  constructor(props) {
-    const el = document.createElement('input');
-    el.type = 'date';
+	constructor(props) {
+		const el = document.createElement('input');
+		el.type = 'date';
 
-    // 셀 꽉 채우기
-    el.style.width = '100%';
-    el.style.height = '100%';
-    el.style.boxSizing = 'border-box';
-    el.style.border = '0';
-    el.style.outline = '0';
-    el.style.background = 'transparent';
-	el.style.textAlign = 'center';
+		// 셀 꽉 채우기
+		el.style.width = '100%';
+		el.style.height = '100%';
+		el.style.boxSizing = 'border-box';
+		el.style.border = '0';
+		el.style.outline = '0';
+		el.style.background = 'transparent';
+		el.style.textAlign = 'center';
 
-    // 값 세팅: DB가 YYYY-MM-DD면 그대로, 그 외면 빈 값
-    const v = props.value;
-    el.value = (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) ? v : '';
+		// 값 세팅: DB가 YYYY-MM-DD면 그대로, 그 외면 빈 값
+		const v = props.value;
+		el.value = typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : '';
 
-    // required만 옵션으로 지원(원하면)
-    const opt = props.columnInfo?.editor?.options ?? {};
-    if (opt.required) el.required = true;
+		// required만 옵션으로 지원(원하면)
+		const opt = props.columnInfo?.editor?.options ?? {};
+		if (opt.required) el.required = true;
 
-    this.el = el;
-  }
+		this.el = el;
+	}
 
-  getElement() {
-    return this.el;
-  }
+	getElement() {
+		return this.el;
+	}
 
-  getValue() {
-    // type="date"는 "YYYY-MM-DD" 또는 "" 로만 나온다
-    return this.el.value;
-  }
+	getValue() {
+		// type="date"는 "YYYY-MM-DD" 또는 "" 로만 나온다
+		return this.el.value;
+	}
 
-  mounted() {
-    this.el.focus();
-  }
+	mounted() {
+		this.el.focus();
+	}
 
-  beforeDestroy() {}
+	beforeDestroy() {}
 }

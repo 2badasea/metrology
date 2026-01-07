@@ -26,28 +26,18 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 					and (:middleItemCodeId IS NULL OR i.middleItemCodeId = :middleItemCodeId)
 					and (:smallItemCodeId IS NULL OR i.smallItemCodeId = :smallItemCodeId)
 					and (:isInhousePossible IS NULL OR i.isInhousePossible = :isInhousePossible)
-					and (
-						:keyword = '' OR (
-								(:searchType = 'name' AND i.name LIKE %:keyword%)
-									OR (:searchType = 'makeAgent' AND i.makeAgent LIKE %:keyword%)
-									OR (:searchType = 'format' AND i.format LIKE %:keyword%)
-									OR (:searchType = 'num' AND i.num LIKE %:keyword%)
-								OR (:searchType = 'all' AND (
-										i.name        LIKE %:keyword%
-					                 OR i.makeAgent   LIKE %:keyword%
-					                 OR i.format LIKE %:keyword%
-					                 OR i.num LIKE %:keyword%
-									))
-							)
-					)
+					and (:name IS NULL OR i.name LIKE %:name%)
+					and (:makeAgent IS NULL OR i.makeAgent LIKE %:makeAgent%)
+					and (:format IS NULL OR i.format LIKE %:format%)
 					ORDER BY i.id ASC
 			""")
 	Page<ItemList> getItemList(
 			@Param("middleItemCodeId") Long middleItemCodeId,
 			@Param("smallItemCodeId") Long smallItemCodeId,
 			@Param("isInhousePossible") YnType isInhousePossible,
-			@Param("searchType") String searchType,
-			@Param("keyword") String keyword,
+			@Param("name") String name,
+			@Param("makeAgent") String makeAgent,
+			@Param("format") String format,
 			Pageable pageable
 	);
 	

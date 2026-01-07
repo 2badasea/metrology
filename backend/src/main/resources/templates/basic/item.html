@@ -36,20 +36,21 @@
                                 <option value="n">불가</option>
                             </select>
                         </li>
-                        <li class="mr-1">
-                            <select class=" form-control middleCodeSelect" style="width: 100px !important;">
-                                <option value="">중분류전체</option>
-                            </select>
-                        </li>
-                        <li class="mr-1">
-                            <select class=" form-control smallCodeSelect" style="width: 100px !important;">
-                                <option value="">소분류전체</option>
-                            </select>
-                        </li>
                         <li class="mr-1 d-flex">
                             <div class="input-group">
-                                <select class="form-control searchType" name="searchType" id="searchType">
-                                    <!-- 전체선택의 경우 빈 문자열을 보낸다. -->
+                                <select class=" form-control middleCodeSelect" style="width: 100px !important;">
+                                    <option value="">중분류전체</option>
+                                </select>
+                                <select class=" form-control smallCodeSelect" style="width: 100px !important;">
+                                    <option value="">소분류전체</option>
+                                </select>
+                                <input type="input" class="form-control" name="name" placeholder="품목명"
+                                    style="width: 250px !important;" />
+                                <input type="input" class="form-control" name="makeAgent" placeholder="제작회사"
+                                    style="width: 250px !important;" />
+                                <input type="input" class="form-control" name="format" placeholder="형식
+                                " style="width: 250px !important;" />
+                                <!-- <select class="form-control searchType" name="searchType" id="searchType">
                                     <option value="">전체선택</option>
                                     <option value="name">기기명</option>
                                     <option value="makeAgent">제작회사</option>
@@ -58,7 +59,7 @@
                                 </select>
                                 <div class="input-group-append">
                                     <input type="input" class="form-control" id="keyword" name="keyword" value="" />
-                                </div>
+                                </div> -->
                             </div>
                         </li>
                         <li>

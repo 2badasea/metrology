@@ -59,15 +59,21 @@ public class ItemServiceImpl {
 		
 		YnType isInhousePossible = req.getIsInhousePossible(); // 빈 문자열리 넘어온 경우 DTO에 매핑하는 과정에서 null이 됨
 		
-		// 넘어오는 데이터 (중분류, 소분류, 당사가능여부, 검색타입, 키워드)
-		String searchType = req.getSearchType();
-		if (searchType == null || searchType.isEmpty()) {
-			searchType = "all";
+		log.info("넘어오는 값 확인");
+		String name = req.getName();
+		if (name.isBlank()) {
+			name = null;
 		}
-		String keyword = req.getKeyword();
-		keyword = keyword == null ? "" : keyword.trim();
+		String makeAgent = req.getMakeAgent();
+		if (makeAgent.isBlank()) {
+			makeAgent = null;
+		}
+		String format = req.getFormat();
+		if (format.isBlank()) {
+			format = null;
+		}
 		
-		Page<ItemList> pageResult = itemRepository.getItemList(middleItemCodeId, smallItemCodeId, isInhousePossible, searchType, keyword, pageRequest);
+		Page<ItemList> pageResult = itemRepository.getItemList(middleItemCodeId, smallItemCodeId, isInhousePossible, name, makeAgent, format, pageRequest);
 		List<ItemList> rows = pageResult.getContent();
 		
 		// 페이지네이션
