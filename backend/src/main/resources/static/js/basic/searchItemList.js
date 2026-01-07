@@ -181,7 +181,14 @@ $(function () {
 			.on('change', '.middleCodeSelect', function () {
 				const middleItemCodeId = $(this).val();
 				$modal.setItemCode(middleItemCodeId);
-			});
+			})
+			// 입력값 초기화
+			.on('click', 'button.resetBtn', function () {
+				$('form.searchForm select', $modal).val(0);
+				$('form.searchForm input', $modal).val('');
+				$modal.grid.getPagination().movePageTo(1);
+			})
+			;
 	}; // End of init_modal
 
 	// 중분류와 소분류코드를 가져와서 중분류select 세팅 및 소분류코드 데이터를 초기화시킨다.
