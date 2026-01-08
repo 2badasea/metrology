@@ -135,7 +135,7 @@ $(function () {
 				height: 22,
 				position: 'bottom',
 				columnContent: {
-					name: {
+					manageNo: {
 						template: function () {
 							return ``;
 						},
@@ -156,7 +156,7 @@ $(function () {
 			let jsonRow = JSON.parse(e.xhr.response);
 			const totalCnt = jsonRow.data.pagination.totalCount ?? 0;
 			const rowCnt = jsonRow.data.contents.length ?? 0;
-			$modal.grid.setSummaryColumnContent('name', {
+			$modal.grid.setSummaryColumnContent('manageNo', {
 				template: () => `총 ${number_format(totalCnt)} 건 중 ${number_format(rowCnt)} 건 조회`,
 			});
 		});
