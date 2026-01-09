@@ -148,6 +148,17 @@ $(function () {
 		$modal.grid.on('click', async function (e) {
 			const row = $modal.grid.getRow(e.rowKey);
 			if (row && e.columnName != '_checked') {
+				const resModal = await g_modal(
+					'/equipment/equipmentModify',
+					{ id: row.id, fieldOptions: fieldOptions },
+					{
+						size: 'xl',
+						title: '표준장비 수정',
+						show_close_button: true,
+						show_confirm_button: true,
+						confirm_button_text: '저장',
+					}
+				);
 			}
 		});
 
@@ -197,6 +208,20 @@ $(function () {
 			if (rowLeng > 0) {
 				$modal.grid.setPerPage(rowLeng);
 			}
+		})
+		// 표준장비 등록
+		.on('click', '.addEquipment', async function () {
+			const resModal = await g_modal(
+				'/equipment/equipmentModify',
+				{ fieldOptions: fieldOptions },
+				{
+					size: 'xl',
+					title: '표준장비 등록',
+					show_close_button: true,
+					show_confirm_button: true,
+					confirm_button_text: '저장',
+				}
+			);
 		});
 
 	$modal.data('modal-data', $modal);
