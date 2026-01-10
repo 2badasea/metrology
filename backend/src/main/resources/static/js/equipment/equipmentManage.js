@@ -157,8 +157,25 @@ $(function () {
 						show_close_button: true,
 						show_confirm_button: true,
 						confirm_button_text: '저장',
+						// 커스텀 버튼
+						custom_btn_html_arr: [
+							`<label class="file-event-label btn  btn-sm btn-outline-success ml-2 mt-1 mb-1">파일 업로드
+							<input name="equipmentFiles"
+										type="file"
+										class="file-event"
+										accept=".xls,.xlsx,.pdf,image/*"
+										multiple
+										hidden />
+							</label>
+							<button type="button" class="btn btn-secondary btn-sm ml-2 searchFile">파일리스트</button>
+							<button type="button" class="btn btn-warning btn-sm ml-2 eq_excel_down" data-down="manage_down">표준장비이력카드</button>`,
+						],
 					}
 				);
+
+				if (resModal) {
+					$modal.grid.reloadData();
+				}
 			}
 		});
 
@@ -220,8 +237,23 @@ $(function () {
 					show_close_button: true,
 					show_confirm_button: true,
 					confirm_button_text: '저장',
+					// 커스텀 버튼
+					custom_btn_html_arr: [
+						`<label class="file-event-label btn  btn-sm btn-outline-success ml-2 mt-1 mb-1">파일 업로드
+						<input name="equipmentFiles"
+									type="file"
+									class="file-event"
+									accept=".xls,.xlsx,.pdf,image/*"
+									multiple
+									hidden />
+						</label>
+						<button type="button" class="btn btn-secondary btn-sm ml-2 searchFile">파일리스트</button>`,
+					],
 				}
 			);
+			if (resModal) {
+				$modal.grid.reloadData();
+			}
 		});
 
 	$modal.data('modal-data', $modal);

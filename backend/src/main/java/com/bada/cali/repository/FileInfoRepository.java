@@ -22,6 +22,41 @@ public interface FileInfoRepository extends JpaRepository<FileInfo, Long> {
 			YnType isVisible
 	);
 	
+	// 특정 조건에 맞는 파일 개수 리턴
+	@Query("""
+			select f
+			from FileInfo as f
+			where f.isVisible = :isVisible
+			and f.refTableName = :refTableName
+			and f.refTableId = :refTableId
+			and (:dir IS NOT NULL AND f.dir = :dir)
+	""")
+	List<FileInfo> getFileInfoList(
+			@Param("refTableName") String refTableName,
+			@Param("refTableId") Long refTableId,
+			@Param("dir") String dir,
+			@Param("isVisible") YnType isVisible
+	);
+	
+	// 단일 파일 정보를 가져오는 함수
+	@Query("""
+					select f
+					from FileInfo as f
+					where 1 = 1
+					AND (:isVisible IS NULL OR f.isVisible = :isVisible)
+					AND (:refTableName IS NULL OR f.refTableName = :refTableName)
+					AND (:isVisible IS NULL OR f.refTableId = :refTableId)
+					AND (:dir IS NULL OR f.dir = :dir)
+			""")
+	FileInfo getFileInfo(
+			@Param("refTableName") String refTableName,
+			@Param("refTableId") Long refTableId,
+			@Param("dir") String dir,
+			@Param("isVisible") YnType isVisible
+	);
+	
+	
+	
 	// FileInfoDTO 클래스 내 inner class FileListRes에서 순서대로 매핑이 됨
 	@Query("select new com.bada.cali.dto.FileInfoDTO$FileListRes(" +
 			"  f.id, " +
@@ -53,6 +88,25 @@ public interface FileInfoRepository extends JpaRepository<FileInfo, Long> {
 					  @Param("isVisible") YnType isVisible,
 					  @Param("deleteDatetime") LocalDateTime deleteDatetime,
 					  @Param("deleteMemberId") Long deleteMemberId
+	);
+	
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+        update FileInfo f
+           set f.isVisible = :isVisible,
+               f.deleteDatetime = :now,
+               f.deleteMemberId = :userId
+         where f.refTableName = :refTableName
+           and f.refTableId = :refTableId
+           and f.dir = :dir
+    """)
+	int softDeleteVisibleByRefAndDir(
+			@Param("refTableName") String refTableName,
+			@Param("refTableId") Long refTableId,
+			@Param("dir") String dir,
+			@Param("isVisible") YnType isVisible,
+			@Param("now") LocalDateTime now,
+			@Param("userId") Long userId
 	);
 	
 	

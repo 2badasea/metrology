@@ -94,7 +94,8 @@ public class StandardEquipment {
 	
 	// 구입가격
 	@Column(name = "purchase_price")
-	private Long purchasePrice;
+	@Builder.Default
+	private Long purchasePrice = 0L;
 	
 	// 구입일 (DATE지만 JPA에서 LocalDate를 더 권장. 일단 Item 스타일대로 LocalDateTime 유지 안 하고 LocalDate 추천)
 	// 프로젝트 기준에 맞춰 LocalDate로 바꾸는 걸 권장합니다.

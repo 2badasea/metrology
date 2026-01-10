@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface EquipmentRepository extends JpaRepository<StandardEquipment, Long> {
@@ -66,4 +67,8 @@ public interface EquipmentRepository extends JpaRepository<StandardEquipment, Lo
 			Pageable pageable
 	);
 	
+	// 표준장비 조회
+	Optional<StandardEquipment> findByIdAndIsVisible(
+			 @Param("id") Long id,
+			 @Param("isVisible") YnType isVisible);
 }

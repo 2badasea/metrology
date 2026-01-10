@@ -5,14 +5,13 @@ import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.EquipmentDTO;
 import com.bada.cali.dto.TuiGridDTO;
 import com.bada.cali.repository.projection.EquipmentListPr;
+import com.bada.cali.security.CustomUserDetails;
 import com.bada.cali.service.EquipmentServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -42,5 +41,26 @@ public class ApiEquipmentController {
 		TuiGridDTO.Res<TuiGridDTO.ResData<EquipmentListPr>> body = new TuiGridDTO.Res<>(true, gridData);
 		
 		return ResponseEntity.ok(body);
+	}
+	
+	// 표준장비 등록/수정하기
+	@PostMapping(value = "/saveEquipment")
+	public ResponseEntity<ResMessage<?>> saveEquipment(
+			@ModelAttribute EquipmentDTO.EquipmentData equipmentData,
+			@AuthenticationPrincipal CustomUserDetails user)
+	{
+		ResMessage<?> resMessage = equipmentService.saveEquipment(equipmentData, user);
+		return ResponseEntity.ok(resMessage);
+	}
+	
+	// 표준장비 데이터 가져오기
+	@GetMapping(value = "/getEquipmentInfo/{id}")
+	public ResponseEntity<ResMessage<EquipmentDTO.GetEquipInfos>> getEquipmentInfo(@PathVariable Long id) {
+		log.info("표준장비 데이터 호출");
+		
+		ResMessage<EquipmentDTO.GetEquipInfos> resMessage = equipmentService.getEquipmentInfo(id);
+		
+		return ResponseEntity.ok(resMessage);
+		
 	}
 }
