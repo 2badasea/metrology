@@ -144,14 +144,14 @@ $(function () {
 			if (!check_input(name)) {
 				g_toast('장비명을 입력해주세요.', 'warning');
 				$('input[name=name]', $modal).focus();
-				return false;
+				isValid = false;
 			}
 
 			const equipmentFieldId = fd.get('equipmentFieldId'); // 분야
 			if (!equipmentFieldId || equipmentFieldId == 0) {
 				g_toast('분야를 선택해주세요', 'warning');
 				$('select[name=equipmentFieldId]', $modal).focus();
-				return false;
+				isValid = false;
 			}
 
 			// 도래알림일
@@ -159,7 +159,7 @@ $(function () {
 			if (!dueNotifyDays || isNaN(dueNotifyDays) || Number(dueNotifyDays) == 0) {
 				g_toast('도래알림일(일수)를 입력하세요.', 'warning');
 				$('select[name=dueNotifyDays]', $modal).focus();
-				return false;
+				isValid = false;
 			}
 
 			// 구입 가격이 존재하는데, comma가 있는 경우 체크
@@ -188,7 +188,7 @@ $(function () {
 			// 예: 최대 5개 제한 (이미 change에서 검증해도 한번 더 안전장치)
 			if (files.length > 5) {
 				g_toast('첨부파일은 한번에 5개까지만 업로드 가능합니다', 'warning');
-				return false;
+				isValid = false;
 			}
 
 			// 첨부파일 담기
@@ -206,11 +206,13 @@ $(function () {
 			g_toast(`입력 항목에 오류가 있습니다.<br>${err}`, 'warning');
 			isValid = false;
 		}
+
 		if (!isValid) {
 			$btn.prop('disabled', false);
 			return false;
 		}
 
+		// 등록인 경우 formData에 id 자체를 key로도 담지 않는다. null을 주더라도 formdata는 서버로 전송되는 과정에서 문자열 "null"로 처리됨
 		if (Number(equipmentId) > 0) {
 			fd.set('id', equipmentId);
 		} else {

@@ -49,6 +49,7 @@ public class ApiEquipmentController {
 			@ModelAttribute EquipmentDTO.EquipmentData equipmentData,
 			@AuthenticationPrincipal CustomUserDetails user)
 	{
+		log.info("표준장비 등록/수정요청!!");
 		ResMessage<?> resMessage = equipmentService.saveEquipment(equipmentData, user);
 		return ResponseEntity.ok(resMessage);
 	}
@@ -61,6 +62,16 @@ public class ApiEquipmentController {
 		ResMessage<EquipmentDTO.GetEquipInfos> resMessage = equipmentService.getEquipmentInfo(id);
 		
 		return ResponseEntity.ok(resMessage);
-		
 	}
+	
+	// 표준장비 삭제
+	@DeleteMapping("/deleteEquipment")
+	public ResponseEntity<ResMessage<?>> deleteEquipment(
+			@RequestBody EquipmentDTO.DeleteEquipmentReq deleteEquipmentReq,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		ResMessage<?> resMessage = equipmentService.deleteEquipment(deleteEquipmentReq, user);
+		return ResponseEntity.ok(resMessage);
+	}
+	
 }

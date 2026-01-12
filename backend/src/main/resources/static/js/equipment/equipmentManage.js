@@ -246,13 +246,59 @@ $(function () {
 									accept=".xls,.xlsx,.pdf,image/*"
 									multiple
 									hidden />
-						</label>
-						<button type="button" class="btn btn-secondary btn-sm ml-2 searchFile">파일리스트</button>`,
+						</label>`,
 					],
 				}
 			);
 			if (resModal) {
 				$modal.grid.reloadData();
+			}
+		})
+		// 표준장비 삭제
+		.on('click', '.deleteEquipment', async function () {
+			const $btn = $(this);
+			const checkedRows = $modal.grid.getCheckedRows();
+			if (checkedRows.length === 0) {
+				g_toast('삭제할 장비를 선택해주세요.', 'warning');
+				return false;
+			}
+
+			try {
+				$btn.prop('disabled', true);
+				const deleteConfirm = await g_message('표준장비 삭제', '선택한 표준장비를 삭제하시겠습니까?', 'question', 'confirm');
+				if (deleteConfirm.isConfirmed === true) {
+					g_loading_message();
+					const deletedIds = [];
+					checkedRows.forEach((row) => {
+						deletedIds.push(row.id);
+					});
+					console.log('배열 확인');
+					console.log(deletedIds);
+					const feOptions = {
+						method: 'DELETE',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ deletedIds: deletedIds }),
+					};
+					const resDelete = await fetch('/api/equipment/deleteEquipment', feOptions);
+					if (resDelete.ok) {
+						const resData = await resDelete.json();
+						console.log('🚀 ~ resData:', resData);
+						if (resData?.code > 0) {
+							await g_message('표준장비 삭제', '삭제되었습니다.', 'success', 'alert');
+							$modal.grid.reloadData();
+						} else {
+							await g_message('표준장비 삭제', resData.msg ?? '삭제가 되지 않았습니다.', 'warning', 'alert');
+						}
+					} else {
+						throw new Error('삭제 요청에 문제가 있습니다.<br>다시 진행하시거나 개발팀에게 문의바랍니다.');
+					}
+				} else {
+					return false;
+				}
+			} catch (err) {
+				custom_ajax_handler(err);
+			} finally {
+				$btn.prop('disabled', false);
 			}
 		});
 

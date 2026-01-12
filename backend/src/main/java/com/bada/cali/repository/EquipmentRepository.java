@@ -6,10 +6,12 @@ import com.bada.cali.repository.projection.EquipmentListPr;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,4 +73,20 @@ public interface EquipmentRepository extends JpaRepository<StandardEquipment, Lo
 	Optional<StandardEquipment> findByIdAndIsVisible(
 			 @Param("id") Long id,
 			 @Param("isVisible") YnType isVisible);
+	
+	// 표준장비 삭제
+	@Modifying(clearAutomatically = true,  flushAutomatically = true)
+	@Query("""
+		UPDATE StandardEquipment AS e
+			SET e.deleteDatetime = :now,
+				e.deleteMemberId = :userId,
+				e.isVisible = :isVisible
+		WHERE e.id IN :ids
+	""")
+	int deleteEquipment(
+			@Param("isVisible") YnType isVisible,
+			@Param("now") LocalDateTime now,
+			@Param("userId") Long userId,
+			@Param("ids") List<Long> ids
+	);
 }

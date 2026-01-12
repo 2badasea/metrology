@@ -86,5 +86,11 @@ public class EquipmentDTO {
 		String equipImgPath;
 	}
 	
+	// 삭제 요청 표준장비 ids
+	public record DeleteEquipmentReq(
+			List<Long> deletedIds
+	){};
+	
+	
 	
 }

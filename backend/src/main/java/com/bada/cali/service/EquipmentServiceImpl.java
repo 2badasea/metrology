@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -246,5 +247,62 @@ public class EquipmentServiceImpl {
 		resCode = 1;
 		
 		return new ResMessage<>(resCode, resMsg, resData);
+	}
+	
+	// 표준장비 삭제
+	@Transactional
+	public ResMessage<?> deleteEquipment(EquipmentDTO.DeleteEquipmentReq req, CustomUserDetails user) {
+		int resCode = 0;
+		String resMsg = "";
+		
+		LocalDateTime now = LocalDateTime.now();
+		Long userId = user.getId();
+		String workerName = user.getName();
+		
+		List<Long> ids = req.deletedIds();
+		if (ids.isEmpty()) {
+			resCode = -1;
+			resMsg = "삭제할 표준장비 정보가 없습니다.";
+			return new ResMessage<>(resCode, resMsg, null);
+		}
+		
+		YnType isVisible = YnType.n;
+		int resDeleteCnt = equipmentRepository.deleteEquipment(isVisible, now, userId, ids);
+		
+		if (resDeleteCnt > 0) {
+			resCode = 1;
+			resMsg = "정상적으로 삭제되었습니다.";
+			
+			String deleteIds = ids.stream().map(String::valueOf).collect(Collectors.joining(", "));
+			// 다른방식 1.
+			// List<String> s = ids.stream()
+			// 		.map(String::valueOf)
+			// 		.toList(); // Java 16+
+			// String deleteIds = String.join(", ", s);
+			// 다른방식 2. (null에 대한 체크)
+			// String deleteIds = ids.stream()
+			// 		.filter(Objects::nonNull)
+			// 		.map(String::valueOf)
+			// 		.collect(Collectors.joining(", "));
+			
+			
+			// 로그를 남긴다.
+			Log deleteLog = Log.builder()
+					.refTable("standard_equipment")
+					.refTableId(null)
+					.logType("d")
+					.createDatetime(now)
+					.createMemberId(userId)
+					.logContent(String.format("[표준장비 삭제] - 고유번호: %s", deleteIds))
+					.workerName(workerName)
+					.build();
+			logRepository.save(deleteLog);
+			
+		} else {
+			resCode = -1;
+			resMsg = "삭제처리가 정상적으로 이루어지지 않았습니다.";
+		}
+		
+		return new ResMessage<>(resCode, resMsg, null);
 	}
 }
