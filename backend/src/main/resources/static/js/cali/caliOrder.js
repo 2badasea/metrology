@@ -130,10 +130,12 @@ $(function () {
 				formatter: function (data) {
 					// data.isCheck == 'y'라면, checked 속성값 삽입
 					let checked = data.value == 'y' ? 'checked' : '';
+					const id = `customSwitch_tax_${data.rowKey}`;
 					// FIX toggle을 활용해서 보여주도록 한다.
-					return `
-							<input class="bs_toggle" type="checkbox" data-toggle="toggle" data-on="발행" data-off="미발행" data-width="100%" data-size="xs" ${checked}>
-					`;
+					return `<div class="custom-control custom-switch">
+								<input type="checkbox" class="custom-control-input" id="${id}" ${checked}>
+        						<label class="custom-control-label" for="${id}"></label>
+							</div>`;
 				},
 			},
 			{

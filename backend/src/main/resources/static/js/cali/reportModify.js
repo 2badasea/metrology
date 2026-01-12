@@ -88,18 +88,31 @@ $(function () {
 							.prop('readonly', true);
 					}
 				}
-
-				// 데이터세팅 이후, 접수구분 수정이 안 되도록 disabled 처리할 것
 			}
 		} catch (xhr) {
-			console.error('에러발생');
 			custom_ajax_handler(xhr);
 		} finally {
 		}
 
-		// 자식성적서 세팅
-		// 표준장비 데이터 세팅 TODO 추가와 삭제된 장비에 대해서 데이터를 어떻게 관리할 것인지 고민할 것 => is_visible이 아닌 레코드 자체를 delete 시키고 insert시키는 방향으로 생각할 것
-		// 변경전과 변경후가 같은지 판단할 것
+		$modal.equipmentDataSource = {
+			api: {
+				readData: {
+					url: '/api/caliOrder/getOrderList',
+					serializer: (grid_param) => {
+						// 접수시작/종료일, 세금계산서, 접수유형, 진행상태, 검색타입, 검색키워드를 넘긴다.
+						grid_param.orderStartDate = $('form.searchForm .orderStartDate', $modal).val() ?? ''; // 접수일(시작일)
+						grid_param.orderEndDate = $('form.searchForm .orderEndDate', $modal).val() ?? ''; // 접수일(마지막)
+						grid_param.isTax = $('form.searchForm .isTax', $modal).val() ?? ''; // 세금계산서 발행여부
+						grid_param.caliType = $('form.searchForm .caliType', $modal).val() ?? ''; // 교정유형(고정표준실/현장교정)
+						grid_param.statusType = $('form.searchForm .statusType', $modal).val() ?? ''; // 진행상태
+						grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? ''; // 검색타입
+						grid_param.keyword = $('form.searchForm', $modal).find('#keyword').val() ?? ''; // 검색키워드
+						return $.param(grid_param);
+					},
+					method: 'GET',
+				},
+			},
+		};
 
 		// 표준장비 그리드 (더미데이터만 우선 표시)
 		$modal.grid = new Grid({
@@ -122,7 +135,7 @@ $(function () {
 			],
 			// minBodyHeight: gridBodyHeight,
 			// bodyHeight: gridBodyHeight,
-			// data: $modal.dataSource,
+			// data: $modal.equipmentDataSource,
 			data: [
 				{
 					'reportType': 'self',
@@ -135,6 +148,7 @@ $(function () {
 			pageOptions: {
 				perPage: 15,
 			},
+			draggable: true,
 		});
 	}; // End of init_modal
 
@@ -308,8 +322,7 @@ $(function () {
 		.on('click', '.notMoidfy', function () {
 			g_toast('성적서 수정 시, 품목정보 변경은 조회로만 가능합니다.', 'warning');
 			return false;
-		})
-		;
+		});
 
 	// 저장
 	$modal.confirm_modal = async function (e) {

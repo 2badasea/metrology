@@ -74,4 +74,8 @@ public class ApiEquipmentController {
 		return ResponseEntity.ok(resMessage);
 	}
 	
+	// 사용중인 표준장비 데이터 가져오기
+	// @GetMapping("/getUsedEquipment")
+	// public TuiGridDTO.Res<TuiGridDTO.ResData<UsedEquipmentListPr>> getUsedEquipment(@ModelAttribute EquipmentDTO)
+	
 }
