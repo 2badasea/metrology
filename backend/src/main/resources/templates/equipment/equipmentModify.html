@@ -1,0 +1,257 @@
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<div layout:fragment="content">
+    <div class="d-flex flex-wrap">
+        <!-- 등록이냐 수정에 따라 레이아웃 변동 -->
+        <div class="pr-1 pl-0 rsi_info_box"
+            th:classappend="${useHistory} ? 'col-lg-12 col-md-12' : 'col-lg-12 col-md-12'">
+            <form class="equipmentModifyForm">
+                <table class="table table-bordered text-center mb-0">
+                    <colgroup>
+                        <col width="160px" />
+                        <col width="285px" />
+                        <col width="160px" />
+                        <col width="285px" />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <th>관리번호</th>
+                            <td><input type="text" class="form-control" name="manageNo" /></td>
+                            <th rowspan="7">장비 이미지</th>
+                            <td rowspan="7">
+                                <img class="equipmentImg" src="/images/standard_equipment_sample_.png">
+                                <div class="btn-group w-100" style="display: block;" role=" group"
+                                    aria-label="Basic example">
+                                    <label id="equip_img_label" for="equipImgFile"
+                                        class="btn btn-outline-success w-100">
+                                        이미지 선택
+                                    </label>
+                                    <input name="equipmentImgFile" id="equipImgFile" class="d-none" type="file"
+                                        accept="image/*" />
+                                    <!-- <button type="button" style="display: block;" class="btn btn-danger w-100 deleteImgFile">이미지 삭제</button> -->
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="required">기기명(국문)</th>
+                            <td><input type="text" class="form-control required " name="name" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>기기명(영문)</th>
+                            <td><input type="text" class="form-control " name="nameEn" /></td>
+                        </tr>
+                        <tr>
+                            <th>제작회사(국문)</th>
+                            <td><input type="text" class="form-control " name="makeAgent" /></td>
+                        </tr>
+                        <tr>
+                            <th>제작회사(영문)</th>
+                            <td><input type="text" class="form-control " name="makeAgentEn" /></td>
+                        </tr>
+                        <tr>
+                            <th>기기번호</th>
+                            <td><input type="text" class="form-control " name="serialNo" /></td>
+                        </tr>
+                        <tr>
+                            <th class="required">분야</th>
+                            <td>
+                                <select class="form-control required equipmentFieldSelect" name="equipmentFieldId">
+                                    <option value="">선택하세요.</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>폐기여부</th>
+                            <td class="text-left">
+                                <div class="form-check form-check-inline mx-2">
+                                    <label class="form-check-label d-flex mr-3">
+                                        <input class="form-check-input" type="radio" name="isDispose" value="y" >
+                                        폐기
+                                    </label>
+                                    <label class="form-check-label d-flex">
+                                        <input class="form-check-input" type="radio" name="isDispose" value="n" checked> 미폐기
+                                    </label>
+                                </div>
+                            </td>
+                            <th>중간점검여부</th>
+                            <td class="text-left">
+                                <div class="form-check form-check-inline mx-2">
+                                    <label class="form-check-label d-flex mr-3">
+                                        <input class="form-check-input" type="radio" name="isInterimCheck" value="y"
+                                            checked> 점검
+                                    </label>
+                                    <label class="form-check-label d-flex">
+                                        <input class="form-check-input" type="radio" name="isInterimCheck" value="n">
+                                        미점검
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                모델명
+                            </th>
+                            <td><input type="text" class="form-control" name="modelName" /></td>
+                            <th>교정주기</th>
+                            <td>
+                                <select class="form-control" name="caliCycleMonths">
+                                    <option value="">선택하세요.</option>
+                                    <option value="3">3개월</option>
+                                    <option value="6">6개월</option>
+                                    <option value="12">12개월</option>
+                                    <option value="18">18개월</option>
+                                    <option value="24">24개월</option>
+                                    <option value="36">36개월</option>
+                                    <option value="60">60개월</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>세부사양(정밀도)</th>
+                            <td><input type="text" class="form-control" name="accuracySpec" />
+                            </td>
+                            <th>용도</th>
+                            <td><input type="text" class="form-control" name="purpose" /></td>
+                        </tr>
+                        <tr>
+                            <th>관리담당 (정)/(부)</th>
+                            <td>
+                                <div class="input-group">
+                                    <input type="hidden" class="members" />
+                                    <select class="form-control primaryManagerSelect " name="primaryManagerId">
+                                        <option value="">(정) 선택하세요.</option>
+                                        <option value="1">이바다</option>
+                                    </select>
+                                    <select class="form-control  secondaryManagerSelect" name="secondaryManagerId">
+                                        <option value="">(부) 선택하세요.</option>
+                                        <option value="1">이바다</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <th>관리부서</th>
+                            <td><select type="text" class="form-control" name="manageDepartmentId">
+                                    <option value="">없음</option>
+                                </select></td>
+                        </tr>
+                        <tr>
+                            <th>설치위치</th>
+                            <td><input type="text" class="form-control equip_site" name="installLocation" />
+                            </td>
+                            <th class="required">도래알림일</th>
+                            <td>
+                                <input type="text" class="form-control number_integer" name="dueNotifyDays"
+                                    placeholder="관리하지 않는다면 0으로 입력해주세요." maxlength="3" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>구입처</th>
+                            <td><input type="text" class="form-control " name="purchaseVendor" /></td>
+                            <th>TEL</th>
+                            <td><input type="text" class="form-control " name="purchaseVendorTel" /></td>
+                        </tr>
+                        <tr>
+                            <th>구입처담당자</th>
+                            <td><input type="text" class="form-control" name="purchaseContactManager" /></td>
+                            <th>유휴여부</th>
+                            <td class="text-left">
+                                <div class="form-check form-check-inline mx-2">
+                                    <label class="form-check-label d-flex mr-3">
+                                        <input class="form-check-input" type="radio" name="isUse" value="n"> 유휴
+                                    </label>
+                                    <label class="form-check-label d-flex">
+                                        <input class="form-check-input" type="radio" name="isUse" value="y" checked> 사용
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>구입일/설치일</th>
+                            <td>
+                                <div class="input-group">
+                                    <input type="date" class="form-control" name="purchaseDate" />
+                                    <input type="date" class="form-control" name="installDate" />
+                                </div>
+                            </td>
+                            <th>구입가격</th>
+                            <td><input type="text" class="form-control text-right pr-1 number_integer" value="0"
+                                    name="purchasePrice" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>세부사항</th>
+                            <td><input type="text" class="form-control" name="detailNote" /></td>
+                            <th>매뉴얼 유무</th>
+                            <td class="text-left">
+                                <div class="form-check form-check-inline mx-2">
+                                    <label class="form-check-label d-flex mr-3">
+                                        <input class="form-check-input" type="radio" name="hasManual" value="y" checked>
+                                        존재
+                                    </label>
+                                    <label class="form-check-label d-flex">
+                                        <input class="form-check-input" type="radio" name="hasManual" value="n"> 미존재
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>설치조건충족여부</th>
+                            <td class="text-left">
+                                <div class="form-check form-check-inline mx-2">
+                                    <label class="form-check-label d-flex mr-3">
+                                        <input class="form-check-input" type="radio" name="isInstallCondition" value="y"
+                                            checked>충족
+                                    </label>
+                                    <label class="form-check-label d-flex">
+                                        <input class="form-check-input" type="radio" name="isInstallCondition"
+                                            value="n">미충족
+                                    </label>
+                                </div>
+                            </td>
+                            <th>펌웨어 버전</th>
+                            <td>
+                                <div class="input-group">
+                                    <div class="form-check form-check-inline mx-2">
+                                        <label class="form-check-label d-flex mr-3">
+                                            <input class="form-check-input" type="radio" name="hasFirmware" value="y"
+                                                checked> 존재
+                                        </label>
+                                        <label class="form-check-label d-flex">
+                                            <input class="form-check-input" type="radio" name="hasFirmware" value="n">
+                                            미존재
+                                        </label>
+                                    </div>
+                                    <input type="text" class="form-control" name="firmwareVersion" placeholder="버전" />
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th colspan="2">특성</th>
+                            <th colspan="2">비고</th>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><textarea class="form-control" style="resize: none;" rows="3"
+                                    name="property"></textarea></td>
+                            <td colspan="2"><textarea class="form-control" style="resize: none;" rows="3"
+                                    name="remark"></textarea></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </form>
+
+        </div>
+        <!-- 장비이력에 대한 기능을 추가할 때 오픈할 것 -->
+        <div class="col-lg-6 col-md-6 pl-0 pr-0" th:if="${useHistory}">
+            <div class="card">
+                <div class="card-header p-2">
+                    <h7 class="font-weight-bold">장비이력</h7>
+                </div>
+                <div class="reportList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

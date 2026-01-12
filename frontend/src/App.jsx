@@ -1,13 +1,29 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import Home from "./pages/Home";
+import AdminLayout from "./layouts/AdminLayout";
+
+import Dashboard from "./pages/Dashboard";
+import CompanyAccounts from "./pages/CompanyAccounts";
+import LoginHistory from "./pages/LoginHistory";
+import WorkHistory from "./pages/WorkHistory";
+import MenuPermissions from "./pages/MenuPermissions";
+import Notices from "./pages/Notices";
 
 export default function App() {
   return (
     <Routes>
-      {/* /admin 또는 /admin/ 로 들어오면 /admin/home 으로 보내기 */}
-      <Route path="/" element={<Navigate to="/home" replace />} />
-      <Route path="/home" element={<Home />} />
-      <Route path="*" element={<div style={{ padding: 24 }}>Not Found</div>} />
+      {/* 어드민 레이아웃 아래로 페이지들이 들어감 */}
+      <Route element={<AdminLayout />}>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+
+        <Route path="/company-accounts" element={<CompanyAccounts />} />
+        <Route path="/login-history" element={<LoginHistory />} />
+        <Route path="/work-history" element={<WorkHistory />} />
+        <Route path="/menu-permissions" element={<MenuPermissions />} />
+        <Route path="/notices" element={<Notices />} />
+      </Route>
+
+      <Route path="*" element={<div className="page">Not Found</div>} />
     </Routes>
   );
 }

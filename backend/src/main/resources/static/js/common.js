@@ -42,8 +42,17 @@ $(function () {
 })
 	// 0이상의 정수만 입력 가능
 	.on('input', 'input.number_integer', function () {
-		let this_value = this.value.replace(/\D+/g, ''); // 숫자 외 제거
-		this.value = this_value;
+		// 숫자만 남김
+		let digits = String(this.value ?? '').replace(/[^\d]/g, '');
+		// 숫자 외 입력이거나 결과가 비면 0으로 강제
+		if (digits.length === 0) digits = '0';
+
+		// 콤마 표시
+		this.value = comma(digits); // comma는 digits가 '0' 이상만 들어오게 됨
+
+		// 수정전
+		// let this_value = this.value.replace(/\D+/g, ''); // 숫자 외 제거
+		// this.value = this_value;
 
 		// NOTE 'keyup' 대신 'input'을 사용하는 이유
 		// 1. keyup의 경우, '키를 뗐을 때'만 발생. 즉, 키보드 입력에만 의존.
@@ -426,8 +435,15 @@ function g_set_data(key, value, storage = localStorage) {
  */
 function custom_ajax_handler(err) {
 	// jQuery xhr 스타일에 맞춰서 구현
-	console.error('catch문!');
+	console.error('custom_ajax_handler문 동작!!');
 	console.error(err);
+
+	// 일반 Error(message) 처리
+	if (err instanceof Error) {
+		g_toast(err.message || '요청 중 오류가 발생했습니다.', 'error');
+		return false;
+	}	
+
 	const xhr = err?.xhr || err;
 	const status = xhr?.status;
 	const respJSON = xhr?.responseJSON;
@@ -1453,7 +1469,6 @@ function comma(str) {
 		if ('NaN' == str1) {
 			str1 = 0;
 		}
-
 		// console.log(`comma str: ${str}, ${str1}`);
 		return str1;
 	} catch (ex) {}
@@ -1465,12 +1480,12 @@ function uncomma(str) {
 	try {
 		str = String(str);
 		// var str1 = str.replace(/^[\d]+/g, '');
-		var str1 = str.replaceAll(",", "");
+		var str1 = str.replaceAll(',', '');
 		if ('NaN' == str1) {
 			str1 = 0;
 		}
 		// console.log(`uncomma str: ${str}, ${str1}`);
 		return str1;
-	} catch (ex) { }
+	} catch (ex) {}
 	return str;
 }

@@ -1,0 +1,6 @@
+.equipmentImg {
+	cursor: pointer;
+	height: 190px;
+	object-fit: contain;
+	width: 100%;
+}
