@@ -29,11 +29,11 @@
                                 <select class="form-control searchType" name="searchType" id="searchType">
                                     <!-- 전체선택의 경우 빈 문자열을 보낸다. -->
                                     <option value="">전체선택</option>
-                                    <option value="name">아이디</option>
+                                    <option value="loginId">아이디</option>
                                     <option value="name">이름</option>
-                                    <option value="name">이메일</option>
-                                    <option value="agentNum">부서</option>
-                                    <option value="addr">직급</option>
+                                    <option value="email">이메일</option>
+                                    <!-- <option value="department">부서</option> -->
+                                    <!-- <option value="level">직급</option> -->
                                 </select>
                                 <div class="input-group-append">
                                     <input type="input" class="form-control" id="keyword" name="keyword" value="" />
@@ -46,7 +46,7 @@
                     </ul>
                 </div>
             </form>
-            <div class="grid agentList"></div>
+            <div class="grid memberList"></div>
         </div>
     </div>
 </body>

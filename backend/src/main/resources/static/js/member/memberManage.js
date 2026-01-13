@@ -44,7 +44,7 @@ $(function () {
 				header: '사번',
 				name: 'compayNo',
 				className: 'cursor_pointer',
-				width: '100',
+				width: '200',
 				align: 'center',
 			},
 			{
@@ -58,7 +58,7 @@ $(function () {
 				header: '이메일',
 				name: 'email',
 				className: 'cursor_pointer',
-				width: '300',
+				width: '200',
 				align: 'center',
 				sortable: true,
 			},
@@ -73,29 +73,31 @@ $(function () {
 				header: '휴대번호',
 				name: 'tel',
 				className: 'cursor_pointer',
-				width: '70',
-				align: 'center',
-			},
-
-			{
-				header: '부서',
-				name: 'departmentName',
 				width: '100',
-				className: 'cursor_pointer',
 				align: 'center',
 			},
-			{
-				header: '직급',
-				name: 'levelName',
-				className: 'cursor_pointer',
-				align: 'center',
-			},
+			// {
+			// 	header: '부서',
+			// 	name: 'departmentName',
+			// 	width: '100',
+			// 	className: 'cursor_pointer',
+			// 	align: 'center',
+			// },
+			// {
+			// 	header: '직급',
+			// 	name: 'levelName',
+			// 	className: 'cursor_pointer',
+			// 	align: 'center',
+			// },
 			{
 				header: '상태(재직유무)',
 				name: 'workType',
 				className: 'cursor_pointer',
-				width: '80',
+				width: '130',
 				align: 'center',
+				formatter: function ({row, value}) {
+					return (value == 0) ? '재직' : (value == 1) ? '휴직' : '퇴직';
+				}
 			},
 		],
 		pageOptions: {

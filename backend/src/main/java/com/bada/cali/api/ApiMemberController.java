@@ -71,10 +71,14 @@ public class ApiMemberController {
 	
 	// 직원관리 리스트 가져오기
 	@GetMapping(value = "/getMemberList")
-	public ResponseEntity<TuiGridDTO.Res<MemberListPr>> getMemberList(
+	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<MemberListPr>>> getMemberList(
 			@ModelAttribute MemberDTO.GetMemberListReq req
 	) {
 		
 		TuiGridDTO.ResData<MemberListPr> gridData = memberService.getMemberList(req);
+		
+		TuiGridDTO.Res<TuiGridDTO.ResData<MemberListPr>> body = new TuiGridDTO.Res<>(true, gridData);
+		
+		return ResponseEntity.ok(body);
 	}
 }

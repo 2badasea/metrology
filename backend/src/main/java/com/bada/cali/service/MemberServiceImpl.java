@@ -17,10 +17,12 @@ import com.bada.cali.repository.MemberRepository;
 import com.bada.cali.repository.projection.MemberListPr;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -40,6 +42,7 @@ public class MemberServiceImpl {
 	
 	private final PasswordEncoder passwordEncoder;
 	private final MemberMapper memberMapper;
+	private final RestClient.Builder builder;
 	
 	/**
 	 * 사용자 계정(loginId) 중복 체크
@@ -153,10 +156,23 @@ public class MemberServiceImpl {
 		String searchType = req.getSearchType();	// 검색타입
 		String keyword = req.getKeyword();			// 키워드
 		
+		if (searchType == null || searchType.isBlank()) {
+			searchType = "all";
+		}
+		keyword = (keyword == null) ? "" : keyword.trim();
+		YnType isVisible = YnType.y;
 		
+		Page<MemberListPr> pageResult = memberRepository.getMemberList(workType, searchType, keyword, isVisible, pageRequest);
 		
+		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
+				.page(req.getPage())
+				.totalCount((int) pageResult.getTotalElements())
+				.build();
 		
-	
+		return TuiGridDTO.ResData.<MemberListPr>builder()
+				.pagination(pagination)
+				.contents(pageResult.getContent())
+				.build();
 	}
 	
 }
