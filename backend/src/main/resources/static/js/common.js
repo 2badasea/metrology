@@ -13,7 +13,6 @@ Grid.applyTheme('custom', {
 		},
 	},
 });
-
 $(function () {
 	console.log('++ common.js');
 

@@ -286,10 +286,15 @@ $(function () {
 				console.error('g_modal 실행 중 에러', err);
 			}
 		})
+		// TODO 아직 미구현
 		// 삭제
 		.on('click', '.deleteOrder', async function (e) {
 			e.preventDefault();
-
+			const gUserAuth = $(".gLoginAuth").val();
+			if (gUserAuth !== 'admin') {
+				g_toast('권한이 없습니다', 'warning');
+				return false;
+			}
 			// 1. 그리드 내 체크된 업체 확인
 			const checkedRows = $modal.grid.getCheckedRows();
 			if (checkedRows.length === 0) {
@@ -315,6 +320,7 @@ $(function () {
 							JSON.stringify(sendData),
 
 							{
+								type: 'DELETE',
 								contentType: 'application/json; charset=utf-8',
 							}
 						);

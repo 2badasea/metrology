@@ -197,7 +197,7 @@ $(function () {
 				const params = {
 					parentId: largeCodeId,
 					codeLevel: 'MIDDLE',
-					keyword: $('.middleKeyword', $modal).val().trim()
+					keyword: $('.middleKeyword', $modal).val().trim(),
 				};
 				$modal.middleGrid.readData(1, params, true);
 			}
@@ -216,7 +216,7 @@ $(function () {
 				const params = {
 					parentId: middleCodeId,
 					codeLevel: 'SMALL',
-					keyword: $('.smallKeyword', $modal).val().trim()
+					keyword: $('.smallKeyword', $modal).val().trim(),
 				};
 				$modal.smallGrid.readData(1, params, true);
 			}
@@ -397,6 +397,11 @@ $(function () {
 		})
 		// 분류코드 삭제
 		.on('click', '.deleteItemCode', async function () {
+			const gUserAuth = $('.gLoginAuth').val();
+			if (gUserAuth !== 'admin') {
+				g_toast('권한이 없습니다', 'warning');
+				return false;
+			}
 			const type = $(this).data('type'); // 'SMALL' | 'MIDDLE'
 			const targetGrid = type === 'SMALL' ? $modal.smallGrid : $modal.middleGrid;
 			const checkedRows = targetGrid.getCheckedRows();
@@ -465,7 +470,7 @@ $(function () {
 			const $btn = $(this);
 			const codeLevel = $btn.data('type');
 
-			const keywordClass = (codeLevel === 'MIDDLE') ? 'middleKeyword' : 'smallKeyword';
+			const keywordClass = codeLevel === 'MIDDLE' ? 'middleKeyword' : 'smallKeyword';
 			const keyword = $(`.${keywordClass}`, $modal).val().trim();
 
 			let parentId;
@@ -478,8 +483,7 @@ $(function () {
 				parentId = largeCodeId;
 				$('.middleCodeBody input', $modal).val('').prop('readonly', false);
 				$('.smallCodeBody input', $modal).val('').prop('readonly', false);
-			} 
-			else {
+			} else {
 				const focusedCell = $modal.middleGrid.getFocusedCell();
 				const focusedRowKey = focusedCell.rowKey;
 				if (focusedRowKey == null) {
@@ -491,23 +495,21 @@ $(function () {
 				$('.smallCodeBody input', $modal).val('').prop('readonly', false);
 			}
 
-			const targetGrid = (codeLevel === 'MIDDLE') ? $modal.middleGrid : $modal.smallGrid;
+			const targetGrid = codeLevel === 'MIDDLE' ? $modal.middleGrid : $modal.smallGrid;
 
 			const params = {
 				parentId: parentId,
 				codeLevel: codeLevel,
-				keyword: keyword
+				keyword: keyword,
 			};
-			targetGrid.readData(1, params, true);			
-
+			targetGrid.readData(1, params, true);
 		})
 		.on('keyup', '.searchKeyword', function (e) {
 			if (e.keyCode == 13) {
 				const $btn = $(this).closest('div').find('button.search');
 				$btn.trigger('click');
 			}
-		})
-		;
+		});
 
 	// 분류코드 삭제 처리 콜백
 	$modal.deleteCode = async (ids, type) => {

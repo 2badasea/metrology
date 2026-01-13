@@ -227,7 +227,7 @@ $(function () {
 				ids: ids,
 				codeLevel: 'LARGE'
 			}), {
-				type: "POST",
+				type: "DELETE",
 				contentType: 'application/json; charset=utf-8'
 			});
 

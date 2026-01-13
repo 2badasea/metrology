@@ -325,6 +325,11 @@ $(function () {
 		// 삭제
 		.on('click', '.deleteItem', async function (e) {
 			e.preventDefault();
+			const gUserAuth = $('.gLoginAuth').val();
+			if (gUserAuth !== 'admin') {
+				g_toast('권한이 없습니다', 'warning');
+				return false;
+			}
 
 			// 1. 그리드 내 체크된 항목 확인
 			const checkedRows = $modal.grid.getCheckedRows();

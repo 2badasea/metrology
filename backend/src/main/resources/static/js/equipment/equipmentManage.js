@@ -256,6 +256,11 @@ $(function () {
 		})
 		// 표준장비 삭제
 		.on('click', '.deleteEquipment', async function () {
+			const gUserAuth = $('.gLoginAuth').val();
+			if (gUserAuth !== 'admin') {
+				g_toast('권한이 없습니다', 'warning');
+				return false;
+			}
 			const $btn = $(this);
 			const checkedRows = $modal.grid.getCheckedRows();
 			if (checkedRows.length === 0) {
@@ -272,8 +277,6 @@ $(function () {
 					checkedRows.forEach((row) => {
 						deletedIds.push(row.id);
 					});
-					console.log('배열 확인');
-					console.log(deletedIds);
 					const feOptions = {
 						method: 'DELETE',
 						headers: { 'Content-Type': 'application/json' },
