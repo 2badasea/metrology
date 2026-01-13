@@ -61,4 +61,15 @@ public class ApiCaliController {
 		ResMessage<CaliDTO.saveCaliOrder> resMessage = new ResMessage<>(code, null, caliOrderData);
 		return ResponseEntity.ok(resMessage);
 	}
+	
+	// 세금계산서 발행여부 변경
+	@PostMapping(value = "/updateIsTax")
+	public ResponseEntity<ResMessage<?>> updateIsTax(
+			@ModelAttribute CaliDTO.UpdateIsTaxReq req,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		
+		ResMessage<?> resMessage = caliOrderService.updateIsTax(req, user);
+		return ResponseEntity.ok(resMessage);
+	}
 }

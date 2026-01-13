@@ -5,6 +5,7 @@ import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.EquipmentDTO;
 import com.bada.cali.dto.TuiGridDTO;
 import com.bada.cali.repository.projection.EquipmentListPr;
+import com.bada.cali.repository.projection.UsedEquipmentListPr;
 import com.bada.cali.security.CustomUserDetails;
 import com.bada.cali.service.EquipmentServiceImpl;
 import lombok.AllArgsConstructor;
@@ -75,7 +76,17 @@ public class ApiEquipmentController {
 	}
 	
 	// 사용중인 표준장비 데이터 가져오기
-	// @GetMapping("/getUsedEquipment")
-	// public TuiGridDTO.Res<TuiGridDTO.ResData<UsedEquipmentListPr>> getUsedEquipment(@ModelAttribute EquipmentDTO)
+	@GetMapping("/getUsedEquipment")
+	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<UsedEquipmentListPr>>> getUsedEquipment(
+			@ModelAttribute EquipmentDTO.GetUsedListReq req
+	) {
+		log.info("사용중인 표준장비 가져오기");
+		
+		TuiGridDTO.ResData<UsedEquipmentListPr> gridData = equipmentService.getUsedEquipment(req);
+		
+		TuiGridDTO.Res<TuiGridDTO.ResData<UsedEquipmentListPr>> body = new TuiGridDTO.Res<>(true, gridData);
+		
+		return ResponseEntity.ok(body);
+	}
 	
 }

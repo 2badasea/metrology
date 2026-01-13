@@ -53,7 +53,7 @@ public class ApiBasicController {
 	}
 	
 	// 업체 삭제 요청
-	@PostMapping("/deleteAgent")
+	@DeleteMapping("/deleteAgent")
 	public ResponseEntity<ResMessage<List<String>>> deleteAgent(
 			@RequestBody AgentDTO.DelAgentReq delAgentReq,
 			@AuthenticationPrincipal CustomUserDetails user
@@ -152,7 +152,7 @@ public class ApiBasicController {
 	}
 	
 	// 분류코드 최종 삭제처리
-	@PostMapping(value = "/deleteItemCode")
+	@DeleteMapping(value = "/deleteItemCode")
 	public ResponseEntity<ResMessage<Object>> deleteItemCode(
 			@RequestBody ItemCodeDTO.DeleteCheckReq req,
 			@AuthenticationPrincipal CustomUserDetails user

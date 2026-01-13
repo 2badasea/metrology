@@ -27,4 +27,10 @@ public class EquipmentController {
 		return "equipment/equipmentModify";
 	}
 	
+	// 표준장비 조회 모달 호출
+	@PostMapping(value = "/searchEquipmentList")
+	public String searchEquipmentList() {
+		return "equipment/searchEquipmentList";
+	}
+	
 }

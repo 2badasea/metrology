@@ -9,7 +9,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -56,6 +59,19 @@ public class GlobalViewNameAdvice {
 		// 기본 title '교정관리'라고 표시
 		model.addAttribute("title", "교정관리 프로젝트");
 		
+		// 유저
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return;
+		}
+		Object principal = authentication.getPrincipal();
+		if (!(principal instanceof CustomUserDetails gUser)) {
+			return;
+		}
+		boolean isAdmin = gUser.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(a -> "ROLE_ADMIN".equals(a));
+		model.addAttribute("gLoginAuth", isAdmin ? "admin" : "user");
+		
+		
 		// 조회하는 페이지가 모달이 아닌 경우에만 사이드메뉴를 세팅할 수 있또록 한다.
 		if (!"modal".equalsIgnoreCase(renderMode)) {
 			
@@ -80,6 +96,7 @@ public class GlobalViewNameAdvice {
 		}
 		
 	}
+	
 	
 	/**
 	 * flat 한 Menu 리스트를 계층 구조(MenuNode 트리)로 변환

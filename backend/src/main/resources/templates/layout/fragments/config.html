@@ -1,5 +1,7 @@
 <th:block th:fragment="config">
 	<title th:text="${title} ?: 'App'">App</title>
+
+	<input type="hidden" class="gLoginAuth" th:value="${gLoginAuth}" />
 	
 	<!-- 모달 페이지가 아닐 때에만 로드 -->
 	<th:block th:if="${renderMode != 'modal'}">

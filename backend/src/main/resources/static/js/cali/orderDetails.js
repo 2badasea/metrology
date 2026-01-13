@@ -242,6 +242,11 @@ $(function () {
 		})
 		// 성적서 삭제
 		.on('click', '.deleteReport', async function () {
+			const gUserAuth = $("#gLoginAuth").val();
+			if (gUserAuth !== 'ADMIN') {
+				g_toast('권한이 없습니다', 'warning');
+				return false;
+			}
 			const checkedRows = $modal.grid.getCheckedRows();
 			if (checkedRows.length === 0) {
 				g_toast('삭제할 성적서를 선택해주세요.', 'warning');

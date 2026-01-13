@@ -2,15 +2,15 @@ package com.bada.cali.service;
 
 import com.bada.cali.common.ResMessage;
 import com.bada.cali.common.enums.*;
+import com.bada.cali.dto.EquipmentDTO;
 import com.bada.cali.dto.ItemDTO;
 import com.bada.cali.dto.ReportDTO;
 import com.bada.cali.dto.TuiGridDTO;
-import com.bada.cali.entity.CaliOrder;
-import com.bada.cali.entity.Item;
-import com.bada.cali.entity.Log;
-import com.bada.cali.entity.Report;
+import com.bada.cali.entity.*;
 import com.bada.cali.mapper.ReportMapper;
+import com.bada.cali.mapper.StandardEquipmentRefMapper;
 import com.bada.cali.repository.CaliOrderRepository;
+import com.bada.cali.repository.EquipmentRefRepository;
 import com.bada.cali.repository.LogRepository;
 import com.bada.cali.repository.ReportRepository;
 import com.bada.cali.repository.projection.LastManageNoByType;
@@ -39,6 +39,8 @@ public class ReportServiceImpl {
 	private final LogRepository logRepository;
 	private final ReportMapper reportMapper;
 	private final ItemServiceImpl itemService;
+	private final EquipmentRefRepository equipmentRefRepository;
+	private final StandardEquipmentRefMapper standardEquipmentRefMapper;
 	
 	/**
 	 * 성적서 등록
@@ -555,6 +557,19 @@ public class ReportServiceImpl {
 				.logContent(String.format("[성적서 수정] 성적서번호: %s - 고유번호: %d", updateReport.getReportNum(), id))
 				.build();
 		logRepository.save(updateLog);
+		
+		List<EquipmentDTO.UsedEquipment> equipmentDatas = req.equipmentDatas();
+		if (equipmentDatas != null && !equipmentDatas.isEmpty()) {
+			// 기존에 참조하던 데이터가 있을 경우 삭제한다.
+			String refTable = "report";
+			equipmentRefRepository.deleteUsedEquipData(refTable, id);
+			
+			List<StandardEquipmentRef> saveEquipList = new ArrayList<>();
+			for (EquipmentDTO.UsedEquipment equipment : equipmentDatas) {
+				saveEquipList.add(standardEquipmentRefMapper.toEntityFromRecord(equipment));
+			}
+			equipmentRefRepository.saveAll(saveEquipList);
+		}
 		
 		// 자식성적서도 존재하는지 확인
 		List<ReportDTO.ChildReportInfo> childReportInfos = req.childReportInfos();

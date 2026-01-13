@@ -289,6 +289,10 @@ i.close:hover {
 	width: 140px !important;
 }
 
+.w-90 {
+	width: 90% !important
+}
+
 /* 토스트 그리드 관련 */
 td[data-column-name*='grid_btn_'] .tui-grid-cell-content {
 	padding: 0px !important;
@@ -317,6 +321,10 @@ td[data-column-name*='grid_btn_'] .tui-grid-cell-content {
 
 .gridFocused {
 	background-color: bisque !important;
+}
+
+.selectedRow {
+	background-color: antiquewhite !important;
 }
 
 /************** END토스트 그리드 관련 ****************/

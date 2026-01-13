@@ -1,5 +1,6 @@
 package com.bada.cali.service;
 
+import com.bada.cali.common.ResMessage;
 import com.bada.cali.common.enums.CaliType;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.CaliDTO;
@@ -372,6 +373,41 @@ public class CaliOrderServiceImpl {
 		CaliOrder caliOrder = caliOrderRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("해당 접수 건이 존재하지 않습니다."));
 		
 		return caliOrderMapper.toDtoFromCaliOrderInfo(caliOrder);
+	}
+	
+	// 세금계산서 발행여부 변경
+	@Transactional
+	public ResMessage<?> updateIsTax(CaliDTO.UpdateIsTaxReq req, CustomUserDetails user) {
+		int resCode = 0;
+		String resMsg = "";
+		
+		LocalDateTime now = LocalDateTime.now();
+		Long userId = user.getId();
+		String workerName = user.getName();
+		
+		Long caliOrderId = req.id();
+		YnType isTax = req.isTax();
+		
+		int ResUpdateIsTax = caliOrderRepository.updateIsTax(caliOrderId, isTax, now, userId);
+		if (ResUpdateIsTax > 0) {
+			Log saveLog = Log.builder()
+					.logContent(String.format("[세금계산서 발행여부 변경] 접수 ID: %d", caliOrderId))
+					.createDatetime(now)
+					.createMemberId(userId)
+					.refTableId(caliOrderId)
+					.refTable("cali_order")
+					.workerName(workerName)
+					.logType("u")
+					.build();
+			logRepository.save(saveLog);
+			resCode = 1;
+			resMsg = "세금계산서 발행여부가 변경되었습니다.";
+		} else {
+			resCode = -1;
+			resMsg = "변경에 실패했습니다.";
+		}
+		
+		return new ResMessage<>(resCode, resMsg, null);
 	}
 	
 }

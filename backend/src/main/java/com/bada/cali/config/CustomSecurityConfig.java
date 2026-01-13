@@ -41,6 +41,8 @@ public class CustomSecurityConfig {
 				.csrf(AbstractHttpConfigurer::disable)                    // csrf 토큰확인 비활성화 처리 (NOTATION 3번)
 				// 접근 허용 경로 설정
 				.authorizeHttpRequests(auth -> auth
+						// DELETE는 무조건 ADMIN만 허용
+						.requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
 						.requestMatchers(
 								// "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico", 아래 'WebSecurityCustomizer'에서 정적 리소스 접근 처리
 								"/login"

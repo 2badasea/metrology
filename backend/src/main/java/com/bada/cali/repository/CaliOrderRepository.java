@@ -6,11 +6,13 @@ import com.bada.cali.entity.CaliOrder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -67,6 +69,23 @@ public interface CaliOrderRepository extends JpaRepository<CaliOrder, Long> {
 				order by o.id DESC
 			""")
 	List<CaliOrder> getLastOrderByYear(@Param("orderPrefix") String orderPrefix, Pageable pageable);
+	
+	
+	
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+				UPDATE CaliOrder AS o
+					SET o.isTax = :isTax,
+						o.updateDatetime = :now,
+						o.updateMemberId = :userId
+					WHERE o.id = :caliOrderId
+			""")
+	int updateIsTax(
+			@Param("caliOrderId") Long caliOrderId,
+			@Param("isTax") YnType isTax,
+			@Param("now")LocalDateTime now,
+			@Param("userId") Long userId
+	);
 	
 	
 }

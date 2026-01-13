@@ -58,6 +58,7 @@ public interface EquipmentRepository extends JpaRepository<StandardEquipment, Lo
 								)
 							)
 						)
+						AND (:exceptIds IS NULL OR e.id NOT IN :exceptIds)
 			""")
 	Page<EquipmentListPr> getEquipmentList(
 			@Param("isVisible") YnType isVisible,
@@ -66,6 +67,7 @@ public interface EquipmentRepository extends JpaRepository<StandardEquipment, Lo
 			@Param("equipmentFieldId") Long equipmentFieldId,
 			@Param("searchType") String searchType,
 			@Param("keyword") String keyword,
+			@Param("exceptIds") List<Long> exceptIds,
 			Pageable pageable
 	);
 	
