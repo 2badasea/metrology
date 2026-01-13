@@ -97,16 +97,10 @@ $(function () {
 		$modal.equipmentDataSource = {
 			api: {
 				readData: {
-					url: '/api/caliOrder/getOrderList',
+					url: '/api/equipment/getUsedEquipment',
 					serializer: (grid_param) => {
-						// 접수시작/종료일, 세금계산서, 접수유형, 진행상태, 검색타입, 검색키워드를 넘긴다.
-						grid_param.orderStartDate = $('form.searchForm .orderStartDate', $modal).val() ?? ''; // 접수일(시작일)
-						grid_param.orderEndDate = $('form.searchForm .orderEndDate', $modal).val() ?? ''; // 접수일(마지막)
-						grid_param.isTax = $('form.searchForm .isTax', $modal).val() ?? ''; // 세금계산서 발행여부
-						grid_param.caliType = $('form.searchForm .caliType', $modal).val() ?? ''; // 교정유형(고정표준실/현장교정)
-						grid_param.statusType = $('form.searchForm .statusType', $modal).val() ?? ''; // 진행상태
-						grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? ''; // 검색타입
-						grid_param.keyword = $('form.searchForm', $modal).find('#keyword').val() ?? ''; // 검색키워드
+						grid_param.refTableId = id;
+						grid_param.refTable = 'report';
 						return $.param(grid_param);
 					},
 					method: 'GET',
@@ -119,35 +113,51 @@ $(function () {
 			el: document.querySelector('.equipageList'),
 			columns: [
 				{
-					header: '구분',
-					name: 'reportType',
+					name: 'equipmentId',
+					hidden: true,
+				},
+				{
+					header: '관리번호',
+					name: 'manageNo',
 					className: 'cursor_pointer',
 					width: '',
 					align: 'center',
 				},
 				{
-					header: '성적서번호',
-					name: 'reportNum',
+					header: '장비명',
+					name: 'name',
 					className: 'cursor_pointer',
 					width: '',
 					align: 'center',
 				},
-			],
-			// minBodyHeight: gridBodyHeight,
-			// bodyHeight: gridBodyHeight,
-			// data: $modal.equipmentDataSource,
-			data: [
 				{
-					'reportType': 'self',
-					'reportNum': 'BD25-0001-001',
-					'itemName': '테스트 기기',
-					'itemNum': '2025122101',
-					'itemFormat': '25 ~ 45(kg)',
+					header: '제작회사',
+					name: 'makeAgent',
+					className: 'cursor_pointer',
+					width: '',
+					align: 'center',
+				},
+				{
+					header: '모델명',
+					name: 'modelName',
+					className: 'cursor_pointer',
+					width: '',
+					align: 'center',
+				},
+				{
+					header: '기기번호',
+					name: 'serialNo',
+					className: 'cursor_pointer',
+					width: '',
+					align: 'center',
 				},
 			],
 			pageOptions: {
-				perPage: 15,
+				perPage: 10
 			},
+			minBodyHeight: 200,
+			bodyHeight: 200,
+			data: $modal.equipmentDataSource,
 			draggable: true,
 		});
 	}; // End of init_modal
@@ -177,11 +187,9 @@ $(function () {
 					smallItemCodeSet = itemCodeSet.smallCodeInfos;
 				}
 			} else {
-				console.log('호출실패');
 				throw new Error('/api/basic/getItemCodeInfos 호출 실패');
 			}
 		} catch (xhr) {
-			console.error('통신에러');
 			custom_ajax_handler(xhr);
 		}
 	};
@@ -322,16 +330,51 @@ $(function () {
 		.on('click', '.notMoidfy', function () {
 			g_toast('성적서 수정 시, 품목정보 변경은 조회로만 가능합니다.', 'warning');
 			return false;
+		})
+		// 표준장비 조회 모달 호출
+		.on('click', '.searchEquipage', async function () {
+			// 모달을 띄우지만 기존에 선택된 것은 필터링 한다. (다중선택)
+			const equipDatas = $modal.grid.getData();
+			equipDatas.forEach((row) => {
+				row.id = row.equipmentId;
+			})
+			const resModal = await g_modal(
+				'/equipment/searchEquipmentList',
+				{ equipDatas: equipDatas },
+				{
+					title: '표준장비 조회',
+					size: 'xxxl',
+					show_close_button: true,
+					show_confirm_button: true,
+					confirm_button_text: '선택',
+				}
+			);
+
+			if (resModal) {
+				// 데이터 조회 후 세팅
+				if (resModal.jsonData != undefined && resModal.jsonData.length > 0) {
+					$modal.grid.clear();
+					resModal.jsonData.forEach((row) => {
+						const appendData = {
+							equipmentId: row.id,
+							name: row.name,
+							manageNo: row.manageNo,
+							serialNo: row.serialNo,
+							makeAgent: row.makeAgent,
+							modelName: row.modelName,
+						};
+						$modal.grid.appendRow(appendData);
+					})
+				}
+			}
 		});
 
 	// 저장
 	$modal.confirm_modal = async function (e) {
-		console.log('저장진행');
 		const $btn = $('button.btn_save', $modal_root);
 
-		// TODO 1. 표준장비 그리드 구현 시, 별도 처리 필요
-		// TODO 2. 품목관리 페이지 구현 시, 품목 자동저장 로직 추가할 것
 		const $form = $('.reportModifyForm', $modal);
+		$modal.grid.blur();
 
 		// form 요소중에 자식 테이블의 하위 요소를 제외한 요소들을 대상으로 값을 담는다.
 		const saveData = $form.find('input[name], textarea[name], select[name]').not('.childTable input[name]');
@@ -383,6 +426,25 @@ $(function () {
 		});
 		// NOTE string형태로 해당 key를 받기 위해선 애초에 값 자체를 문자열로 직렬화 시킨 상태로 값을 담아야 한다.
 		saveObj.environmentInfo = JSON.stringify(environmentInfo);
+
+		// 표준장비 데이터 담기
+		const equipmentDatas = [];
+		const euqipGridDatas = $modal.grid.getData();
+		if (euqipGridDatas.length > 0) {
+			euqipGridDatas.forEach((row, index) => {
+				equipmentDatas.push(
+					{
+						refTable: 'report',
+						refTableId: id,
+						equipmentId: row.equipmentId,
+						seq: index
+					}
+				);
+			})
+		}
+		saveObj.equipmentDatas = equipmentDatas;
+
+
 
 		const childReportData = [];
 		// 자식성적서가 존재하는 경우, 별도로 받을 것
@@ -492,7 +554,6 @@ $(function () {
 		// 반환된 데이터 존재 시 삽입
 		if (resModal.jsonData != undefined) {
 			const d = resModal.jsonData;
-			console.log(d);
 			table.find('input[name=itemId]').val(d.id);
 			table.find('input[name=itemCaliCycle]').val(d.caliCycle);
 			table.find('input[name=itemName]').val(d.name);

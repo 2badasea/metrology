@@ -31,6 +31,7 @@ public class EquipmentDTO {
 		Long equipmentFieldId;		// 분야코드 id
 		String searchType;			// 검색타입
 		String keyword;				// 검색키워드
+		List<Long> exceptIds;		// 검색 제외 id
 	}
 	
 	// 표준장비 등록/수정 데이터
@@ -90,6 +91,22 @@ public class EquipmentDTO {
 	public record DeleteEquipmentReq(
 			List<Long> deletedIds
 	){};
+	
+	@Setter
+	@Getter
+	@NoArgsConstructor
+	public static class GetUsedListReq extends TuiGridDTO.Request {
+		Long refTableId;
+		String refTable;
+	}
+	
+	// 사용중인 표준장비
+	public record UsedEquipment (
+			String refTable,
+			Long refTableId,
+			Long equipmentId,
+			Integer seq
+	){}
 	
 	
 	

@@ -208,7 +208,9 @@ public class ReportDTO {
 			String tracestatementInfo,           // 소급성문구
 			
 			// 자식성적서
-			List<ChildReportInfo> childReportInfos
+			List<ChildReportInfo> childReportInfos,
+			// 사용주인 표준장비
+			List<EquipmentDTO.UsedEquipment> equipmentDatas
 	) {
 	}
 	

@@ -1,0 +1,55 @@
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<div layout:fragment="content">
+    <div class="w-100">
+        <form class="searchForm">
+            <div class="d-flex justify-content-end">
+                <div class="input-group mb-1 w-50">
+                    <div class="input-group-append">
+                        <button class="btn btn-success resetBtn" type="button">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+
+                    <select class="form-control equipmentFieldSelect" name="equipmentFieldId">
+                        <option value="" selected>분야 전체</option>
+                    </select>
+
+                    <select class="form-control isUse" name="isUse">
+                        <option value="" selected>사용 여부</option>
+                        <option value="y">사용</option>
+                        <option value="n">유휴</option>
+                    </select>
+
+                    <select class="form-control isDispose" name="isDispose">
+                        <option value="" selected>폐기 여부</option>
+                        <option value="y">폐기</option>
+                        <option value="n">미폐기</option>
+                    </select>
+
+                    <select class="form-control searchType" name="searchType" id="searchType">
+                        <option value="">전체선택</option>
+                        <option value="manageNo">관리번호</option>
+                        <option value="name">장비명</option>
+                        <option value="makeAgent">제작회사</option>
+                        <option value="modelName">모델명</option>
+                    </select>
+
+                    <div class="input-group-append">
+                        <input type="input" class="form-control" id="keyword" name="keyword" value=""
+                            placeholder="키워드를 입력하세요." />
+                    </div>
+
+                    <div class="input-group-append">
+                        <button class="btn btn-info searchAgent" type="submit">조회</button>
+                    </div>
+                </div>
+            </div>
+            <div class="selectedContainer w-90"></div>
+        </form>
+    </div>
+    <div class="grid searchEquipGrid"></div>
+</div>
+
+</html>

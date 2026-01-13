@@ -349,6 +349,11 @@ $(function () {
 				// TODO 나중에 window.open 방식을 get이 아닌 from으로 변경할 수 있도록 할 것
 				window.open(`/cali/orderDetails?caliOrderId=${row.id}&custAgent=${row.custAgent}&reportAgent=${row.reportAgent}`, '_blank');
 			}
+			// 세금계산서
+			if (e.columnName == 'isTax') {
+				// TODO 토글 변경 시, confirm 메시지를 통해서 접수의 세금계산서 발행여부가 업데이트 되도록 할 것
+				return false;
+			}
 			// 접수수정
 			else {
 				try {

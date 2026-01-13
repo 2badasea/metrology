@@ -9,11 +9,9 @@ import com.bada.cali.entity.FileInfo;
 import com.bada.cali.entity.Log;
 import com.bada.cali.entity.StandardEquipment;
 import com.bada.cali.mapper.StandardEquipmentMapper;
-import com.bada.cali.repository.EquipmentFieldRepository;
-import com.bada.cali.repository.EquipmentRepository;
-import com.bada.cali.repository.FileInfoRepository;
-import com.bada.cali.repository.LogRepository;
+import com.bada.cali.repository.*;
 import com.bada.cali.repository.projection.EquipmentListPr;
+import com.bada.cali.repository.projection.UsedEquipmentListPr;
 import com.bada.cali.security.CustomUserDetails;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -41,6 +39,7 @@ public class EquipmentServiceImpl {
 	private final FileInfoRepository fileInfoRepository;
 	private final StandardEquipmentMapper equipmentMapper;
 	private final NcpStorageProperties storageProps; // endpoint, bucketName 등
+	private final EquipmentRefRepository equipmentRefRepository;
 	
 	// 표준장비의 분야 데이터를 가져온다
 	@Transactional(readOnly = true)
@@ -78,8 +77,11 @@ public class EquipmentServiceImpl {
 		String keyword = req.getKeyword();
 		keyword = (keyword == null) ? "" : keyword.trim();
 		
+		List<Long> exceptIds = req.getExceptIds();
+		exceptIds = (exceptIds != null &&  exceptIds.isEmpty()) ? null : exceptIds;
+		
 		Page<EquipmentListPr> pageResult = equipmentRepository.getEquipmentList(
-				isVisible, isUse, isDispose, equipmentFieldId, searchType, keyword, pageRequest
+				isVisible, isUse, isDispose, equipmentFieldId, searchType, keyword, exceptIds, pageRequest
 		);
 		
 		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
@@ -304,5 +306,35 @@ public class EquipmentServiceImpl {
 		}
 		
 		return new ResMessage<>(resCode, resMsg, null);
+	}
+	
+	// 사용중인 표준장비 리스트 가져오기
+	@Transactional(readOnly = true)
+	public TuiGridDTO.ResData<UsedEquipmentListPr> getUsedEquipment(EquipmentDTO.GetUsedListReq req) {
+		
+		int pageIndex = req.getPage() - 1;
+		int perPage = req.getPerPage();
+		
+		PageRequest pageRequest = PageRequest.of(pageIndex, perPage);
+		
+		String refTable = req.getRefTable();
+		Long refTableId = req.getRefTableId();
+		YnType isVisible = YnType.y;
+		
+		Page<UsedEquipmentListPr> pageResult = equipmentRefRepository.getUsedEquipment(refTable, refTableId, isVisible, pageRequest);
+		
+		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
+				.page(req.getPage())
+				.totalCount((int) pageResult.getTotalElements())
+				.build();
+		
+		List<UsedEquipmentListPr> contents = pageResult.getContent();
+		if (refTable == null || refTable.isBlank()) {
+			pagination = null;
+		}
+		return TuiGridDTO.ResData.<UsedEquipmentListPr>builder()
+				.contents(contents)
+				.pagination(pagination)
+				.build();
 	}
 }
