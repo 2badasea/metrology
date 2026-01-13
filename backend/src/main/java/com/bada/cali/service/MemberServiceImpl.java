@@ -2,6 +2,7 @@ package com.bada.cali.service;
 
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.MemberDTO;
+import com.bada.cali.dto.TuiGridDTO;
 import com.bada.cali.entity.Agent;
 import com.bada.cali.entity.AgentManager;
 import com.bada.cali.entity.Log;
@@ -13,8 +14,10 @@ import com.bada.cali.repository.AgentManagerRepository;
 import com.bada.cali.repository.AgentRepository;
 import com.bada.cali.repository.LogRepository;
 import com.bada.cali.repository.MemberRepository;
+import com.bada.cali.repository.projection.MemberListPr;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -133,4 +136,27 @@ public class MemberServiceImpl {
 		
 		return new MemberDTO.MemberJoinRes(1, "가입신청이 완료되었습니다.");
 	}
+	
+	@Transactional(readOnly = true)
+	public TuiGridDTO.ResData<MemberListPr> getMemberList(MemberDTO.GetMemberListReq req) {
+		log.info("데이터 확인");
+		
+		int pageIndex = req.getPage() - 1;
+		int perPage = req.getPerPage();
+		
+		PageRequest pageRequest = PageRequest.of(pageIndex, perPage);
+		
+		// 검색타입 정리
+		Integer workType = req.getWorkType();		// 재직여부
+		log.info("workType 확인");
+		log.info(workType);
+		String searchType = req.getSearchType();	// 검색타입
+		String keyword = req.getKeyword();			// 키워드
+		
+		
+		
+		
+	
+	}
+	
 }
