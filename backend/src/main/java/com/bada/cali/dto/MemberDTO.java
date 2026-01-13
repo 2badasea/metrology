@@ -65,4 +65,16 @@ public class MemberDTO {
 		private final int code;		// 생성시점에 불변에 가깝게 동작시키기 위해 final & @Setter 미선언
 		private final String msg;
 	}
+	
+	
+	// 직원관리 토스트 그리드 dto
+	@Setter
+	@Getter
+	@NoArgsConstructor
+	public static class GetMemberListReq extends TuiGridDTO.Request {
+		Integer workType;		// 재직여부 (0: 재직, 1: 휴직, 2: 퇴사)
+		String searchType;		// 검색타입
+		String keyword;			// 검색 키워드
+	}
+	
 }

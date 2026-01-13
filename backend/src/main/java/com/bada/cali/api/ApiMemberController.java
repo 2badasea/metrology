@@ -2,6 +2,8 @@ package com.bada.cali.api;
 
 import com.bada.cali.common.ResMessage;
 import com.bada.cali.dto.MemberDTO;
+import com.bada.cali.dto.TuiGridDTO;
+import com.bada.cali.repository.projection.MemberListPr;
 import com.bada.cali.service.MemberServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -65,5 +67,18 @@ public class ApiMemberController {
 		
 		MemberDTO.MemberJoinRes memberJoinRes = memberService.memberJoin(memberJoinReq);
 		return ResponseEntity.ok(memberJoinRes);
+	}
+	
+	// 직원관리 리스트 가져오기
+	@GetMapping(value = "/getMemberList")
+	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<MemberListPr>>> getMemberList(
+			@ModelAttribute MemberDTO.GetMemberListReq req
+	) {
+		
+		TuiGridDTO.ResData<MemberListPr> gridData = memberService.getMemberList(req);
+		
+		TuiGridDTO.Res<TuiGridDTO.ResData<MemberListPr>> body = new TuiGridDTO.Res<>(true, gridData);
+		
+		return ResponseEntity.ok(body);
 	}
 }

@@ -1,17 +1,12 @@
 package com.bada.cali.controller;
 
 import com.bada.cali.security.CustomUserDetails;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 
 
 @Controller
@@ -40,6 +35,13 @@ public class MemberController {
 	public String memberJoin(Model model) {
 		log.info("memberJoin get................");
 		return "member/memberJoin";
+	}
+	
+	// 직원관리 페이지
+	@GetMapping(value = "/memberManage")
+	public String memberManage(Model model) {
+		log.info("직원관리 페이지 이동");
+		return "member/memberManage";
 	}
 	
 }

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <div layout:fragment="content">
+        <div class="wrapper">
+            <form class="searchForm mb-1" name="searchForm">
+                <div class="d-flex">
+                    <ul class="list-group list-group-horizontal font-weight-bold mr-auto">
+                        <li>
+                            <button type="button" class="btn btn-danger deleteMember">삭제</button>
+                            <button type="button" class="btn btn-primary addMember">등록</button>
+                        </li>
+                    </ul>
+                    <!-- 검색타입: 재직여부(검색필터), 검색타입(직원명, 이메일, 부서, 직급) -->
+                    <ul class="ml-auto list-group list-group-horizontal" id="searchFormUl">
+                        <li class="mr-1 d-flex">
+                            <!-- option의 값을 숫자 형태로 작성하더라도 서버엔 문자열 형태로 넘어간다 -->
+                            <select class="form-control workType" name="workType">
+                                <option value="">재직여부</option>
+                                <option value="0" selected>재직</option>
+                                <option value="1">휴직</option>
+                                <option value="2">퇴사</option>
+                            </select>
+                        </li>
+                        <li class="mr-1 d-flex">
+                            <div class="input-group">
+                                <select class="form-control searchType" name="searchType" id="searchType">
+                                    <!-- 전체선택의 경우 빈 문자열을 보낸다. -->
+                                    <option value="">전체선택</option>
+                                    <option value="loginId">아이디</option>
+                                    <option value="name">이름</option>
+                                    <option value="email">이메일</option>
+                                    <!-- <option value="department">부서</option> -->
+                                    <!-- <option value="level">직급</option> -->
+                                </select>
+                                <div class="input-group-append">
+                                    <input type="input" class="form-control" id="keyword" name="keyword" value="" />
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+            <div class="grid memberList"></div>
+        </div>
+    </div>
+</body>
+
+</html>

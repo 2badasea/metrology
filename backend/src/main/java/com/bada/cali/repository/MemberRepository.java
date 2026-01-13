@@ -2,7 +2,10 @@ package com.bada.cali.repository;
 
 import com.bada.cali.entity.Member;
 import com.bada.cali.common.enums.YnType;
+import com.bada.cali.repository.projection.MemberListPr;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -54,5 +57,44 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 								  @Param("isVisible") YnType isVisible,
 								  @Param("deleteDatetime") LocalDateTime deleteDatetime,
 								  @Param("deleteMemberId") Long deleteMemberId);
+	
+	
+	// 직원관리 회원 리스트
+	@Query("""
+					SELECT
+						m.id AS id,
+						m.loginId as loginId,
+						m.email as email,
+						m.name as name,
+						m.tel as tel,
+						m.workType as workType
+					FROM Member AS m
+					where m.isVisible = :isVisible
+					and m.agentId = 0
+					and m.isActive = 'y'
+					and (:workType IS NULL OR m.workType = :workType)
+					AND (
+									:keyword = '' OR
+									(
+										(:searchType = 'loginId' AND m.loginId LIKE concat('%', :keyword, '%'))
+										OR (:searchType = 'name' AND m.name LIKE concat('%', :keyword, '%'))
+										OR (:searchType = 'email' AND m.email LIKE concat('%', :keyword, '%'))
+										OR (:searchType = 'all' AND (
+																	m.loginId LIKE concat('%', :keyword, '%')
+																	OR 	m.name LIKE concat('%', :keyword, '%')
+																	OR 	m.email LIKE concat('%', :keyword, '%')
+																)
+										)
+									)
+								)
+			
+			""")
+	Page<MemberListPr> getMemberList(
+			@Param("workType") Integer workType,
+			@Param("searchType") String searchType,
+			@Param("keyword") String keyword,
+			@Param("isVisible") YnType isVisible,
+			PageRequest pageRequest
+	);
 	
 }
