@@ -128,12 +128,12 @@ $(function () {
 				width: '80',
 				align: 'center',
 				formatter: function (data) {
+					let row = data.row;
 					// data.isCheck == 'y'라면, checked 속성값 삽입
 					let checked = data.value == 'y' ? 'checked' : '';
-					const id = `customSwitch_tax_${data.rowKey}`;
-					// FIX toggle을 활용해서 보여주도록 한다.
+					const id = `customSwitch_tax_${row.rowKey}`;
 					return `<div class="custom-control custom-switch">
-								<input type="checkbox" class="custom-control-input" id="${id}" ${checked}>
+								<input type="checkbox" class="custom-control-input taxToggle" data-rowKey='${row.rowKey}' id="${id}" ${checked}>
         						<label class="custom-control-label" for="${id}"></label>
 							</div>`;
 				},
@@ -290,7 +290,7 @@ $(function () {
 		// 삭제
 		.on('click', '.deleteOrder', async function (e) {
 			e.preventDefault();
-			const gUserAuth = $(".gLoginAuth").val();
+			const gUserAuth = $('.gLoginAuth').val();
 			if (gUserAuth !== 'admin') {
 				g_toast('권한이 없습니다', 'warning');
 				return false;
@@ -341,24 +341,49 @@ $(function () {
 					return false;
 				}
 			}
-
 			return false;
+		})
+		// 세금계산서 토글 변경
+		.on('click', '.taxToggle', async function () {
+			const $checkbox = $(this); // 클릭한 체크박스
+			const isChecked = $checkbox.prop('checked'); // 변경된 후의 상태 (true/false)
+
+			const isTaxConfirm = await g_message('세금계산서 발행 여부', '세금계산서 발행 여부를 변경하시겠습나까?', 'question', 'confirm');
+			if (isTaxConfirm.isConfirmed !== true) {
+				$checkbox.prop('checked', !isChecked);
+				return false;
+			}
+			const rowKey = Number($checkbox.attr('data-rowKey'));
+			const rowData = $modal.grid.getRow(rowKey);
+			// 상태를 변경한다.
+			const resUpdateIsTax = await g_ajax(
+				'/api/caliOrder/updateIsTax',
+				{
+					id: rowData.id,
+					isTax: isChecked == true ? 'y' : 'n',
+				},
+				{
+					type: 'POST',
+				}
+			);
+
+			if (resUpdateIsTax?.code > 0) {
+				await g_message('세금계산서 발행 여부 변경', '변경되었습니다', 'success', 'alert');
+				$modal.grid.reloadData();
+			} else {
+				await g_message('세금계산서 발행 여부 변경', '변경에 실패했습니다.', 'error', 'alert');
+			}
 		});
 
 	// 그리드 이벤트 정의
 	$modal.grid.on('click', async function (e) {
 		const row = $modal.grid.getRow(e.rowKey);
 
-		if (row && e.columnName != '_checked') {
+		if (row && e.columnName != '_checked' && e.columnName != 'isTax') {
 			// 접수내역 호출
 			if (e.columnName == 'grid_btn_orderDetails') {
 				// TODO 나중에 window.open 방식을 get이 아닌 from으로 변경할 수 있도록 할 것
 				window.open(`/cali/orderDetails?caliOrderId=${row.id}&custAgent=${row.custAgent}&reportAgent=${row.reportAgent}`, '_blank');
-			}
-			// 세금계산서
-			if (e.columnName == 'isTax') {
-				// TODO 토글 변경 시, confirm 메시지를 통해서 접수의 세금계산서 발행여부가 업데이트 되도록 할 것
-				return false;
 			}
 			// 접수수정
 			else {

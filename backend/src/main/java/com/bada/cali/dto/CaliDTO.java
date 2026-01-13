@@ -113,4 +113,9 @@ public class CaliDTO {
 		private String orderNum;                // 접수번호
 	}
 	
+	public record UpdateIsTaxReq(
+			Long id,
+			YnType isTax
+	){}
+	
 }
