@@ -16,9 +16,12 @@
                             </ul>
                             <ul class="ml-auto list-group list-group-horizontal">
                                 <li>
-                                    <button type="button" class="btn btn-danger deleteDepartment">삭제</button>
-                                    <button type="button" class="btn btn-info addDepartment">추가</button>
-                                    <button type="button" class="btn btn-success saveDepartment">저장</button>
+                                    <button type="button" class="btn btn-danger delete"
+                                        data-type="department">삭제</button>
+                                    <button type="button" class="btn btn-info add addDepartment"
+                                        data-type="department">추가</button>
+                                    <button type="button" class="btn btn-success save saveDepartment"
+                                        data-type="department">저장</button>
                                 </li>
                             </ul>
                         </div>
@@ -39,15 +42,18 @@
                             </ul>
                             <ul class="ml-auto list-group list-group-horizontal">
                                 <li>
-                                    <button type="button" class="btn btn-danger deleteLevel">삭제</button>
-                                    <button type="button" class="btn btn-info addLevel">추가</button>
-                                    <button type="button" class="btn btn-success saveLevel">저장</button>
+                                    <button type="button" class="btn btn-danger delete"
+                                        data-type="memberLevel">삭제</button>
+                                    <button type="button" class="btn btn-info add addLevel"
+                                        data-type="memberLevel">추가</button>
+                                    <button type="button" class="btn btn-success save saveLevel"
+                                        data-type="memberLevel">저장</button>
                                 </li>
                             </ul>
                         </div>
                     </div>
                     <div class="card-body p-1">
-                        <div class="grid levelGrid"></div>
+                        <div class="grid memberLevelGrid"></div>
                     </div>
                 </div>
             </div>

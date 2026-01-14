@@ -2,10 +2,7 @@ package com.bada.cali.api;
 
 import com.bada.cali.common.ResMessage;
 import com.bada.cali.common.enums.CodeLevel;
-import com.bada.cali.dto.AgentDTO;
-import com.bada.cali.dto.AgentManagerDTO;
-import com.bada.cali.dto.ItemCodeDTO;
-import com.bada.cali.dto.TuiGridDTO;
+import com.bada.cali.dto.*;
 import com.bada.cali.repository.AgentManagerRepository;
 import com.bada.cali.repository.projection.DepartmentListPr;
 import com.bada.cali.repository.projection.ItemCodeList;
@@ -205,6 +202,16 @@ public class ApiBasicController {
 		// boolean, data
 		TuiGridDTO.Res<TuiGridDTO.ResData<MemberLevelListPr>> body = new TuiGridDTO.Res<>(true, gridData);
 		return ResponseEntity.ok(body);
+	}
+	
+	// 부서/직급관리 저장
+	@PostMapping(value = "/saveBasicInfo")
+	public ResponseEntity<ResMessage<?>> saveBasicInfo(
+			@RequestBody BasicDTO.BasicSaveDataSet req,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		ResMessage<?> resMessage = basicService.saveBasicInfo(req, user);
+		return ResponseEntity.ok(resMessage);
 	}
 	
 }

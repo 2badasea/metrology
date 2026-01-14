@@ -72,4 +72,9 @@ public class MemberLevel {
 		this.deleteDatetime = LocalDateTime.now();
 		this.deleteMemberId = userId;
 	}
+	
+	public void createInfo(Long userId) {
+		this.createMemberId = userId;
+		this.createDatetime = LocalDateTime.now();
+	}
 }
