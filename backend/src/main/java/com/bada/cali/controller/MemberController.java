@@ -44,4 +44,12 @@ public class MemberController {
 		return "member/memberManage";
 	}
 	
+	// 직원 등록/수정 페이지
+	@GetMapping(value = "/memberModify")
+	public String memberModify(Model model, @RequestParam(required = false) Long id) {
+		String pageTypeKr = (id == null) ? "등록" : "수정";
+		model.addAttribute("title", String.format("직원 %s", pageTypeKr));
+		return "member/memberModify";
+	}
+	
 }

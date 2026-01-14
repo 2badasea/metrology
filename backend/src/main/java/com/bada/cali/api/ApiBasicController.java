@@ -2,15 +2,15 @@ package com.bada.cali.api;
 
 import com.bada.cali.common.ResMessage;
 import com.bada.cali.common.enums.CodeLevel;
-import com.bada.cali.dto.AgentDTO;
-import com.bada.cali.dto.AgentManagerDTO;
-import com.bada.cali.dto.ItemCodeDTO;
-import com.bada.cali.dto.TuiGridDTO;
+import com.bada.cali.dto.*;
 import com.bada.cali.repository.AgentManagerRepository;
+import com.bada.cali.repository.projection.DepartmentListPr;
 import com.bada.cali.repository.projection.ItemCodeList;
+import com.bada.cali.repository.projection.MemberLevelListPr;
 import com.bada.cali.repository.projection.OrderDetailsList;
 import com.bada.cali.security.CustomUserDetails;
 import com.bada.cali.service.AgentServiceImpl;
+import com.bada.cali.service.BasicServiceImpl;
 import com.bada.cali.service.ItemCodeServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -31,6 +31,7 @@ public class ApiBasicController {
 	
 	private final AgentServiceImpl agentService;
 	private final ItemCodeServiceImpl itemCodeService;
+	private final BasicServiceImpl basicService;
 	
 	// 업체관리 리스트 가져오기 (토스트 그리드)
 	// NOTE 그리드 api형식에 맞춰서 데이터를 받기 때문에, JSON.stringify() 처리를 하지 않았기에 @ModelAttribute로 받음.
@@ -134,8 +135,7 @@ public class ApiBasicController {
 	@PostMapping(value = "/saveItemCode")
 	public ResponseEntity<ResMessage<Object>> saveItemCode(
 			@RequestBody List<ItemCodeDTO.ItemCodeData> req,
-			@AuthenticationPrincipal CustomUserDetails user)
-	{
+			@AuthenticationPrincipal CustomUserDetails user) {
 		ResMessage<Object> resMessage = itemCodeService.saveItemCode(req, user);
 		
 		return ResponseEntity.ok(resMessage);
@@ -146,7 +146,7 @@ public class ApiBasicController {
 	public ResponseEntity<ResMessage<Map<String, String>>> deleteItemCodeCheck(
 			@RequestBody ItemCodeDTO.DeleteCheckReq req
 	) {
-	
+		
 		ResMessage<Map<String, String>> resMessage = itemCodeService.deleteItemCodeCheck(req);
 		return ResponseEntity.ok(resMessage);
 	}
@@ -166,7 +166,7 @@ public class ApiBasicController {
 	@GetMapping("/getItemCodeSet")
 	public ResponseEntity<ResMessage<List<ItemCodeList>>> getItemCodeSet(
 			@RequestParam CodeLevel codeLevel
-			) {
+	) {
 		
 		ResMessage<List<ItemCodeList>> resMessage = itemCodeService.getItemCodeSet(codeLevel);
 		
@@ -177,6 +177,48 @@ public class ApiBasicController {
 	public ResponseEntity<ResMessage<ItemCodeDTO.ItemCodeInfosRes>> getItemCodeSet() {
 		ResMessage<ItemCodeDTO.ItemCodeInfosRes> resMessage = itemCodeService.getItemCodeInfos();
 		
+		return ResponseEntity.ok(resMessage);
+	}
+	
+	// 부서관리 리스트 가져오기
+	@GetMapping(value = "/getDepartmentList")
+	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<DepartmentListPr>>> getDepartmentList(
+	) {
+		
+		// pagination, contents
+		TuiGridDTO.ResData<DepartmentListPr> gridData = basicService.getDepartmentList();
+		// boolean, data
+		TuiGridDTO.Res<TuiGridDTO.ResData<DepartmentListPr>> body = new TuiGridDTO.Res<>(true, gridData);
+		return ResponseEntity.ok(body);
+	}
+	
+	// 직급관리 리스트 가져오기
+	@GetMapping(value = "/getMemberLevelList")
+	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<MemberLevelListPr>>> getMemberLevelList(
+	) {
+		
+		// pagination, contents
+		TuiGridDTO.ResData<MemberLevelListPr> gridData = basicService.getMemberLevelList();
+		// boolean, data
+		TuiGridDTO.Res<TuiGridDTO.ResData<MemberLevelListPr>> body = new TuiGridDTO.Res<>(true, gridData);
+		return ResponseEntity.ok(body);
+	}
+	
+	// 부서/직급관리 저장
+	@PostMapping(value = "/saveBasicInfo")
+	public ResponseEntity<ResMessage<?>> saveBasicInfo(
+			@RequestBody BasicDTO.BasicSaveDataSet req,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		ResMessage<?> resMessage = basicService.saveBasicInfo(req, user);
+		return ResponseEntity.ok(resMessage);
+	}
+	
+	// 부서관리와 직급관리 정보르 같이 가져온다 (직원등록/수정 세팅)
+	@GetMapping(value = "/getBasicOptions")
+	public ResponseEntity<ResMessage<BasicDTO.DepartmentAndMemberLevel>> getBasicOptions() {
+		
+		ResMessage<BasicDTO.DepartmentAndMemberLevel> resMessage = basicService.getBasicOptions();
 		return ResponseEntity.ok(resMessage);
 	}
 	

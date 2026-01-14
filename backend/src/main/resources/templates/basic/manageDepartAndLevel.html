@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <div layout:fragment="content">
+        <div class="row m-0 p-1">
+            <div class="col-lg-6 col-md-6 pl-0 pr-1">
+                <div class="card">
+                    <div class="card-header p-1">
+                        <div class="d-flex">
+                            <ul style="margin-bottom: 0px !important;">
+                                <li>
+                                    <h5 class="ml-3 mt-2 font-weight-bold card_header_style">부서관리</h5>
+                                </li>
+                            </ul>
+                            <ul class="ml-auto list-group list-group-horizontal">
+                                <li>
+                                    <button type="button" class="btn btn-danger delete"
+                                        data-type="department">삭제</button>
+                                    <button type="button" class="btn btn-info add addDepartment"
+                                        data-type="department">추가</button>
+                                    <button type="button" class="btn btn-success save saveDepartment"
+                                        data-type="department">저장</button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body p-1">
+                        <div class="grid departmentGrid"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 pl-0 pr-1">
+                <div class="card">
+                    <div class="card-header p-1">
+                        <div class="d-flex">
+                            <ul style="margin-bottom: 0px !important;">
+                                <li>
+                                    <h5 class="ml-3 mt-2 font-weight-bold card_header_style">직급관리</h5>
+                                </li>
+                            </ul>
+                            <ul class="ml-auto list-group list-group-horizontal">
+                                <li>
+                                    <button type="button" class="btn btn-danger delete"
+                                        data-type="memberLevel">삭제</button>
+                                    <button type="button" class="btn btn-info add addLevel"
+                                        data-type="memberLevel">추가</button>
+                                    <button type="button" class="btn btn-success save saveLevel"
+                                        data-type="memberLevel">저장</button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body p-1">
+                        <div class="grid memberLevelGrid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

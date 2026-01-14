@@ -98,4 +98,11 @@ public class BasicController {
 	public String searchItemList() {
 		return "basic/searchItemList";
 	}
+	
+	// 부서 및 직급관리
+	@GetMapping(value = "/manageDepartAndLevel")
+	public String manageDepartAndLevel(Model model) {
+		model.addAttribute("title", "부서 및 직급관리");
+		return "basic/manageDepartAndLevel";
+	}
 }

@@ -79,7 +79,7 @@ dependencies {
     implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.2.1'
 
     // 로그 메시지를 출력하기 위한 API. (런타임 이슈로 인해 추가)
-    implementation 'org.jboss.logging:jboss-logging:3.4.1.Final'
+    implementation 'org.jboss.logging:jboss-logging'
 
     // 테스트 의존성
     testImplementation 'org.springframework.boot:spring-boot-starter-test'   // JUnit, Mockito 등 포함

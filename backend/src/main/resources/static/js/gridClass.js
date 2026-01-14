@@ -373,3 +373,31 @@ class DateEditor {
 
 	beforeDestroy() {}
 }
+
+// 셀에 체크박스를 "항상" 표시하는 커스텀 렌더러
+class AuthCheckboxRenderer {
+  constructor(props) {
+    this.el = document.createElement('input');
+    this.el.type = 'checkbox';
+    this.el.className = 'cell-auth-checkbox';
+
+    // 셀 클릭 이벤트(행 선택 등)와 충돌 방지
+    this.el.addEventListener('click', (e) => e.stopPropagation());
+
+    // 체크 변경 시 그리드 데이터 갱신
+    this.el.addEventListener('change', () => {
+      const checked = this.el.checked === true;
+      props.grid.setValue(props.rowKey, props.columnInfo.name, checked);
+    });
+
+    this.render(props);
+  }
+
+  getElement() {
+    return this.el;
+  }
+
+  render(props) {
+    this.el.checked = props.value === true;
+  }
+}
