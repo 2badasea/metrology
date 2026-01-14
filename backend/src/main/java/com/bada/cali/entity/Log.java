@@ -52,5 +52,6 @@ public class Log {
 	
 	// 등록자
 	@Column(name = "create_member_id", nullable = false, columnDefinition = "INT UNSIGNED DEFAULT 0")
+	@Builder.Default
 	private Long createMemberId = 0L;
 }
