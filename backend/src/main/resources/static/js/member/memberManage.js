@@ -15,100 +15,111 @@ $(function () {
 	// 직원관리 리스트
 	$modal.init_modal = (param) => {
 		$modal.param = param;
-		console.log('🚀 ~ $modal.param:', $modal.param);
-	};
 
-	// 업체관리 리스트 가져오기
-	$modal.data_source = {
-		api: {
-			readData: {
-				url: '/api/member/getMemberList',
-				// 'serializer'는 토스트 그리드에서 제공
-				serializer: (grid_param) => {
-					grid_param.workType = $modal.find('select[name=workType]').val(); // 재직여부
-					grid_param.searchType = $modal.find('select[name=searchType]').val(); // 검색 타입
-					grid_param.keyword = $modal.find('input[name=keyword]').val(); // 검색 키워드
-					return $.param(grid_param);
+		// 업체관리 리스트 가져오기
+		$modal.data_source = {
+			api: {
+				readData: {
+					url: '/api/member/getMemberList',
+					// 'serializer'는 토스트 그리드에서 제공
+					serializer: (grid_param) => {
+						grid_param.workType = $modal.find('select[name=workType]').val(); // 재직여부
+						grid_param.searchType = $modal.find('select[name=searchType]').val(); // 검색 타입
+						grid_param.keyword = $modal.find('input[name=keyword]').val(); // 검색 키워드
+						return $.param(grid_param);
+					},
+					method: 'GET',
 				},
-				method: 'GET',
 			},
-		},
-	};
+		};
 
-	// 직원관리 그리드
-	$modal.grid = new Grid({
-		el: document.querySelector('.memberList'),
-		columns: [
-			// 사번, 아이디, 이메일, 이름, 영문이름, 휴대번호, 부서, 직급, 상태(재직여부)
-			{
-				header: '사번',
-				name: 'compayNo',
-				className: 'cursor_pointer',
-				width: '200',
-				align: 'center',
+		// 직원관리 그리드
+		$modal.grid = new Grid({
+			el: document.querySelector('.memberList'),
+			columns: [
+				// 사번, 아이디, 이메일, 이름, 영문이름, 휴대번호, 부서, 직급, 상태(재직여부)
+				{
+					header: '사번',
+					name: 'compayNo',
+					className: 'cursor_pointer',
+					width: '200',
+					align: 'center',
+				},
+				{
+					header: '아이디',
+					name: 'loginId',
+					className: 'cursor_pointer',
+					align: 'center',
+					sortable: true,
+				},
+				{
+					header: '이메일',
+					name: 'email',
+					className: 'cursor_pointer',
+					width: '200',
+					align: 'center',
+					sortable: true,
+				},
+				{
+					header: '이름',
+					name: 'name',
+					width: '100',
+					className: 'cursor_pointer',
+					align: 'center',
+				},
+				{
+					header: '휴대번호',
+					name: 'tel',
+					className: 'cursor_pointer',
+					width: '100',
+					align: 'center',
+				},
+				// {
+				// 	header: '부서',
+				// 	name: 'departmentName',
+				// 	width: '100',
+				// 	className: 'cursor_pointer',
+				// 	align: 'center',
+				// },
+				// {
+				// 	header: '직급',
+				// 	name: 'levelName',
+				// 	className: 'cursor_pointer',
+				// 	align: 'center',
+				// },
+				{
+					header: '상태(재직유무)',
+					name: 'workType',
+					className: 'cursor_pointer',
+					width: '130',
+					align: 'center',
+					formatter: function ({ row, value }) {
+						return value == 0 ? '재직' : value == 1 ? '휴직' : '퇴직';
+					},
+				},
+			],
+			pageOptions: {
+				useClient: false, // 서버 페이징
+				perPage: 20,
 			},
-			{
-				header: '아이디',
-				name: 'loginId',
-				className: 'cursor_pointer',
-				align: 'center',
-				sortable: true,
-			},
-			{
-				header: '이메일',
-				name: 'email',
-				className: 'cursor_pointer',
-				width: '200',
-				align: 'center',
-				sortable: true,
-			},
-			{
-				header: '이름',
-				name: 'name',
-				width: '100',
-				className: 'cursor_pointer',
-				align: 'center',
-			},
-			{
-				header: '휴대번호',
-				name: 'tel',
-				className: 'cursor_pointer',
-				width: '100',
-				align: 'center',
-			},
-			// {
-			// 	header: '부서',
-			// 	name: 'departmentName',
-			// 	width: '100',
-			// 	className: 'cursor_pointer',
-			// 	align: 'center',
-			// },
-			// {
-			// 	header: '직급',
-			// 	name: 'levelName',
-			// 	className: 'cursor_pointer',
-			// 	align: 'center',
-			// },
-			{
-				header: '상태(재직유무)',
-				name: 'workType',
-				className: 'cursor_pointer',
-				width: '130',
-				align: 'center',
-				formatter: function ({row, value}) {
-					return (value == 0) ? '재직' : (value == 1) ? '휴직' : '퇴직';
-				}
-			},
-		],
-		pageOptions: {
-			useClient: false, // 서버 페이징
-			perPage: 20,
-		},
-		rowHeaders: ['checkbox'],
-		minBodyHeight: 663,
-		bodyHeight: 663,
-		data: $modal.data_source,
-	});
+			rowHeaders: ['checkbox'],
+			minBodyHeight: 663,
+			bodyHeight: 663,
+			data: $modal.data_source,
+		});
+
+		// 그리드 이벤트 정의
+		$modal.grid.on('click', async function (e) {
+			const row = $modal.grid.getRow(e.rowKey);
+
+			if (row && e.columnName != '_checked') {
+				const id = row.id;
+				// 직원 등록/수정 페이지 이동
+				location.href = `/member/memberModify?id=${id}`;
+			}
+		});
+
+	};	// End init_modal
 
 	// 페이지 내 이벤트
 	$modal
@@ -118,8 +129,9 @@ $(function () {
 			$modal.grid.getPagination().movePageTo(1);
 		})
 		// 등록
-		.on('click', '.addAgentBtn', async function (e) {
+		.on('click', '.addMember', async function (e) {
 			e.preventDefault();
+			location.href = `/member/memberModify`;
 		})
 		// 삭제
 		.on('click', '.deleteAgentBtn', async function (e) {
@@ -178,37 +190,6 @@ $(function () {
 				return false;
 			}
 		});
-
-	// 그리드 이벤트 정의
-	$modal.grid.on('click', async function (e) {
-		const row = $modal.grid.getRow(e.rowKey);
-
-		if (row && e.columnName != '_checked') {
-			// 업체수정 모달 띄우기
-			try {
-				const resModal = await g_modal(
-					'/basic/agentModify',
-					{
-						id: row.id,
-					},
-					{
-						size: 'xxl',
-						title: '업체 수정',
-						show_close_button: true,
-						show_confirm_button: true,
-						confirm_button_text: '저장',
-					}
-				);
-
-				// 모달이 성공적으로 종료되었을 때만 그리드 갱신
-				if (resModal) {
-					$modal.grid.reloadData();
-				}
-			} catch (err) {
-				console.error('g_modal 실행 중 에러', err);
-			}
-		}
-	});
 
 	$modal.data('modal-data', $modal);
 	$modal.addClass('modal-view-applied');

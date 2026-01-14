@@ -67,7 +67,7 @@ public class BasicServiceImpl {
 		Long userId = user.getId();
 		LocalDateTime now = LocalDateTime.now();
 		
-		String targetEntity = req.type();	// 'department' | 'memberLevel'
+		String targetEntity = req.type();    // 'department' | 'memberLevel'
 		
 		// 삭제대상이 존재하는 경우, 먼저 삭제
 		List<Long> deleteIds = req.deleteIds();
@@ -126,6 +126,23 @@ public class BasicServiceImpl {
 		}
 		resCode = 1;
 		return new ResMessage<>(resCode, resMsg, null);
+	}
+	
+	// 부서관리 & 직급관리 정보 가져오기
+	@Transactional(readOnly = true)
+	public ResMessage<BasicDTO.DepartmentAndMemberLevel> getBasicOptions() {
+		int resCode = 0;
+		String resMsg = "";
+		
+		List<DepartmentListPr> departmentData = departmentRepository.getDepartmentList(YnType.y);
+		List<MemberLevelListPr> memberLevelData = memberLevelRepository.getMemberLevelList(YnType.y);
+		
+		BasicDTO.DepartmentAndMemberLevel data = new BasicDTO.DepartmentAndMemberLevel(departmentData, memberLevelData);
+		
+		resCode = 1;
+		ResMessage<BasicDTO.DepartmentAndMemberLevel> result = new ResMessage<>(resCode, resMsg, data);
+		
+		return result;
 	}
 	
 	

@@ -1,5 +1,8 @@
 package com.bada.cali.dto;
 
+import com.bada.cali.repository.projection.DepartmentListPr;
+import com.bada.cali.repository.projection.MemberLevelListPr;
+
 import java.util.List;
 
 public class BasicDTO {
@@ -22,4 +25,9 @@ public class BasicDTO {
 			List<Long> deleteIds
 	) {
 	}
+	
+	public record DepartmentAndMemberLevel(
+			List<DepartmentListPr> departmentData,
+			List<MemberLevelListPr> memberLevelData
+	){};
 }

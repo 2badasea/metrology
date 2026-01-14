@@ -214,4 +214,12 @@ public class ApiBasicController {
 		return ResponseEntity.ok(resMessage);
 	}
 	
+	// 부서관리와 직급관리 정보르 같이 가져온다 (직원등록/수정 세팅)
+	@GetMapping(value = "/getBasicOptions")
+	public ResponseEntity<ResMessage<BasicDTO.DepartmentAndMemberLevel>> getBasicOptions() {
+		
+		ResMessage<BasicDTO.DepartmentAndMemberLevel> resMessage = basicService.getBasicOptions();
+		return ResponseEntity.ok(resMessage);
+	}
+	
 }

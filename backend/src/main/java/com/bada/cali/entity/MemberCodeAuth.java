@@ -25,4 +25,10 @@ public class MemberCodeAuth {
 	@Id
 	@Column(name = "middle_item_code_id", nullable = false)
 	private Long middleItemCodeId;
+	
+	// 권한 비트마스크(0=없음, 1=실무자, 2=기술책임자(부), 4=기술책임자(정))
+	@Column(name = "auth_bitmask", nullable = false)
+	@Builder.Default
+	private Integer authBitmask = 0;
+	
 }
