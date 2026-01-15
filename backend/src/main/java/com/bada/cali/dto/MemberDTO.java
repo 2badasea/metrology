@@ -77,4 +77,9 @@ public class MemberDTO {
 		String keyword;			// 검색 키워드
 	}
 	
+	// 직원정보 등록 데이터셋 (직원 수정)
+	public record CreateMemberInfo (
+		
+	) {}
+	
 }

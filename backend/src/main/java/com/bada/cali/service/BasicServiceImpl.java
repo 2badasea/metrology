@@ -1,6 +1,7 @@
 package com.bada.cali.service;
 
 import com.bada.cali.common.ResMessage;
+import com.bada.cali.common.enums.CodeLevel;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.BasicDTO;
 import com.bada.cali.dto.TuiGridDTO;
@@ -8,9 +9,11 @@ import com.bada.cali.entity.Department;
 import com.bada.cali.entity.MemberLevel;
 import com.bada.cali.mapper.BasicMapper;
 import com.bada.cali.repository.DepartmentRepository;
+import com.bada.cali.repository.ItemCodeRepository;
 import com.bada.cali.repository.LogRepository;
 import com.bada.cali.repository.MemberLevelRepository;
 import com.bada.cali.repository.projection.DepartmentListPr;
+import com.bada.cali.repository.projection.ItemCodeList;
 import com.bada.cali.repository.projection.MemberLevelListPr;
 import com.bada.cali.security.CustomUserDetails;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,6 +32,7 @@ public class BasicServiceImpl {
 	private final LogRepository logRepository;
 	private final DepartmentRepository departmentRepository;
 	private final MemberLevelRepository memberLevelRepository;
+	private final ItemCodeRepository itemCodeRepository;
 	private final BasicMapper basicMapper;
 	
 	// 부서관리 리스트 가져오기
@@ -130,17 +134,18 @@ public class BasicServiceImpl {
 	
 	// 부서관리 & 직급관리 정보 가져오기
 	@Transactional(readOnly = true)
-	public ResMessage<BasicDTO.DepartmentAndMemberLevel> getBasicOptions() {
+	public ResMessage<BasicDTO.MemberModifySetting> getBasicOptions() {
 		int resCode = 0;
 		String resMsg = "";
 		
 		List<DepartmentListPr> departmentData = departmentRepository.getDepartmentList(YnType.y);
 		List<MemberLevelListPr> memberLevelData = memberLevelRepository.getMemberLevelList(YnType.y);
+		List<ItemCodeList> isUseMiddleCodeData = itemCodeRepository.findAllByCodeLevelAndIsVisibleOrderByIdAsc(CodeLevel.MIDDLE, YnType.y);
 		
-		BasicDTO.DepartmentAndMemberLevel data = new BasicDTO.DepartmentAndMemberLevel(departmentData, memberLevelData);
+		BasicDTO.MemberModifySetting data = new BasicDTO.MemberModifySetting(departmentData, memberLevelData, isUseMiddleCodeData);
 		
 		resCode = 1;
-		ResMessage<BasicDTO.DepartmentAndMemberLevel> result = new ResMessage<>(resCode, resMsg, data);
+		ResMessage<BasicDTO.MemberModifySetting> result = new ResMessage<>(resCode, resMsg, data);
 		
 		return result;
 	}

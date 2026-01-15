@@ -1,5 +1,6 @@
 package com.bada.cali.service;
 
+import com.bada.cali.common.ResMessage;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.MemberDTO;
 import com.bada.cali.dto.TuiGridDTO;
@@ -173,6 +174,13 @@ public class MemberServiceImpl {
 				.pagination(pagination)
 				.contents(pageResult.getContent())
 				.build();
+	}
+	
+	// 회원정보를 가져온다 (직원등록/수정 페이지)
+	@Transactional(readOnly = true)
+	public ResMessage<?> getMemberInfo(Long id) {
+	
+	
 	}
 	
 }

@@ -13,12 +13,11 @@ $(function () {
 
 	urlSearch = new URLSearchParams(location.search); // 쿼리스트링 가져오기 (get으로 파라미터값을 가져올 수 있다.)
 	const memberId = urlSearch.get('id');
-
 	const menuPath = `직원관리 - 직원${memberId == null ? '등록' : '수정'}`;
 	$('.topbar-inner .customBreadcrumb').text(menuPath);
 
+	let isUseMiddleCodeData = [];
 	const $form = $('form.memberModifyForm', $modal);
-
 	// 직원 등록/수정 페이지
 	$modal.init_modal = async (param) => {
 		$modal.param = param;
@@ -28,6 +27,8 @@ $(function () {
 
 		// 수정인 경우, 직원정보를 세팅한다.
 		if ((memberId != null) & (memberId > 0)) {
+			// NOTE 수정인 경우, 아이디 항목 readonly 처리
+			
 			// try {
 			// 	const resGetInfo = await g_ajax(
 			// 		`/api/member/getMemberInfo/${memberId}`,
@@ -37,7 +38,6 @@ $(function () {
 			// 		}
 			// 	);
 			// 	console.log('🚀 ~ resGetInfo:', resGetInfo);
-
 			// 	if (resGetInfo?.code > 0) {
 			// 		// 데이터 세팅
 			// 		if (resGetInfo.data != undefined) {
@@ -51,6 +51,80 @@ $(function () {
 			// } finally {
 			// }
 		}
+
+		// Grid 생성
+		$modal.initGrid = async (isUseMiddleCodeData = []) => {
+			// 여기의 await이 의미가 있는 건지?
+			$modal.itemAuthGrid = await new Grid({
+				el: document.querySelector('.itemAuthGrid'),
+				columns: [
+					{
+						header: '중분류코드',
+						name: 'middleItemCode',
+						width: 150,
+						align: 'center',
+					},
+					{
+						header: '중분류명',
+						name: 'middleItemCodeName',
+						align: 'left',
+					},
+					authColumn('실무자', 'isWorker', $modal.headerWorker, 140),
+					authColumn('기술책임자(부)', 'isTechSub', $modal.headerTechSub, 160),
+					authColumn('기술책임자(정)', 'isTechMain', $modal.headerTechMain, 160),
+					{
+						header: 'authBitmask',
+						name: 'authBitmask',
+						hidden: true,
+					},
+					{
+						header: 'middleItemCodeId',
+						name: 'middleItemCodeId',
+						hidden: true,
+					},
+				],
+				rowHeaders: [],
+				bodyHeight: 500,
+				minBodyHeight: 500,
+				// 43개는 클라이언트에서 그냥 다 들고 가는 게 최적
+				pageOptions: {
+					useClient: true,
+					perPage: 100,
+				},
+				data: [],
+			});
+
+			// 중분류 그리드 세팅
+			if (isUseMiddleCodeData.length > 0) {
+				// 체크박스 컬럼은 반드시 boolean 초기값을 넣어준다.
+				const rows = (isUseMiddleCodeData || []).map((midData) => ({
+					middleItemCodeId: midData.id, // FK로 쓸 id
+					middleItemCode: midData.codeNum, // 화면용 코드(101,102...)
+					middleItemCodeName: midData.codeName, // 화면용 명칭
+					authBitmask: 0, // 초기 마스크 0
+					isWorker: false, // 체크박스 초기값
+					isTechSub: false,
+					isTechMain: false,
+				}));
+
+				// 그리드에 세팅
+				$modal.itemAuthGrid.resetData(rows);
+			}
+		};
+
+		const authColumn = (header, name, headerEl, width) => ({
+			header,
+			name,
+			width,
+			align: 'center',
+			renderer: { type: AuthCheckboxRenderer }, // 이게 핵심
+			customHeader: headerEl, // 헤더 체크박스(텍스트+체크박스 DOM)
+			sortable: false, // 권한컬럼은 보통 정렬 불필요(원하면 제거)
+		});
+
+		// 그리드를 렌더링하고 중분류 데이터셋을 표시한다.
+		await $modal.initGrid(isUseMiddleCodeData);
+		// 직원수정인 경우, 해당 직원의 분야별 권한을 표시한다.
 
 		// 비트 상수
 		$modal.AUTH_BIT = {
@@ -137,79 +211,10 @@ $(function () {
 			});
 		};
 
-		// 체크박스 컬럼 공통 옵션
-		// const checkboxColumn = (title, name, headerEl, width) => ({
-		// 	header: title,
-		// 	name,
-		// 	width,
-		// 	align: 'center',
-		// 	editor: {
-		// 		type: 'checkbox',
-		// 		options: {
-		// 			checkedValue: true,
-		// 			uncheckedValue: false,
-		// 		},
-		// 	},
-		// 	customHeader: headerEl,
-		// });
-
-		const authColumn = (header, name, headerEl, width) => ({
-			header,
-			name,
-			width,
-			align: 'center',
-			renderer: { type: AuthCheckboxRenderer }, // 이게 핵심
-			customHeader: headerEl, // 헤더 체크박스(텍스트+체크박스 DOM)
-			sortable: false, // 권한컬럼은 보통 정렬 불필요(원하면 제거)
-		});
-
 		// 헤더 엘리먼트 준비
 		$modal.headerWorker = $modal.createHeaderCheckbox('실무자', 'isWorker');
 		$modal.headerTechSub = $modal.createHeaderCheckbox('기술책임자(부)', 'isTechSub');
 		$modal.headerTechMain = $modal.createHeaderCheckbox('기술책임자(정)', 'isTechMain');
-
-		// Grid 생성
-		$modal.itemAuthGrid = new Grid({
-			el: document.querySelector('.itemAuthGrid'),
-			columns: [
-				{
-					header: '중분류코드',
-					name: 'middleItemCode',
-					width: 120,
-					align: 'center',
-				},
-				{
-					header: '중분류명',
-					name: 'middleItemCodeName',
-					align: 'left',
-				},
-				// checkboxColumn('실무자', 'isWorker', $modal.headerWorker, 120),
-				// checkboxColumn('기술책임자(부)', 'isTechSub', $modal.headerTechSub, 140),
-				// checkboxColumn('기술책임자(정)', 'isTechMain', $modal.headerTechMain, 140),
-				authColumn('실무자', 'isWorker', $modal.headerWorker, 120),
-				authColumn('기술책임자(부)', 'isTechSub', $modal.headerTechSub, 140),
-				authColumn('기술책임자(정)', 'isTechMain', $modal.headerTechMain, 140),
-				{
-					header: 'authBitmask',
-					name: 'authBitmask',
-					hidden: true,
-				},
-				{
-					header: 'middleItemCodeId',
-					name: 'middleItemCodeId',
-					hidden: true,
-				},
-			],
-			rowHeaders: [],
-			bodyHeight: 420,
-			minBodyHeight: 420,
-			// 43개는 클라이언트에서 그냥 다 들고 가는 게 최적
-			pageOptions: {
-				useClient: true,
-				perPage: 100,
-			},
-			data: [],
-		});
 
 		// 헤더 체크박스 바인딩
 		$modal.bindHeaderCheckbox($modal.itemAuthGrid, 'isWorker', $modal.headerWorker);
@@ -234,37 +239,6 @@ $(function () {
 				const newMask = $modal.buildAuthMask(row);
 				$modal.itemAuthGrid.setValue(rowKey, 'authBitmask', newMask);
 			});
-
-			// const changes = ev?.changes ?? [];
-			// if (changes.length === 0) return;
-
-			// const touchedCols = new Set();
-			// const touchedRowKeys = new Set();
-
-			// changes.forEach((c) => {
-			// 	touchedCols.add(c.columnName);
-			// 	touchedRowKeys.add(c.rowKey);
-			// });
-
-			// // 권한 컬럼이 바뀐 row만 bitmask 업데이트
-			// const authCols = new Set(['isWorker', 'isTechSub', 'isTechMain']);
-			// let needMaskUpdate = false;
-			// changes.forEach((c) => {
-			// 	if (authCols.has(c.columnName)) needMaskUpdate = true;
-			// });
-
-			// if (needMaskUpdate) {
-			// 	touchedRowKeys.forEach((rowKey) => {
-			// 		const row = $modal.itemAuthGrid.getRow(rowKey);
-			// 		const newMask = $modal.buildAuthMask(row);
-			// 		$modal.itemAuthGrid.setValue(rowKey, 'authBitmask', newMask);
-			// 	});
-			// }
-
-			// // 헤더 체크박스(전체/부분) 상태 동기화
-			// if (touchedCols.has('isWorker')) $modal.syncHeaderCheckboxState($modal.itemAuthGrid, 'isWorker', $modal.headerWorker);
-			// if (touchedCols.has('isTechSub')) $modal.syncHeaderCheckboxState($modal.itemAuthGrid, 'isTechSub', $modal.headerTechSub);
-			// if (touchedCols.has('isTechMain')) $modal.syncHeaderCheckboxState($modal.itemAuthGrid, 'isTechMain', $modal.headerTechMain);
 		});
 
 		// 전체 헤더 상태 한 번에 동기화
@@ -272,43 +246,6 @@ $(function () {
 			$modal.syncHeaderCheckboxState($modal.itemAuthGrid, 'isWorker', $modal.headerWorker);
 			$modal.syncHeaderCheckboxState($modal.itemAuthGrid, 'isTechSub', $modal.headerTechSub);
 			$modal.syncHeaderCheckboxState($modal.itemAuthGrid, 'isTechMain', $modal.headerTechMain);
-		};
-
-		// 테스트용 더미데이터 호출
-		setTimeout(() => {
-			// $modal.loadDummyItemAuth();
-		}, 1000);
-
-		$modal.loadDummyItemAuth = () => {
-			// authBitmask 더미 패턴 (0, 1, 2, 4, 1|2, 1|4, 2|4, 1|2|4)
-			const masks = [0, 1, 2, 4, 3, 5, 6, 7];
-
-			// 중분류 43개 더미 생성
-			const rows = Array.from({ length: 43 }, (_, idx) => {
-				const i = idx + 1;
-
-				// 코드 예시: 101~143 형태 (원하면 001~043 같은 문자열로 바꿔도 됨)
-				const middleCode = String(100 + i);
-
-				// 권한 마스크는 규칙적으로 섞이도록
-				const authBitmask = masks[idx % masks.length];
-
-				return {
-					middleItemCodeId: i, // PK 대용 (더미)
-					middleItemCode: middleCode, // 화면 표시 코드
-					middleItemCodeName: `중분류명 ${i}`, // 화면 표시명
-					authBitmask: authBitmask, // 핵심: bitmask
-				};
-			});
-
-			// bitmask -> boolean 컬럼 세팅 (체크박스 표시용)
-			rows.forEach((r) => $modal.applyAuthMaskToRow(r));
-
-			// 그리드 데이터 주입
-			$modal.itemAuthGrid.resetData(rows);
-
-			// 헤더 체크박스(전체/부분) 상태 반영
-			$modal.syncAllAuthHeaders();
 		};
 	}; // End init_modal
 
@@ -333,12 +270,17 @@ $(function () {
 				});
 			}
 			// 직급관리 옵션을 세팅한다.
-			if (resGetOptions.data != undefined && resGetOptions.data.memberLevelData != undefined) {
+			if (resData.memberLevelData != undefined && resData.memberLevelData.length > 0) {
 				const $memberLevelSelect = $('.memberLevelSelect', $modal);
 				$.each(resData.memberLevelData, function (index, data) {
 					const option = new Option(data.name, data.id);
 					$memberLevelSelect.append(option);
 				});
+			}
+			// 중분류코드를 세팅한다.
+			console.log('🚀 ~ resData.isUseMiddleCodeData:', resData.isUseMiddleCodeData);
+			if (resData.isUseMiddleCodeData != undefined && resData.isUseMiddleCodeData.length > 0) {
+				isUseMiddleCodeData = resData.isUseMiddleCodeData;
 			}
 		}
 	};
