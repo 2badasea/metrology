@@ -3,7 +3,8 @@ package com.bada.cali.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-// 직원별 중분류 관게 매핑
+import java.io.Serializable;
+
 @Entity
 @Table(
 		name = "member_code_auth",
@@ -11,6 +12,7 @@ import lombok.*;
 				@Index(name = "idx_member_code_auth_middle", columnList = "middle_item_code_id")
 		}
 )
+@IdClass(MemberCodeAuth.MemberCodeAuthId.class) // 핵심 1: IdClass 지정
 @Getter
 @Setter
 @NoArgsConstructor
@@ -30,5 +32,18 @@ public class MemberCodeAuth {
 	@Column(name = "auth_bitmask", nullable = false)
 	@Builder.Default
 	private Integer authBitmask = 0;
+	
+	
+	// 핵심 2: 반드시 static 이어야 함
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@EqualsAndHashCode
+	public static class MemberCodeAuthId implements Serializable {
+		private Long memberId;
+		private Long middleItemCodeId;
+	}
+	
 	
 }

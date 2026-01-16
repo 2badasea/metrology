@@ -1,10 +1,12 @@
 package com.bada.cali.entity;
 
+import com.bada.cali.common.enums.AuthType;
 import com.bada.cali.common.enums.YnType;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -83,11 +85,11 @@ public class Member {
 	
 	// 입사일
 	@Column(name = "join_date", length = 20)
-	private String joinDate;
+	private LocalDate joinDate;
 	
 	// 퇴사일
 	@Column(name = "leave_date", length = 20)
-	private String leaveDate;
+	private LocalDate leaveDate;
 	
 	// 재직유형
 	@Column(name = "work_type", nullable = false)
@@ -197,7 +199,9 @@ public class Member {
 	@Builder.Default
 	private Long deleteMemberId = 0L;
 	
-	public enum AuthType {
-		admin, user
+	// 비밀번호 업데이트 (더티체킹용으로만 사용할 것)
+	public void updatePwd(String pwd) {
+		this.pwd = pwd;
 	}
+	
 }

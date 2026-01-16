@@ -1,6 +1,10 @@
 package com.bada.cali.dto;
 
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDate;
+import java.util.List;
 
 public class MemberDTO {
 	
@@ -77,9 +81,46 @@ public class MemberDTO {
 		String keyword;			// 검색 키워드
 	}
 	
+	
+	
 	// 직원정보 등록 데이터셋 (직원 수정)
-	public record CreateMemberInfo (
-		
+	public record SaveMemberInfo (
+			Long id,
+			String loginId,          // name="loginId"
+			String name,              // name="name"
+			String nameEng,           // name="nameEng"
+			String hp,                // name="hp"
+			String companyNo,         // name="companyNo"
+			LocalDate birth,          // name="birth"
+			String addr1,             // name="addr1"
+			String addr2,             // name="addr2"
+			String email,             // name="email"
+			String tel,               // name="tel"
+			Long departmentId,        // name="departmentId"  (select)
+			Long levelId,             // name="levelId"       (select)
+			String isActive,          // name="isActive"      (y/n)
+			String pwd,               // name="pwd"
+			// 재직/상태
+			LocalDate joinDate,       // name="joinDate"
+			LocalDate leaveDate,      // name="leaveDate"
+			Integer workType,         // name="workType"      (0/1/2)
+			// 비고
+			String remark,            // name="remark"
+			
+			// 성적서 이미지 파일
+			MultipartFile memberImage, // name="memberImage"
+			// 중분류 권한
+			List<MemberAuthData> itemAuthData
 	) {}
+	
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	public static class MemberAuthData {
+		Long memberId;
+		Long middleItemCodeId;	// 중분류코드 id(클라이언트에서 넘어옴)
+		Integer authBitmask;	// 비트값 (클라이언트에서 넘어옴)
+	}
+	
 	
 }

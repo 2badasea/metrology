@@ -4,3 +4,29 @@
 .member_info th {
 	background: #f8f9fa;
 }
+
+.memberImgEle {
+	cursor: pointer;
+	max-width:80%; 
+	max-height:80%;
+	/* height: 190px;
+	object-fit: contain;
+	width: 100%; */
+}
+
+
+/* 셀 체크박스 크기 업 */
+.cell-auth-checkbox {
+  width: 18px;
+  height: 18px;
+  transform: scale(1.25);
+  cursor: pointer;
+}
+
+/* 헤더 체크박스도 같이 키우고 싶으면 */
+.hdr-auth-checkbox {
+  width: 18px;
+  height: 18px;
+  transform: scale(1.15);
+  cursor: pointer;
+}

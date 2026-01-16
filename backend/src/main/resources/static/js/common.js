@@ -20,7 +20,7 @@ $(function () {
 		modal_draggable();
 	}
 
-	$('input[type=text]').attr('autocomplete', 'off'); // input창 자동완성 제거
+	$('input[type=text]').attr('autocomplete', 'user-do-not-autofill'); // input창 자동완성 제거
 	$('input[type=password]').attr('autocomplete', 'new-password'); // 비밀번호 항목 자동완성 제거
 
 	// breadcumb 내 메뉴명 표시
@@ -441,7 +441,7 @@ function custom_ajax_handler(err) {
 	if (err instanceof Error) {
 		g_toast(err.message || '요청 중 오류가 발생했습니다.', 'error');
 		return false;
-	}	
+	}
 
 	const xhr = err?.xhr || err;
 	const status = xhr?.status;
@@ -804,7 +804,7 @@ function check_input(value) {
  *
  * @return  {[boolean]}         [return description]
  */
-function check_email_reg(value) {
+function checkEmailReg(value) {
 	return value != null && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
 }
 
@@ -1487,4 +1487,29 @@ function uncomma(str) {
 		return str1;
 	} catch (ex) {}
 	return str;
+}
+
+// 로그인아이디 정규식 체크
+function checkLoginId(str = '') {
+    if (!str) {
+        return false;
+    }
+    // ^[a-z]: 반드시 영문 소문자로 시작 (1자)
+    // [a-z0-9]{3,19}$: 이후 영문 소문자나 숫자가 3~19개 옴
+    // 총 길이: 1 + (3~19) = 4~20자
+    const regExp = /^[a-z][a-z0-9]{3,19}$/;
+    return regExp.test(str);
+}
+
+// 비밀번호 정규식 체크
+function checkPwd(str = '') {
+	if (!str) {
+		return false;
+	}
+	// (?=.*[a-z]): 소문자 최소 1개
+	// (?=.*[A-Z]): 대문자 최소 1개
+	// (?=.*[0-9]): 숫자 최소 1개
+	// [a-zA-Z0-9!@#$%^]{8,20}$: 허용 문자들로만 구성되며 길이는 8~20자
+	const regExp = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])[a-zA-Z0-9!@#$%^]{8,20}$/;
+	return regExp.test(str);
 }

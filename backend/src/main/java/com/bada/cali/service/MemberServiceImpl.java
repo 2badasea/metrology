@@ -4,18 +4,15 @@ import com.bada.cali.common.ResMessage;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.MemberDTO;
 import com.bada.cali.dto.TuiGridDTO;
-import com.bada.cali.entity.Agent;
-import com.bada.cali.entity.AgentManager;
-import com.bada.cali.entity.Log;
-import com.bada.cali.entity.Member;
+import com.bada.cali.entity.*;
 import com.bada.cali.mapper.AgentManagerMapper;
 import com.bada.cali.mapper.AgentMapper;
+import com.bada.cali.mapper.MemberCodeAuthMapper;
 import com.bada.cali.mapper.MemberMapper;
-import com.bada.cali.repository.AgentManagerRepository;
-import com.bada.cali.repository.AgentRepository;
-import com.bada.cali.repository.LogRepository;
-import com.bada.cali.repository.MemberRepository;
+import com.bada.cali.repository.*;
 import com.bada.cali.repository.projection.MemberListPr;
+import com.bada.cali.security.CustomUserDetails;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -23,10 +20,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -37,13 +36,15 @@ public class MemberServiceImpl {
 	private final AgentRepository agentRepository;
 	private final AgentManagerRepository agentManagerRepository;
 	private final LogRepository logRepository;
+	private final FileServiceImpl fileServiceImpl;
+	private final MemberCodeAuthRepository memberCodeAuthRepository;
+	private final MemberCodeAuthMapper memberCodeAuthMapper;
 	
 	private final AgentManagerMapper agentManagerMapper;
 	private final AgentMapper agentMapper;
 	
 	private final PasswordEncoder passwordEncoder;
 	private final MemberMapper memberMapper;
-	private final RestClient.Builder builder;
 	
 	/**
 	 * 사용자 계정(loginId) 중복 체크
@@ -116,7 +117,7 @@ public class MemberServiceImpl {
 		
 		// 3) insert member
 		Member insertMemberEntity = memberMapper.toMemberFromMemberJoin(memberJoinReq);
-		insertMemberEntity.setJoinDate(LocalDate.now().toString());						// 가입일
+		insertMemberEntity.setJoinDate(LocalDate.now());						// 가입일
 		insertMemberEntity.setPwd(passwordEncoder.encode(memberJoinReq.getPwd()));		// 인코딩된 비밀번호
 		insertMemberEntity.setAgentId(agentId);		// 업체 고유id
 		insertMemberEntity.setCreateDatetime(LocalDateTime.now());
@@ -176,11 +177,103 @@ public class MemberServiceImpl {
 				.build();
 	}
 	
-	// 회원정보를 가져온다 (직원등록/수정 페이지)
-	@Transactional(readOnly = true)
-	public ResMessage<?> getMemberInfo(Long id) {
-	
-	
+	// 회원정보를 등록 수정한다.
+	@Transactional
+	public ResMessage<Long> memberSave(MemberDTO.SaveMemberInfo req, CustomUserDetails user) {
+		int resCode = 0;
+		String resMsg = "";
+		
+		LocalDateTime now = LocalDateTime.now();
+		Long userId = user.getId();
+		String workerName = user.getName();
+		
+		Long id = req.id();
+		
+		String reqPwd = req.pwd();
+		if (reqPwd != null && !reqPwd.isBlank()) {
+			reqPwd = passwordEncoder.encode(reqPwd);	// 비밀번호 암호화
+		}
+		
+		String saveTypeKr = (id == null || id <= 0) ? "등록" : "수정";
+		Member updatedMember = null;
+		
+		// 등록
+		if (id == null || id <= 0) {
+			// 로그인 아이디의 중복체크를 진행한다.
+			String loginId = req.loginId();
+			Optional<Member> optMember =  memberRepository.findByLoginId(loginId, YnType.y);
+			// 중복되는 게 존재하는 경우 리턴
+			if (optMember.isPresent()) {
+				resCode = -1;
+				resMsg = "중복되는 아이디가 존재합니다.";
+				return new ResMessage<>(resCode, resMsg, null);
+			}
+			
+			Member createMember = memberMapper.toMemberByCreateReq(req);
+			createMember.setCreateDatetime(now);
+			createMember.setCreateMemberId(userId);
+			createMember.setLastPwdUpdated(now);	// 마지막 로그인 일시 업데이트
+			createMember.setAgentId(0L);		// 자사 직원은 모두 0
+			
+			updatedMember = memberRepository.save(createMember);
+			id = updatedMember.getId();
+		}
+		// 수정
+		else {
+			
+			Member originMember = memberRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("수정할 회원정보를 찾지 못 했습니다."));
+			
+			// record값 덮어씌우기
+			memberMapper.updateMemberByReq(req, originMember);
+			originMember.setUpdateMemberId(userId);
+			originMember.setUpdateDatetime(now);
+			
+			updatedMember = originMember;
+		}
+		
+		// 넘어온 비밀번호 값이 있다면 update
+		if (reqPwd != null && !reqPwd.isBlank()) {
+			updatedMember.updatePwd(reqPwd);
+		}
+		
+		// 이미지 확인
+		MultipartFile memberImage = req.memberImage();
+		if (memberImage != null && !memberImage.isEmpty()) {
+			// 기존에 이미지가 존재하는 경우, 삭제(soft-delete()후, 새로운 이미지를 추가하는 함수 호출
+			fileServiceImpl.softDeleteAndInsert(
+					"member",
+					id,
+					memberImage,
+					userId
+			);
+		}
+		
+		List<MemberDTO.MemberAuthData> itemAuthData = req.itemAuthData();
+		if (!itemAuthData.isEmpty()) {
+		// 중분류 코드 일괄 삭제 후, 다시 저장 (List에 담아서 일괄 saveAll처리)
+			int resDeleteItemAuth = memberCodeAuthRepository.deleteMemberCodeAuth(id);
+			// 반복문을 통해 Entity생성
+			List<MemberCodeAuth> saveCoeAuthList = new ArrayList<>();
+			
+			for (MemberDTO.MemberAuthData data : itemAuthData) {
+				saveCoeAuthList.add(memberCodeAuthMapper.toEntity(data, id));
+			}
+			// 일괄저장
+			if (!saveCoeAuthList.isEmpty()) {
+				memberCodeAuthRepository.saveAll(saveCoeAuthList);
+			}
+		}
+		resCode = 1;
+		resMsg = "저장 성공";
+		
+		return new ResMessage<>(resCode, resMsg, id);
 	}
+	
+	// 회원정보를 가져온다 (직원등록/수정 페이지)
+	// @Transactional(readOnly = true)
+	// public ResMessage<?> getMemberInfo(Long id) {
+	//
+	//
+	// }
 	
 }

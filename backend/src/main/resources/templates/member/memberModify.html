@@ -6,10 +6,16 @@
     <div layout:fragment="content">
         <div class="wrapper">
             <div class="member-form-area mb-3">
-
-                <div class="row" style="margin-right: 0px !important;">
-                    <div class="col-lg-9 pr-lg-2">
-                        <form class="memberModifyForm">
+                <!-- 등록, 리스트 돌아가기 -->
+                <div class="d-flex">
+                    <div class="p-2 ml-auto mr-3">
+                        <button type="button" class="btn btn-primary memberSave">저장</button>
+                        <button type="button" class="btn btn-secondary goBack">리스트</button>
+                    </div>
+                </div>
+                <form class="memberModifyForm">
+                    <div class="row" style="margin-right: 0px !important;">
+                        <div class="col-lg-9 pr-lg-2">
                             <table class="table table-bordered text-center mb-0 member_info">
                                 <colgroup>
                                     <col style="width: 110px;" />
@@ -25,24 +31,23 @@
                                         <td class="text-left">
                                             <div class="d-flex">
                                                 <input type="text" class="form-control mr-1" name="name"
-                                                    placeholder="이름" style="width:50%;" />
+                                                    style="width:50%;" />
                                                 <input type="text" class="form-control ml-1" name="nameEng"
-                                                    placeholder="영문명" style="width:50%;" />
+                                                    style="width:50%;" />
                                             </div>
                                         </td>
 
-                                        <th class="align-middle"><span class="text-danger">*</span>휴대번호</th>
+                                        <th class="align-middle">휴대번호</th>
                                         <td class="text-left">
-                                            <input type="text" class="form-control contact_num" name="hp" maxlength="20"
-                                                placeholder="010-0000-0000" />
+                                            <input type="text" class="form-control hp" name="hp" maxlength="20" />
                                         </td>
                                     </tr>
 
                                     <!-- 사번 / 생년월일 -->
                                     <tr>
-                                        <th class="align-middle"><span class="text-danger">*</span>사번</th>
+                                        <th class="align-middle">사번</th>
                                         <td class="text-left">
-                                            <input type="text" class="form-control" name="companyNo" placeholder="사번" />
+                                            <input type="text" class="form-control" name="companyNo" />
                                         </td>
 
                                         <th class="align-middle">생년월일</th>
@@ -57,16 +62,15 @@
                                         <td class="text-left">
                                             <div class="d-flex">
                                                 <input type="text" class="form-control mr-1" name="addr1"
-                                                    placeholder="주소1" style="width:50%;" />
+                                                    style="width:50%;" />
                                                 <input type="text" class="form-control ml-1" name="addr2"
-                                                    placeholder="주소2" style="width:50%;" />
+                                                    style="width:50%;" />
                                             </div>
                                         </td>
 
-                                        <th class="align-middle">E-mail</th>
+                                        <th class="align-middle"><span class="text-danger">*</span>E-mail</th>
                                         <td class="text-left">
-                                            <input type="text" class="form-control" name="email"
-                                                placeholder="email@example.com" />
+                                            <input type="text" class="form-control" name="email" />
                                         </td>
                                     </tr>
 
@@ -82,7 +86,7 @@
 
                                         <th class="align-middle">직급</th>
                                         <td class="text-left">
-                                            <select class="form-control memberLevelSelect" name="memberLevelId">
+                                            <select class="form-control memberLevelSelect" name="levelId">
                                                 <option value="">선택</option>
                                                 <!-- 동적 렌더링 -->
                                             </select>
@@ -109,13 +113,12 @@
                                     <tr>
                                         <th class="align-middle"><span class="text-danger">*</span>비밀번호</th>
                                         <td class="text-left">
-                                            <input type="password" class="form-control" name="pwd" placeholder="비밀번호" />
+                                            <input type="password" class="form-control" name="pwd" />
                                         </td>
 
                                         <th class="align-middle"><span class="text-danger">*</span>비밀번호 확인</th>
                                         <td class="text-left">
-                                            <input type="password" class="form-control" name="pwdConfirm"
-                                                placeholder="비밀번호 확인" />
+                                            <input type="password" class="form-control" name="pwdConfirm" />
                                         </td>
                                     </tr>
 
@@ -131,16 +134,19 @@
                                             <input type="date" class="form-control" name="leaveDate" max="9999-12-31" />
                                         </td>
                                     </tr>
-
-                                    <!-- 상태 / 직무 -->
+                                    <!-- 상태/ 전화 -->
                                     <tr>
                                         <th class="align-middle">상태</th>
-                                        <td class="text-left" colspan="3">
+                                        <td class="text-left">
                                             <select class="form-control" name="workType">
                                                 <option value="0">재직</option>
                                                 <option value="1">휴직</option>
                                                 <option value="2">퇴사</option>
                                             </select>
+                                        </td>
+                                        <th>전화</th>
+                                        <td class="text-left">
+                                            <input type="text" class="form-control tel" name="tel" maxlength="15" />
                                         </td>
                                     </tr>
 
@@ -148,33 +154,33 @@
                                     <tr>
                                         <th class="align-middle">비고</th>
                                         <td class="text-left" colspan="3">
-                                            <textarea class="form-control" name="remark" rows="5" style="resize:none;"
-                                                placeholder="비고"></textarea>
+                                            <textarea class="form-control" name="remark" rows="5"
+                                                style="resize:none;"></textarea>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
-                        </form>
-                    </div>
+                        </div>
 
-                    <div class="col-lg-3 pl-lg-0 mt-2 mt-lg-0">
-                        <div class="border p-2 h-100 member-sign-panel" style="min-height: 260px;">
-                            <div class="border mb-2 d-flex align-items-center justify-content-center"
-                                style="height: 320px; overflow:hidden;">
-                                <img id="img_back" alt="sign preview" style="max-width:100%; max-height:100%;" />
+                        <div class="col-lg-3 pl-lg-0 mt-2 mt-lg-0">
+                            <div class="border p-2 h-100 member-sign-panel" style="min-height: 260px;">
+                                <div class="border mb-2 d-flex align-items-center justify-content-center"
+                                    style="height: 320px; overflow:hidden;">
+                                    <img class="memberImgEle" alt="sign preview" src="/images/basic_user.png" />
+                                </div>
+
+                                <label for="sign_img" class="btn btn-secondary w-100 mb-0">
+                                    성적서 서명 이미지 첨부
+                                </label>
+                                <input id="sign_img" name="memberImage" class="d-none" type="file"
+                                    accept=".png,.jpg,.jpeg" />
+                                <button type="button" class="btn btn-danger w-100 mt-2 deleteUserImg">
+                                    삭제
+                                </button>
                             </div>
-
-                            <label for="sign_img" class="btn btn-secondary w-100 mb-0">
-                                성적서 서명 이미지 첨부
-                            </label>
-                            <input id="sign_img" name="imgUpload" class="d-none" type="file" accept=".png,.jpg,.jpeg" />
-                            <button type="button" class="btn btn-danger w-100 mt-2 del_user_sign">
-                                삭제
-                            </button>
-                            <input type="hidden" name="img" value="" />
                         </div>
                     </div>
-                </div>
+                </form>
 
             </div>
 
