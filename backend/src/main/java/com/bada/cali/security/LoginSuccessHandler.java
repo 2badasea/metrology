@@ -1,6 +1,7 @@
 package com.bada.cali.security;
 
 import com.bada.cali.common.ResMessage;
+import com.bada.cali.common.enums.AuthType;
 import com.bada.cali.entity.Log;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.entity.Member;
@@ -69,7 +70,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 		}
 		
 		// 로그인 계정이 admin인지 아닌지 구분
-		if (loginMember.getAuth() == Member.AuthType.admin) {        // enum값의 비교는 '=='로 진행
+		if (loginMember.getAuth() == AuthType.admin) {        // enum값의 비교는 '=='로 진행
 			resCode = 2;
 		}
 		

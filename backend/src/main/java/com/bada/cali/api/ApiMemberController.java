@@ -4,11 +4,13 @@ import com.bada.cali.common.ResMessage;
 import com.bada.cali.dto.MemberDTO;
 import com.bada.cali.dto.TuiGridDTO;
 import com.bada.cali.repository.projection.MemberListPr;
+import com.bada.cali.security.CustomUserDetails;
 import com.bada.cali.service.MemberServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -80,12 +82,20 @@ public class ApiMemberController {
 		return ResponseEntity.ok(body);
 	}
 	
+	// 직원정보 등록하기
+	@PostMapping("/memberSave")
+	public ResponseEntity<ResMessage<Long>> memberSave(
+			@ModelAttribute MemberDTO.SaveMemberInfo req,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		ResMessage<Long> resMessage = memberService.memberSave(req, user);
+		return ResponseEntity.ok(resMessage);
+	}
+	
 	// 직원정보 가져오기
-	// @GetMapping(value = "/getMemberInfo/{id}")
-	// public ResponseEntity<ResMessage<?>> getMemberInfo(@PathVariable Long id) {
-	// 	// 회원정보 가져오기
-	// 	// 직급정보, 부서정보, 분류코드 정보, 첨부파일 이미지 정보,
-	//
-	//
-	// }
+	@GetMapping(value = "/getMemberInfo")
+	public ResponseEntity<ResMessage<MemberDTO.GetMemberInfoSet>> getMemberInfo(@RequestParam Long id) {
+		ResMessage<MemberDTO.GetMemberInfoSet> resMessage = memberService.getMemberInfo(id);
+		return ResponseEntity.ok(resMessage);
+	}
 }

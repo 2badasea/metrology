@@ -180,10 +180,8 @@ public class EquipmentServiceImpl {
 					userId
 			);
 			
-			log.info("기존 것의 영향을 받은 개수 : {}", resDeleteCnt);
-			
 			// 새 이미지 저장 (file_info + storage)
-			fileService.saveFiles(refTableName, equipmentId, imgDir, List.of(img), user);
+			fileService.saveFiles(refTableName, equipmentId, imgDir, List.of(img), userId);
 		}
 		
 		// 첨부파일 체크 (기존에 존재하는 게 있다면 추가한다)
@@ -198,7 +196,7 @@ public class EquipmentServiceImpl {
 			if (realFiles != null && !realFiles.isEmpty()) {
 				String dir = String.format("standard_equipment/%d/", equipmentId);
 				log.info("saveFiles 호출");
-				fileService.saveFiles(refTableName, equipmentId, dir, realFiles, user);
+				fileService.saveFiles(refTableName, equipmentId, dir, realFiles, userId);
 			}
 		}
 		

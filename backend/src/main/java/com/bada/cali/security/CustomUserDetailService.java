@@ -1,5 +1,6 @@
 package com.bada.cali.security;
 
+import com.bada.cali.common.enums.AuthType;
 import com.bada.cali.entity.Member;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.repository.MemberPermissionReadRepository;
@@ -54,7 +55,7 @@ public class CustomUserDetailService implements UserDetailsService {
 		
 		// var: java10부터 들어온 로컬 변수 타입 추론. 컴파일러가 우측 표현식을 보고 타입을 알아서 결정해줌
 		// 유저에게 ROLE_USER 권한을 하나 부여한 권한 목록을 생성
-		Member.AuthType authType = (loginMember.getAuth() == null) ? Member.AuthType.user : loginMember.getAuth();
+		AuthType authType = (loginMember.getAuth() == null) ? AuthType.user : loginMember.getAuth();
 		String role = "ROLE_" + authType.name().toUpperCase(); // 'ROLE_USER' | 'ROLE_ADMIN'
 		var authorities = List.of(new SimpleGrantedAuthority(role));
 		

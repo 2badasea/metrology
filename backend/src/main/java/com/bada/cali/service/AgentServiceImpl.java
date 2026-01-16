@@ -414,7 +414,7 @@ public class AgentServiceImpl {
 			String dir = String.format("agent/%d/", id);        // 버킷 내 디렉토리명
 			
 			// file_info 저장 및 스토리지 업로드 진행
-			fileServiceImpl.saveFiles(refTableName, id, dir, files, user);
+			fileServiceImpl.saveFiles(refTableName, id, dir, files, user.getId());
 		}
 		
 		// 예외가 터지지 않았다면 성공이므로 1 리턴

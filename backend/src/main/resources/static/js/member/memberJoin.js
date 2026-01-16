@@ -193,7 +193,7 @@ $(function () {
 				const email = `${value}@${mailDomain}`;
 				console.log("🚀 ~ email:", email);
 				// 정규식 체크
-				if (!check_email_reg(email)) {
+				if (!checkEmailReg(email)) {
 					chkMsg = '이메일 형식이 올바르지 않습니다.';
 					flagForm = false;
 				} else {

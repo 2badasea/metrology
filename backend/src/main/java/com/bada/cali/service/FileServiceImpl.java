@@ -46,7 +46,7 @@ public class FileServiceImpl {
 						  Long refTableId,
 						  String dir,        // '폴더명/' or '폴더명/id/' 형태로 넘어올 수 있음
 						  List<MultipartFile> files,
-						  CustomUserDetails user
+						  Long userId
 	) {
 		
 		LocalDateTime now = LocalDateTime.now();
@@ -91,7 +91,7 @@ public class FileServiceImpl {
 						.dir(dir)
 						.isVisible(YnType.y)
 						.createDatetime(now)
-						.createMemberId(user.getId())
+						.createMemberId(userId)
 						.build();
 				// 파일 저장
 				
@@ -227,6 +227,7 @@ public class FileServiceImpl {
 	
 	
 	// "파일명.확장자" 에서 확장자를 추출 (없으면 빈 문자열)
+	@Transactional
 	public String getFileExtension(String originName) {
 		if (originName == null || originName.isEmpty()) {
 			return "";
@@ -239,6 +240,7 @@ public class FileServiceImpl {
 	}
 	
 	// "파일명.확장자" 에서 확장자를 제외한 이름만 추출
+	@Transactional
 	public String getFileNameWithoutExtension(String originName) {
 		if (originName == null || originName.isEmpty()) {
 			return "";
@@ -257,6 +259,47 @@ public class FileServiceImpl {
 	
 	public List<FileInfoDTO.FileListRes> getFileInfosWithJoin(String refTableName, Long refTableId) {
 		return fileInfoRepository.getFileInfosWithJoin(refTableName, refTableId, YnType.y);
+	}
+	
+	// 기존에 있던 파일을 삭제처리(is_visible = 'n') 처리 후 새로운 파일을 업로드 한다.
+	@Transactional
+	public void softDeleteAndInsert(
+			String refTableName,
+			Long id,
+			MultipartFile file,
+			Long userId
+	) {
+		
+		String dir = String.format("%s/%d/", refTableName, id);
+		YnType isVisible = YnType.n;
+		LocalDateTime now = LocalDateTime.now();
+		
+		// 기존이미지 삭제 (soft-delete)
+		int resDeleteCnt = fileInfoRepository.softDeleteVisibleByRefAndDir(
+				refTableName,
+				id,
+				dir,
+				isVisible,
+				now,
+				userId
+		);
+		
+		// 새로운 파일을 추가한다.
+		saveFiles(refTableName, id, dir, List.of(file), userId);
+	}
+	
+	// 이미지 파일의 경로를 반환한다.
+	public String getFilePath(String dir, Long fileInfoId, String extension) {
+		
+		String endPoint = storageProps.getEndpoint();
+		String bucket = storageProps.getBucketName();
+		String rootDir = storageProps.getRootDir();
+		String filePath = String.format("%s/%s/%s/%s%d.%s", endPoint, bucket,rootDir, dir, fileInfoId, extension);
+		
+		log.info("확인");
+		log.info(filePath);
+		
+		return filePath;
 	}
 	
 	

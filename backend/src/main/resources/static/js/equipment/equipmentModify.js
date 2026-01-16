@@ -106,7 +106,8 @@ $(function () {
 
 			if (!file.type.startsWith('image/')) {
 				g_toast('이미지 파일만 업로드 가능합니다.', 'warning');
-				$(this).replaceWith($newInput); // input자체를 교체해버린다.
+				 // input 교체 => 인터넷 익스플로러(IE) 시절의 호환성 때문에 사용되던 옛날방식
+				$(this).replaceWith($newInput);
 				return false;
 			}
 			// 미리보기 이미지 객체가 존재하는 경우, 삭제시킨다.
