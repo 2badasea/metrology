@@ -10,6 +10,8 @@ import com.bada.cali.mapper.AgentMapper;
 import com.bada.cali.mapper.MemberCodeAuthMapper;
 import com.bada.cali.mapper.MemberMapper;
 import com.bada.cali.repository.*;
+import com.bada.cali.repository.projection.GetMemberInfoPr;
+import com.bada.cali.repository.projection.MemberCodeAuthPr;
 import com.bada.cali.repository.projection.MemberListPr;
 import com.bada.cali.security.CustomUserDetails;
 import jakarta.persistence.EntityNotFoundException;
@@ -98,9 +100,9 @@ public class MemberServiceImpl {
 		
 		// 1) insert agent
 		Agent insertAgentEntity = agentMapper.toAgentFromMemberJoinReq(memberJoinReq);
-		insertAgentEntity.setCreateType("join");	// 기본값 basic이 아닌 join으로 설정(mapper에서 @mapping 방법도 존재)
-		insertAgentEntity.setAgentFlag(1);		// 기본가입 시, 신청업체로 간주
-		insertAgentEntity.setCreateDatetime(LocalDateTime.now());	// 넣어주지 않으면 NULL를 insert하는 과정에서 DB의 NOT NULL제약에 걸림
+		insertAgentEntity.setCreateType("join");    // 기본값 basic이 아닌 join으로 설정(mapper에서 @mapping 방법도 존재)
+		insertAgentEntity.setAgentFlag(1);        // 기본가입 시, 신청업체로 간주
+		insertAgentEntity.setCreateDatetime(LocalDateTime.now());    // 넣어주지 않으면 NULL를 insert하는 과정에서 DB의 NOT NULL제약에 걸림
 		// save()는 성공하면 예외없이 엔티티를 그대로 리턴. 실패 시, 예외를 던짐 (null이나 false를 리턴하지 않음)
 		// 이때 예외는 컨트롤러까지 전파 => 전역예외에서 캐치하여 에러페이지 or JSON 응답으로 가공해서 반환
 		Agent savedAgent = agentRepository.save(insertAgentEntity);
@@ -110,22 +112,22 @@ public class MemberServiceImpl {
 		// 2) inset agent_manager (업체 담당자 삽입)
 		// agentId 값 할당
 		AgentManager insertManagerEntity = agentManagerMapper.toEntityFromMemberJoinReq(memberJoinReq);
-		insertManagerEntity.setAgentId(agentId);	// 업체id 세팅
-		insertManagerEntity.setMainYn(YnType.y);	// 처음 등록된 담당자가 대표담당자가 되도록 값 변경
+		insertManagerEntity.setAgentId(agentId);    // 업체id 세팅
+		insertManagerEntity.setMainYn(YnType.y);    // 처음 등록된 담당자가 대표담당자가 되도록 값 변경
 		insertManagerEntity.setCreateDatetime(LocalDateTime.now());
 		AgentManager savedAgentManager = agentManagerRepository.save(insertManagerEntity);
 		
 		// 3) insert member
 		Member insertMemberEntity = memberMapper.toMemberFromMemberJoin(memberJoinReq);
-		insertMemberEntity.setJoinDate(LocalDate.now());						// 가입일
-		insertMemberEntity.setPwd(passwordEncoder.encode(memberJoinReq.getPwd()));		// 인코딩된 비밀번호
-		insertMemberEntity.setAgentId(agentId);		// 업체 고유id
+		insertMemberEntity.setJoinDate(LocalDate.now());                        // 가입일
+		insertMemberEntity.setPwd(passwordEncoder.encode(memberJoinReq.getPwd()));        // 인코딩된 비밀번호
+		insertMemberEntity.setAgentId(agentId);        // 업체 고유id
 		insertMemberEntity.setCreateDatetime(LocalDateTime.now());
 		// formatter 클래스를 이용한 방식
 //		LocalDate today = LocalDate.now();
 //		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 //		String todayStr = today.format(formatter);   // 예) "2025-11-21"
-		Member savedMember =  memberRepository.save(insertMemberEntity);
+		Member savedMember = memberRepository.save(insertMemberEntity);
 		
 		// 로그를 남긴다.
 		String logContent = "[회원가입] 사용자 ID: " + savedMember.getLoginId() + ", 업체명: " + savedAgent.getName();
@@ -152,11 +154,11 @@ public class MemberServiceImpl {
 		PageRequest pageRequest = PageRequest.of(pageIndex, perPage);
 		
 		// 검색타입 정리
-		Integer workType = req.getWorkType();		// 재직여부
+		Integer workType = req.getWorkType();        // 재직여부
 		log.info("workType 확인");
 		log.info(workType);
-		String searchType = req.getSearchType();	// 검색타입
-		String keyword = req.getKeyword();			// 키워드
+		String searchType = req.getSearchType();    // 검색타입
+		String keyword = req.getKeyword();            // 키워드
 		
 		if (searchType == null || searchType.isBlank()) {
 			searchType = "all";
@@ -191,7 +193,7 @@ public class MemberServiceImpl {
 		
 		String reqPwd = req.pwd();
 		if (reqPwd != null && !reqPwd.isBlank()) {
-			reqPwd = passwordEncoder.encode(reqPwd);	// 비밀번호 암호화
+			reqPwd = passwordEncoder.encode(reqPwd);    // 비밀번호 암호화
 		}
 		
 		String saveTypeKr = (id == null || id <= 0) ? "등록" : "수정";
@@ -201,7 +203,7 @@ public class MemberServiceImpl {
 		if (id == null || id <= 0) {
 			// 로그인 아이디의 중복체크를 진행한다.
 			String loginId = req.loginId();
-			Optional<Member> optMember =  memberRepository.findByLoginId(loginId, YnType.y);
+			Optional<Member> optMember = memberRepository.findByLoginId(loginId, YnType.y);
 			// 중복되는 게 존재하는 경우 리턴
 			if (optMember.isPresent()) {
 				resCode = -1;
@@ -212,8 +214,8 @@ public class MemberServiceImpl {
 			Member createMember = memberMapper.toMemberByCreateReq(req);
 			createMember.setCreateDatetime(now);
 			createMember.setCreateMemberId(userId);
-			createMember.setLastPwdUpdated(now);	// 마지막 로그인 일시 업데이트
-			createMember.setAgentId(0L);		// 자사 직원은 모두 0
+			createMember.setLastPwdUpdated(now);    // 마지막 로그인 일시 업데이트
+			createMember.setAgentId(0L);        // 자사 직원은 모두 0
 			
 			updatedMember = memberRepository.save(createMember);
 			id = updatedMember.getId();
@@ -250,7 +252,7 @@ public class MemberServiceImpl {
 		
 		List<MemberDTO.MemberAuthData> itemAuthData = req.itemAuthData();
 		if (!itemAuthData.isEmpty()) {
-		// 중분류 코드 일괄 삭제 후, 다시 저장 (List에 담아서 일괄 saveAll처리)
+			// 중분류 코드 일괄 삭제 후, 다시 저장 (List에 담아서 일괄 saveAll처리)
 			int resDeleteItemAuth = memberCodeAuthRepository.deleteMemberCodeAuth(id);
 			// 반복문을 통해 Entity생성
 			List<MemberCodeAuth> saveCoeAuthList = new ArrayList<>();
@@ -270,10 +272,29 @@ public class MemberServiceImpl {
 	}
 	
 	// 회원정보를 가져온다 (직원등록/수정 페이지)
-	// @Transactional(readOnly = true)
-	// public ResMessage<?> getMemberInfo(Long id) {
-	//
-	//
-	// }
+	@Transactional(readOnly = true)
+	public ResMessage<MemberDTO.GetMemberInfoSet> getMemberInfo(Long memberId) {
+		int resCode = 0;
+		String resMsg = "";
+		
+		YnType isVisible = YnType.y;
+		GetMemberInfoPr getMemberInfo = memberRepository.GetMemberInfo(memberId, isVisible);
+		Long imgFileInfoId = getMemberInfo.getImgFileId();
+		String memberImgPath = "";
+		if (imgFileInfoId != null && imgFileInfoId > 0) {
+			String dir = getMemberInfo.getDir();
+			String extension = getMemberInfo.getExtension();
+			memberImgPath = fileServiceImpl.getFilePath(
+					dir, imgFileInfoId, extension
+			);
+		}
+		
+		// 중분류 권한 가져오기
+		List<MemberCodeAuthPr> itemAuthData = memberCodeAuthRepository.getMemberCodeAuth(memberId);
+		
+		MemberDTO.GetMemberInfoSet data = new MemberDTO.GetMemberInfoSet(getMemberInfo, memberImgPath, itemAuthData);
+		resCode = 1;
+		return new ResMessage<>(resCode, resMsg, data);
+	}
 	
 }

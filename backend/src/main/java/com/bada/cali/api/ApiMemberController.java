@@ -93,11 +93,9 @@ public class ApiMemberController {
 	}
 	
 	// 직원정보 가져오기
-	// @GetMapping(value = "/getMemberInfo/{id}")
-	// public ResponseEntity<ResMessage<?>> getMemberInfo(@PathVariable Long id) {
-	// 	// 직급정보, 부서정보, 분류코드 정보, 첨부파일 이미지 정보
-	//
-	// 	// ResMessage<?> resMessage = memberService.getMemberInfo(id);
-	// 	return ResponseEntity.ok(resMessage);
-	// }
+	@GetMapping(value = "/getMemberInfo")
+	public ResponseEntity<ResMessage<MemberDTO.GetMemberInfoSet>> getMemberInfo(@RequestParam Long id) {
+		ResMessage<MemberDTO.GetMemberInfoSet> resMessage = memberService.getMemberInfo(id);
+		return ResponseEntity.ok(resMessage);
+	}
 }

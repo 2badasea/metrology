@@ -1,7 +1,9 @@
 package com.bada.cali.repository;
 
+import com.bada.cali.dto.MemberDTO;
 import com.bada.cali.entity.Member;
 import com.bada.cali.common.enums.YnType;
+import com.bada.cali.repository.projection.GetMemberInfoPr;
 import com.bada.cali.repository.projection.MemberListPr;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -95,6 +97,40 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 			@Param("keyword") String keyword,
 			@Param("isVisible") YnType isVisible,
 			PageRequest pageRequest
+	);
+	
+	@Query("""
+			   select
+			     m.loginId AS loginId,
+			     m.name AS name,
+			     m.nameEng AS nameEng,
+			     m.hp AS hp,
+			     m.companyNo AS companyNo,
+			     m.birth AS birth,
+			     m.addr1 AS addr1,
+			     m.addr2 AS addr2,
+			     m.email AS email,
+			     m.tel AS tel,
+			     m.departmentId AS departmentId,
+			     m.levelId AS levelId,
+			     m.isActive AS isActive,
+			     m.joinDate AS joinDate,
+			     m.leaveDate AS leaveDate,
+			     m.workType AS workType,
+			     m.remark AS remark,
+			     f.id AS imgFileId,
+				 f.extension as extension,
+				 f.dir as dir
+			    FROM Member m
+			    LEFT JOIN FileInfo f
+			      ON f.refTableName = 'member'
+			     and f.refTableId = :id
+			     AND f.isVisible = :isVisible
+			    WHERE m.id = :id
+			""")
+	GetMemberInfoPr GetMemberInfo(
+			@Param("id") Long id,
+			@Param("isVisible") YnType isVisible
 	);
 	
 }

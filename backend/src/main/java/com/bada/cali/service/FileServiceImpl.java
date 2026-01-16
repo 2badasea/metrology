@@ -288,5 +288,19 @@ public class FileServiceImpl {
 		saveFiles(refTableName, id, dir, List.of(file), userId);
 	}
 	
+	// 이미지 파일의 경로를 반환한다.
+	public String getFilePath(String dir, Long fileInfoId, String extension) {
+		
+		String endPoint = storageProps.getEndpoint();
+		String bucket = storageProps.getBucketName();
+		String rootDir = storageProps.getRootDir();
+		String filePath = String.format("%s/%s/%s/%s%d.%s", endPoint, bucket,rootDir, dir, fileInfoId, extension);
+		
+		log.info("확인");
+		log.info(filePath);
+		
+		return filePath;
+	}
+	
 	
 }

@@ -18,6 +18,7 @@ $(function () {
 
 	let isUseMiddleCodeData = [];
 	let previewUrl = null; // 미리보기 이미지 객체
+	let memberCodeAuthData = [];
 	const $form = $('form.memberModifyForm', $modal);
 
 	// 직원 등록/수정 페이지 렌더링 이후 초기화
@@ -32,27 +33,32 @@ $(function () {
 			$('input[name=loginId]', $modal).prop('readonly', true); // 로그인아이디 수정 불가
 
 			// NOTE 수정인 경우, 아이디 항목 readonly 처리
-			// try {
-			// 	const resGetInfo = await g_ajax(
-			// 		`/api/member/getMemberInfo/${id}`,
-			// 		{},
-			// 		{
-			// 			type: 'GET',
-			// 		}
-			// 	);
-			// 	console.log('🚀 ~ resGetInfo:', resGetInfo);
-			// 	if (resGetInfo?.code > 0) {
-			// 		// 데이터 세팅
-			// 		if (resGetInfo.data != undefined) {
-			// 			console.log('데이터 조회');
-			// 			$form.setupValues(resGetInfo.data);
-			// 		}
-			// 	}
-			// } catch (xhr) {
-			// 	console.error(xhr);
-			// 	custom_ajax_handler(xhr);
-			// } finally {
-			// }
+			try {
+				const resGetInfo = await g_ajax(
+					`/api/member/getMemberInfo?id=${id}`,
+					{},
+					{
+						type: 'GET',
+					}
+				);
+				if (resGetInfo?.code > 0) {
+					// 데이터 세팅
+					if (resGetInfo.data != undefined) {
+						const memberInfo = resGetInfo.data.basicMemberInfo;
+						$form.find('input[name], textarea[name], select[name]').setupValues(memberInfo);
+						const imgFilePath = resGetInfo.data.memberImgPath;
+						if (imgFilePath) {
+							$modal.find('.memberImgEle').attr('src', imgFilePath).css('display', 'block');
+						}
+						const memberCodeAuth = resGetInfo.data.itemAuthData ?? [];
+						memberCodeAuthData = memberCodeAuth;
+					}
+				}
+			} catch (xhr) {
+				console.error(xhr);
+				custom_ajax_handler(xhr);
+			} finally {
+			}
 		}
 
 		const authColumn = (header, name, headerEl, width) => ({
@@ -194,8 +200,37 @@ $(function () {
 		};
 
 		// 그리드를 렌더링하고 중분류 데이터셋을 표시한다.
-		await $modal.initGrid(isUseMiddleCodeData);
+		$modal.initGrid(isUseMiddleCodeData);
 		// 직원수정인 경우, 해당 직원의 분야별 권한을 표시한다.
+		if (id > 0 && memberCodeAuthData.length > 0) {
+			// 1) memberCodeAuthData -> Map(middleItemCodeId => authBitmask)
+			const authMap = new Map(memberCodeAuthData.map((a) => [Number(a.middleItemCodeId), Number(a.authBitmask ?? 0)]));
+
+			// 2) 그리드에 이미 세팅된 기본 rows 가져오기
+			const baseRows = $modal.itemAuthGrid.getData();
+			// getData()는 컬럼명 기준 객체 배열 반환(43개)
+
+			// 3) rows에 비트마스크를 적용해서 boolean 컬럼까지 채운 새 rows 만들기
+			const mergedRows = baseRows.map((r) => {
+				const mask = authMap.get(Number(r.middleItemCodeId)) ?? 0;
+
+				return {
+					...r,
+					authBitmask: mask,
+					isWorker: (mask & 1) !== 0,
+					isTechSub: (mask & 2) !== 0,
+					isTechMain: (mask & 4) !== 0,
+				};
+			});
+
+			// 4) 한 번에 반영 (이게 제일 안정적)
+			$modal.itemAuthGrid.resetData(mergedRows);
+
+			// 5) 헤더 체크박스 상태(전체/부분)도 다시 맞추고 싶으면
+			if (typeof $modal.syncAllAuthHeaders === 'function') {
+				$modal.syncAllAuthHeaders();
+			}
+		}
 
 		// 헤더 체크박스 클릭 시 해당 컬럼 전체 토글
 		$modal.bindHeaderCheckbox = (grid, columnName, headerEl) => {
@@ -221,7 +256,6 @@ $(function () {
 		$modal.bindHeaderCheckbox($modal.itemAuthGrid, 'isWorker', $modal.headerWorker);
 		$modal.bindHeaderCheckbox($modal.itemAuthGrid, 'isTechSub', $modal.headerTechSub);
 		$modal.bindHeaderCheckbox($modal.itemAuthGrid, 'isTechMain', $modal.headerTechMain);
-
 
 		// 셀 변경 시 authBitmask 동기화 + 헤더 상태 동기화
 		$modal.itemAuthGrid.on('afterChange', (ev) => {
