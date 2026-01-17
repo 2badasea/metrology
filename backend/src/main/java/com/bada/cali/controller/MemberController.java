@@ -1,5 +1,6 @@
 package com.bada.cali.controller;
 
+import com.bada.cali.exceptions.ForbiddenAdminModifyException;
 import com.bada.cali.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -46,8 +47,22 @@ public class MemberController {
 	
 	// 직원 등록/수정 페이지
 	@GetMapping(value = "/memberModify")
-	public String memberModify(Model model, @RequestParam(required = false) Long id) {
+	public String memberModify(Model model, @RequestParam(required = false) Long id, @AuthenticationPrincipal CustomUserDetails user) {
 		String pageTypeKr = (id == null) ? "등록" : "수정";
+		
+		// 로그인 안 된 케이스가 있을 수 있으면 별도 처리(프로젝트 정책에 맞게)
+		if (user == null) {
+			throw new ForbiddenAdminModifyException("로그인이 필요합니다.");
+		}
+		
+		boolean isAdmin = user.getAuthorities().stream()
+				.anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+		
+		// (핵심) admin 계정(id=1) 수정 페이지 접근은 ADMIN만 허용
+		if (id != null && id == 1L && !isAdmin) {
+			throw new ForbiddenAdminModifyException("관리자 계정은 ADMIN만 수정할 수 있습니다.");
+		}
+	
 		model.addAttribute("title", String.format("직원 %s", pageTypeKr));
 		return "member/memberModify";
 	}

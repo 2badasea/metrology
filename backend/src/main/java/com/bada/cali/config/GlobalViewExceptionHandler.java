@@ -1,5 +1,6 @@
 package com.bada.cali.config;
 
+import com.bada.cali.exceptions.ForbiddenAdminModifyException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -36,5 +37,15 @@ public class GlobalViewExceptionHandler {
 		return "error/500";
 	}
 	
+	@ExceptionHandler(ForbiddenAdminModifyException.class)
+	public String handleForbiddenAdminModify(
+			ForbiddenAdminModifyException ex,
+			Model model,
+			HttpServletRequest request
+	) {
+		model.addAttribute("errMsg", ex.getMessage());
+		model.addAttribute("path", request.getRequestURI());
+		return "error/403";
+	}
 	
 }
