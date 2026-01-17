@@ -65,12 +65,18 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 	@Query("""
 					SELECT
 						m.id AS id,
+						m.companyNo as companyNo,
 						m.loginId as loginId,
 						m.email as email,
 						m.name as name,
+						m.hp as hp,
 						m.tel as tel,
-						m.workType as workType
+						m.workType as workType,
+						d.name as departmentName,
+						ml.name as levelName
 					FROM Member AS m
+					LEFT JOIN Department as d ON d.id = m.departmentId AND d.isVisible = :isVisible
+					LEFT JOIN MemberLevel as ml ON ml.id = m.levelId AND ml.isVisible = :isVisible
 					where m.isVisible = :isVisible
 					and m.agentId = 0
 					and m.isActive = 'y'
@@ -81,10 +87,14 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 										(:searchType = 'loginId' AND m.loginId LIKE concat('%', :keyword, '%'))
 										OR (:searchType = 'name' AND m.name LIKE concat('%', :keyword, '%'))
 										OR (:searchType = 'email' AND m.email LIKE concat('%', :keyword, '%'))
+										OR (:searchType = 'department' AND d.name LIKE concat('%', :keyword, '%'))
+										OR (:searchType = 'level' AND ml.name LIKE concat('%', :keyword, '%'))
 										OR (:searchType = 'all' AND (
 																	m.loginId LIKE concat('%', :keyword, '%')
 																	OR 	m.name LIKE concat('%', :keyword, '%')
 																	OR 	m.email LIKE concat('%', :keyword, '%')
+																	OR 	d.name LIKE concat('%', :keyword, '%')
+																	OR 	ml.name LIKE concat('%', :keyword, '%')
 																)
 										)
 									)

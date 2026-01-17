@@ -155,8 +155,6 @@ public class MemberServiceImpl {
 		
 		// 검색타입 정리
 		Integer workType = req.getWorkType();        // 재직여부
-		log.info("workType 확인");
-		log.info(workType);
 		String searchType = req.getSearchType();    // 검색타입
 		String keyword = req.getKeyword();            // 키워드
 		
