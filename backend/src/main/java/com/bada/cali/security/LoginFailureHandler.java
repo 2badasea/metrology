@@ -28,7 +28,7 @@ import java.util.Optional;
 @Log4j2
 public class LoginFailureHandler implements AuthenticationFailureHandler {
 	
-	private static final String FAIL_MSG = "아이디 또는 비밀번호가 일치하지 않습니다.";
+	private static final String FAIL_MSG = "아이디 또는 비밀번호가<br>일치하지 않습니다.";
 	private final MemberRepository memberRepository;
 	private final LogRepository logRepository;
 	private final ObjectMapper objectMapper;
@@ -57,7 +57,6 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 		} else {
 			Optional<Member> optLoginMember = memberRepository.findByLoginId(loginId, YnType.y);
 			if (optLoginMember.isPresent()) {
-				log.info("==== 확인");
 				Member tryLoginMember = optLoginMember.get();
 				// 입력 아이디 존재 시, 로그인 시도 횟수 카운트 (현재 값이 4이하 일때만 업데이트)
 				if (tryLoginMember.getLoginCount() <= 5) {

@@ -47,8 +47,10 @@ public class CustomSecurityConfig {
 								// "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico", 아래 'WebSecurityCustomizer'에서 정적 리소스 접근 처리
 								"/login"
 								, "/error"
+								, "/error"
 								, "/member/login**"
 								, "/member/memberJoin"
+								,"/guide/**"
 								, "/api/member/**").permitAll()    // 해당 경로 접근 허용
 						.anyRequest().authenticated()                // 그외 요청에 대해선 인증된 사용자만 허용
 				)

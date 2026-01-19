@@ -62,6 +62,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 	
 	
 	// 직원관리 회원 리스트
+	// NOTE ADMIN 계정은 나오지 않도록 변경
 	@Query("""
 					SELECT
 						m.id AS id,
@@ -80,6 +81,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 					where m.isVisible = :isVisible
 					and m.agentId = 0
 					and m.isActive = 'y'
+					and m.auth != 'ADMIN'
 					and (:workType IS NULL OR m.workType = :workType)
 					AND (
 									:keyword = '' OR

@@ -66,7 +66,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 		LocalDateTime lastPwdUpdate = loginMember.getLastPwdUpdated();
 		LocalDateTime expiredPwdDatetime = lastPwdUpdate.plusMonths(3);
 		if (now.isAfter(expiredPwdDatetime)) {
-			resMsg += "\n비밀번호를 변경한지 3개월이 지났습니다. 변경을 권장드립니다";
+			resMsg += "<br>비밀번호를 마지막으로 변경한 지<br>3개월이 지났습니다.<br>변경을 권장드립니다.";
 		}
 		
 		// 로그인 계정이 admin인지 아닌지 구분
