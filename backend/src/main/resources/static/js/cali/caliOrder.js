@@ -146,7 +146,7 @@ $(function () {
 				formatter: function (data) {
 					let row = data.row;
 					let cntText = '';
-					let btnClass = 'btn-secondary';
+					let btnClass = 'btn-success';
 					if (row.reportCnt != undefined && row.reportCnt > 0) {
 						cntText = '1개 이상 존재';
 						btnClass = 'default p-0';

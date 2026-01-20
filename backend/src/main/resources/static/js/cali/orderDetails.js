@@ -181,7 +181,7 @@ $(function () {
 							show_close_button: true,
 							show_confirm_button: isModifiable,
 							confirm_button_text: '저장',
-						}
+						},
 					);
 
 					// 모달이 정상적으로 닫히면 갱신이 일어나도록 한다.
@@ -220,10 +220,11 @@ $(function () {
 					show_close_button: true,
 					show_confirm_button: true,
 					confirm_button_text: '저장',
-					custom_btn_html_arr: [
-						`<button type="button" class="btn btn-success addReportExcel btn-sm"><i class="bi bi-file-excel"></i>EXCEL 등록</button>`,
-					],
-				}
+					// FIX 엑셀등록 기능 구현할 것
+					// custom_btn_html_arr: [
+					// 	`<button type="button" class="btn btn-success addReportExcel btn-sm"><i class="bi bi-file-excel"></i>EXCEL 등록</button>`,
+					// ],
+				},
 			);
 			if (resModal) {
 				$modal.grid.reloadData();
@@ -242,7 +243,7 @@ $(function () {
 		})
 		// 성적서 삭제
 		.on('click', '.deleteReport', async function () {
-			const gUserAuth = $("#gLoginAuth").val();
+			const gUserAuth = $('#gLoginAuth').val();
 			if (gUserAuth !== 'ADMIN') {
 				g_toast('권한이 없습니다', 'warning');
 				return false;
@@ -402,7 +403,7 @@ $(function () {
 				{},
 				{
 					type: 'GET',
-				}
+				},
 			);
 
 			if (resGetItemCodeSet?.code > 0) {

@@ -256,7 +256,13 @@ $(function () {
 		} else {
 			return false;
 		}
-	});
+	})
+	.on('click', '.updateNotice', function (e) {
+		e.preventDefault();
+
+		// g_modal을 띄워 업데이트 사항 공지를 보여준다.
+	})
+	;
 
 /**
  * 모달이 아니고 페이지일 경우 페이지 자신 js를 다 수행 후 이 함수를 실행해서 init_modal 함수를 실행해야 한다.
