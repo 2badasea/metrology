@@ -130,8 +130,7 @@ $(function () {
 		// try/catch => 브라우저 또는 사용자 환경에 따라 로컬스토리지에 접근하는 것 자체가 차단될 수 있기 때문
 		let hideYmd = null;
 		try {
-			hideYmd = localStorage.getItem(LS_KEY);
-			console.log('🚀 ~ hideYmd:', hideYmd);
+			hideYmd = localStorage.getItem(LC_IS_USE_TESTER);
 		} catch (e) {
 			hideYmd = null;
 		}
@@ -140,25 +139,37 @@ $(function () {
 		if (hideYmd === today) {
 			return false;
 		}
+		setTimeout(async () => {
+			const resModal = await g_modal(
+				'/guide/testerIntro',
+				{}, // 필요 파라미터 있으면 여기에
+				{
+					title: '안내',
+					size: 'md',
+					show_close_button: true,
+					show_confirm_button: false,
+					confirm_button_text: '확인',
+					custom_btn_html_arr: [
+						`
+							<div class="form-check form-check-inline mb-0 mr-2">
+								<input class="form-check-input js-testerIntro-hide-today" type="checkbox" id="testerIntroHideToday">
+								<label class="form-check-label" for="testerIntroHideToday">오늘 그만 보기</label>
+							</div>
+							`,
+					],
+				},
+			);
 
-		await g_modal(
-			'/guide/testerIntro',
-			{}, // 필요 파라미터 있으면 여기에
-			{
-				title: '안내',
-				size: 'md',
-				show_close_button: true,
-				show_confirm_button: false,
-				custom_btn_html_arr: [
-					`
-						<div class="form-check form-check-inline mb-0 mr-2">
-							<input class="form-check-input js-testerIntro-hide-today" type="checkbox" id="testerIntroHideToday">
-							<label class="form-check-label" for="testerIntroHideToday">오늘 그만 보기</label>
-						</div>
-						`,
-				],
-			},
-		);
+			console.log('resModal');
+			console.log(resModal);
+			if (resModal.useAutoLogin != undefined && resModal.useAutoLogin == true) {
+				$('input[name=username]', $modal).val(resModal.username);
+				$('input[name=password]', $modal).val(resModal.password);
+				setTimeout(() => {
+					$('.login_btn', $modal).trigger('click');
+				}, 500);
+			}
+		}, 300);
 	};
 
 	$modal.data('modal-data', $modal);

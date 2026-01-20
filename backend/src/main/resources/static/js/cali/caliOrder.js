@@ -67,21 +67,21 @@ $(function () {
 				header: '접수번호',
 				name: 'orderNum',
 				className: 'cursor_pointer',
-				width: '120',
+				width: '140',
 				align: 'center',
 			},
 			{
 				header: '신청업체',
 				name: 'custAgent',
 				className: 'cursor_pointer',
-				with: '150',
+				// with: '150',
 				align: 'center',
 			},
 			{
 				header: '성적서발행처',
 				name: 'reportAgent',
 				className: 'cursor_pointer',
-				width: '150',
+				// width: '150',
 				align: 'center',
 			},
 			{
@@ -160,55 +160,55 @@ $(function () {
 					`;
 				},
 			},
-			{
-				header: '대행',
-				className: 'cursor_pointer',
-				width: '70',
-				align: 'center',
-				formatter: function (data) {
-					// FIX 대행 작업 시 진행.   접수내역과 같이 개수를 표기하도록 한다.
-					return '';
-				},
-			},
-			{
-				header: '복사',
-				className: 'cursor_pointer',
-				width: '70',
-				align: 'center',
-				formatter: function (data) {
-					// FIX 자체+대행 포함하여 성적서 개수가 1개 이상이어야 표기
-					return '';
-				},
-			},
-			{
-				header: '교정신청서',
-				className: 'cursor_pointer',
-				width: '120',
-				align: 'center',
-				formatter: function (data) {
-					// 버튼 2개로 구성할 것
-					return `
-								<div class="btn-group btn-group-sm w-100 h-100" role="group" aria-label="Basic example">
-									<button type="button" class="h-100 rounded-0 btn btn-info downCaliOrder" data-type="excel"><i class="bi bi-download"></i></button>
-									<button type="button" class="h-100 rounded-0 btn sendCaliOrder btn-secondary" data-type="mail"><i class="bi bi-envelope"></i></button>
-								</div>
-							`;
-				},
-			},
-			{
-				header: '완료통보서',
-				className: 'cursor_pointer',
-				width: '80',
-				align: 'center',
-				formatter: function (data) {
-					// 모달을 통해서 볼 수 있도록 할 것
-					return `
-								'<button type="button" class="btn w-100 h-100 rounded-0 checkCpt">
-									<i class="bi bi-pencil-square"></i>
-								</button>
-							`;
-				},
-			},
+			// {
+			// 	header: '대행',
+			// 	className: 'cursor_pointer',
+			// 	width: '70',
+			// 	align: 'center',
+			// 	formatter: function (data) {
+			// 		// FIX 대행 작업 시 진행.   접수내역과 같이 개수를 표기하도록 한다.
+			// 		return '';
+			// 	},
+			// },
+			// {
+			// 	header: '복사',
+			// 	className: 'cursor_pointer',
+			// 	width: '70',
+			// 	align: 'center',
+			// 	formatter: function (data) {
+			// 		// FIX 자체+대행 포함하여 성적서 개수가 1개 이상이어야 표기
+			// 		return '';
+			// 	},
+			// },
+			// {
+			// 	header: '교정신청서',
+			// 	className: 'cursor_pointer',
+			// 	width: '120',
+			// 	align: 'center',
+			// 	formatter: function (data) {
+			// 		// 버튼 2개로 구성할 것
+			// 		return `
+			// 					<div class="btn-group btn-group-sm w-100 h-100" role="group" aria-label="Basic example">
+			// 						<button type="button" class="h-100 rounded-0 btn btn-info downCaliOrder" data-type="excel"><i class="bi bi-download"></i></button>
+			// 						<button type="button" class="h-100 rounded-0 btn sendCaliOrder btn-secondary" data-type="mail"><i class="bi bi-envelope"></i></button>
+			// 					</div>
+			// 				`;
+			// 	},
+			// },
+			// {
+			// 	header: '완료통보서',
+			// 	className: 'cursor_pointer',
+			// 	width: '80',
+			// 	align: 'center',
+			// 	formatter: function (data) {
+			// 		// 모달을 통해서 볼 수 있도록 할 것
+			// 		return `
+			// 					'<button type="button" class="btn w-100 h-100 rounded-0 checkCpt">
+			// 						<i class="bi bi-pencil-square"></i>
+			// 					</button>
+			// 				`;
+			// 	},
+			// },
 		],
 		pageOptions: {
 			useClient: false, // 서버 페이징

@@ -144,21 +144,6 @@ $(function () {
 
 		this.value = v;
 	})
-	// 전화번호 입력 필드
-	// .on('keyup', 'input.tel', (e) => {
-	// 	let contactNum = e.target.value; // 화살표함수가 아닌 'this.value' 형태로도 값을 얻을 수 있음.
-	// 	contactNum = contactNum.replace(/\D/g, '').slice(0, 11);
-
-	// 	let out = '';
-	// 	if (contactNum.length <= 3) {
-	// 		out = contactNum;
-	// 	} else if (contactNum.length <= 7) {
-	// 		out = contactNum.slice(0, 3) + '-' + contactNum.slice(3);
-	// 	} else {
-	// 		out = contactNum.slice(0, 3) + '-' + contactNum.slice(3, 7) + '-' + contactNum.slice(7);
-	// 	}
-	// 	e.target.value = out;
-	// })
 	.on('keyup', 'input.tel', (e) => {
 		// 1) 숫자만 남기고, 최대 11자리까지 자르기
 		let digits = e.target.value.replace(/\D/g, '');
@@ -256,6 +241,21 @@ $(function () {
 		} else {
 			showRoadMapView(address);
 		}
+	})
+	// 마이페이지 이동
+	.on('click', '.myPage', async function (e) {
+		e.preventDefault();
+		const id = $(this).data('gid'); // data-gid 읽기
+		if (!id) {
+			return false; // gId 없으면 막기(또는 메시지)
+		}
+
+		const myPageConfrim = await g_message('회원정보를 수정하시겠습니까?', '', 'question', 'confirm');
+		if (myPageConfrim.isConfirmed === true) {
+			location.href = `/member/memberModify?id=${id}`;
+		} else {
+			return false;
+		}
 	});
 
 /**
@@ -299,7 +299,7 @@ function g_ajax(url, data = {}, options = {}) {
 			dataType: 'json',
 			data: data,
 		},
-		options
+		options,
 	);
 	// data가 FormData객체라면 파일업로드 데이터를 처리하기 위해 아래 옵션 설정
 	// false로 설정 시, 브라우저는 헤더를 알아서 multipart/form-data로 contenType을 설정해서 보냄
@@ -382,7 +382,7 @@ function g_toast(text = '알림', type = 'info', options = {}) {
 			showMethod: 'fadeIn',
 			hideMethod: 'fadeOut',
 		},
-		options
+		options,
 	);
 	toastr.options = $.extend(toastr.options, settings);
 	toastr[type](text);
@@ -506,7 +506,6 @@ async function g_modal(url, param = {}, options = {}) {
 				click_close_button: async function () {
 					let $modal = $(`#${uuid}`).find('.modal-view').data('modal-data');
 					if (typeof $modal == 'object' && typeof $modal.close_modal == 'function') {
-						await $modal.close_modal();
 						resolve();
 					} else {
 						$(`#${uuid}`).modal('hide');
@@ -531,7 +530,7 @@ async function g_modal(url, param = {}, options = {}) {
 				// 모달이 닫힐 때, 데이터를 반환하는 이벤트
 				click_return_button: async function () {
 					let $modal = $(`#${uuid}`).find('.modal-view').data('modal-data');
-					if (typeof $modal == 'object' && typeof $modal.confirm_modal == 'function') {
+					if (typeof $modal == 'object' && typeof $modal.return_modal == 'function') {
 						let value = await $modal.return_modal();
 						if (value !== false) {
 							resolve(value);
@@ -552,7 +551,7 @@ async function g_modal(url, param = {}, options = {}) {
 								{
 									renderMode: 'modal',
 								},
-								param
+								param,
 							),
 							function () {
 								if ((match = url.match(/^\/?(.+)\/(.+)/i))) {
@@ -560,7 +559,7 @@ async function g_modal(url, param = {}, options = {}) {
 									element.setAttribute('src', `/public/js/${match[1]}/${match[2]}.js`);
 									document.querySelector(`#${uuid} .modal-body`).appendChild(element);
 								}
-							}
+							},
 						);
 				},
 				show_select_button: false,
@@ -591,7 +590,7 @@ async function g_modal(url, param = {}, options = {}) {
 				max_height: '100%',
 				width: '',
 			},
-			options
+			options,
 		);
 		const uuid = settings.uuid;
 		if (settings.button_area_html == '') {
@@ -654,8 +653,8 @@ async function g_modal(url, param = {}, options = {}) {
 			typeof settings.backdrop != 'undefined' ? settings.backdrop : 'static'
 		}" role="dialog" aria-hidden="true"${keyboard} style="left: ${settings.left}px; top: ${settings.top}px;">
 			<div class="modal-dialog${settings.size == 'fullscreen' ? ' modal-fullscreen ' : ' '} modal-${
-			['', 'sm', 'lg', 'xl', 'xxl', 'xxxl'].indexOf(settings.size) > -1 ? settings.size : 'xl'
-		} modal-dialog-centered modal-dialog-scrollable" role="document" style="${settings.width ? '--bs-modal-width: ' + settings.width + ';' : ''}">
+				['', 'sm', 'md', 'lg', 'xl', 'xxl', 'xxxl'].indexOf(settings.size) > -1 ? settings.size : 'xl'
+			} modal-dialog-centered modal-dialog-scrollable" role="document" style="${settings.width ? '--bs-modal-width: ' + settings.width + ';' : ''}">
 				<div class="modal-content shadow-4" style="max-height: ${settings.max_height};">
 					<div class="modal-header p-2 px-3">
 						<h5 class="modal-title">${settings.icon}${settings.title}</h5>
@@ -686,7 +685,7 @@ async function g_modal(url, param = {}, options = {}) {
 							uuid: uuid,
 							renderMode: 'modal',
 						},
-						param
+						param,
 					),
 					function () {
 						if ((match = url.match(/^\/?(.+)\/(.+)/i))) {
@@ -706,7 +705,7 @@ async function g_modal(url, param = {}, options = {}) {
 						if (typeof settings.on_load_complete == 'function') {
 							settings.on_load_complete($(`#${uuid}`));
 						}
-					}
+					},
 				);
 				if (typeof settings.on_show == 'function') {
 					settings.on_show($(`#${uuid}`));
@@ -876,7 +875,7 @@ function g_grid(selector, options) {
 			showConfigButton: true, // 모달에 설정버튼을 추가한다.
 			contextMenu: null,
 		},
-		options
+		options,
 	);
 	Grid.setLanguage('ko', {
 		display: {
@@ -1004,7 +1003,7 @@ function g_grid(selector, options) {
 			$('.tui-grid-header-area', grid.el).on('wheel', function (e) {
 				//헤더영역에서 스크롤시 좌우스크롤링 되도록 변경
 				$('.tui-grid-rside-area .tui-grid-body-area', grid.el).scrollLeft(
-					$('.tui-grid-rside-area .tui-grid-body-area', grid.el).scrollLeft() + e.originalEvent.deltaY
+					$('.tui-grid-rside-area .tui-grid-body-area', grid.el).scrollLeft() + e.originalEvent.deltaY,
 				);
 			});
 			let body_el = $('.tui-grid-rside-area .tui-grid-body-area', grid.el)[0];
@@ -1069,7 +1068,7 @@ function g_grid(selector, options) {
 					</th>
 				</tr>`).appendTo(table);
 				$(
-					'<tr><th></th><th><input type="checkbox" class="form-check-input checkall" checked /></th><th class="text-center">원 항목명</th><th class="text-center">현재 항목명</th><th class="text-center">크기</th><th class="text-center">정렬</th></tr>'
+					'<tr><th></th><th><input type="checkbox" class="form-check-input checkall" checked /></th><th class="text-center">원 항목명</th><th class="text-center">현재 항목명</th><th class="text-center">크기</th><th class="text-center">정렬</th></tr>',
 				).appendTo(table);
 				console.log('grid');
 				console.log(grid);
@@ -1110,13 +1109,13 @@ function g_grid(selector, options) {
 						</th>
 						<td>
 							<input type="text" class="p-0 form-control form-control-xs text-center config_input" value="${header}" name="config_header" autocomplete="off"${
-						is_fixed_header ? ' disabled' : ''
-					} />
+								is_fixed_header ? ' disabled' : ''
+							} />
 						</td>
 						<td>
 							<input type="text" class="p-0 form-control form-control-xs text-center config_input" value="${width}" name="config_width" autocomplete="off" placeholder="자동"${
-						is_fixed_size ? ' disabled' : ''
-					} />
+								is_fixed_size ? ' disabled' : ''
+							} />
 						</td>
 						<td>
 							<select name="config_align" autocomplete="off" class="p-0 form-control form-control-xs text-center config_input"${
@@ -1213,7 +1212,7 @@ function g_append_pagenation_side_grid($grid_parent, text, font_size = 16, delay
 			$span.text(text);
 		} else {
 			$('.tui-grid-pagination', $grid_parent).append(
-				`<span class="grid_bottom ${side}" style="font-size: ${font_size}px; float: ${side}; margin-top: 5px;">${text}</span>`
+				`<span class="grid_bottom ${side}" style="font-size: ${font_size}px; float: ${side}; margin-top: 5px;">${text}</span>`,
 			);
 		}
 	}, delay);
@@ -1412,7 +1411,7 @@ function isValidateDate(start = '', end = '') {
 
 // 주소 api 호출하기
 async function showRoadMapView(address = '') {
-	await g_modal('/basic/viewRoadMap', {
+	(await g_modal('/basic/viewRoadMap', {
 		address: address,
 	}),
 		{
@@ -1420,7 +1419,7 @@ async function showRoadMapView(address = '') {
 			size: 'xl',
 			show_close_button: true,
 			show_confirm_button: false,
-		};
+		});
 }
 
 /**
@@ -1491,14 +1490,14 @@ function uncomma(str) {
 
 // 로그인아이디 정규식 체크
 function checkLoginId(str = '') {
-    if (!str) {
-        return false;
-    }
-    // ^[a-z]: 반드시 영문 소문자로 시작 (1자)
-    // [a-z0-9]{3,19}$: 이후 영문 소문자나 숫자가 3~19개 옴
-    // 총 길이: 1 + (3~19) = 4~20자
-    const regExp = /^[a-z][a-z0-9]{3,19}$/;
-    return regExp.test(str);
+	if (!str) {
+		return false;
+	}
+	// ^[a-z]: 반드시 영문 소문자로 시작 (1자)
+	// [a-z0-9]{3,19}$: 이후 영문 소문자나 숫자가 3~19개 옴
+	// 총 길이: 1 + (3~19) = 4~20자
+	const regExp = /^[a-z][a-z0-9]{3,19}$/;
+	return regExp.test(str);
 }
 
 // 비밀번호 정규식 체크
