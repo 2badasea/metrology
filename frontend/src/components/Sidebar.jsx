@@ -35,7 +35,8 @@ export default function Sidebar() {
 
       <div className="sidebar-footer">
         <button className="sidebar-cta" type="button" onClick={ () => {
-            location.href = `${backendOrigin}/cali/caliOrder`;
+            location.href = `http://211.188.55.249/cali/caliOrder`;
+            // location.href = `${backendOrigin}/cali/caliOrder`;
         }}>
           교정관리 돌아가기
         </button>
