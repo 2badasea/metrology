@@ -1,16 +1,67 @@
 body {
-    background: #eee !important;
+	background: linear-gradient(180deg, #f6f7f9 0%, #eeeeee 100%) !important;
+	min-height: 100vh;
 }
 
 .wrapper {
-    margin-top: 80px;
-    margin-bottom: 80px;
+	min-height: 80vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px 12px;
 }
 
 .login_form {
-    max-width: 380px;
-    padding: 15px 35px 45px;
-    margin: 0 auto;
-    background-color: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+	width: 100%;
+	max-width: 420px;
+	padding: 28px 28px 22px;
+	margin: 0 auto;
+	background-color: #fff;
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 12px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.login_form-heading {
+	font-size: 28px;
+	font-weight: 700;
+	margin-bottom: 18px;
+	letter-spacing: -0.5px;
+}
+
+.login_form .form-control {
+	height: 44px;
+	border-radius: 10px;
+}
+
+.login_form .form-control:focus {
+	box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+.login_form .btn {
+	height: 44px;
+	border-radius: 10px;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.login_form .alert {
+	border-radius: 10px;
+}
+
+.login_form .form-check {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 6px;
+	margin-bottom: 14px;
+}
+
+.login_form .form-check input {
+	transform: translateY(1px);
+}
+
+/* 선택: 버튼 간격 좀 더 깔끔히 */
+.login_form .btn + .btn {
+	margin-top: 10px !important;
 }

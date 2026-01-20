@@ -67,9 +67,12 @@ public class GlobalViewNameAdvice {
 		Object principal = authentication.getPrincipal();
 		if (!(principal instanceof CustomUserDetails gUser)) {
 			return;
+		} else {
+			boolean isAdmin = gUser.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(a -> "ROLE_ADMIN".equals(a));
+			model.addAttribute("gLoginAuth", isAdmin ? "admin" : "user");
+			model.addAttribute("gName", gUser.getName());
+			model.addAttribute("gId", gUser.getId());
 		}
-		boolean isAdmin = gUser.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(a -> "ROLE_ADMIN".equals(a));
-		model.addAttribute("gLoginAuth", isAdmin ? "admin" : "user");
 		
 		
 		// 조회하는 페이지가 모달이 아닌 경우에만 사이드메뉴를 세팅할 수 있또록 한다.

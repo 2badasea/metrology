@@ -105,4 +105,10 @@ public class BasicController {
 		model.addAttribute("title", "부서 및 직급관리");
 		return "basic/manageDepartAndLevel";
 	}
+	
+	// 비고, 요청사항 등의 내용 보여주기 [모달]
+	@PostMapping(value = "/showContent")
+	public String showContent() {
+		return "basic/showContent";
+	}
 }

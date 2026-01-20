@@ -12,7 +12,7 @@ $(function () {
 	let $modal_root = $modal.closest('.modal');
 
 	urlSearch = new URLSearchParams(location.search); // 쿼리스트링 가져오기 (get으로 파라미터값을 가져올 수 있다.)
-	const id = urlSearch.get('id') ?? 0;
+	const id = urlSearch.get('id');
 	const menuPath = `직원관리 - 직원${id == null ? '등록' : '수정'}`;
 	$('.topbar-inner .customBreadcrumb').text(menuPath);
 
@@ -132,8 +132,11 @@ $(function () {
 				return;
 			}
 
-			cb.checked = checkedCount === total;
-			cb.indeterminate = checkedCount > 0 && checkedCount < total;
+			// 전부 체크일 때만 헤더 체크 ON
+			const allChecked = checkedCount === total;
+
+			cb.checked = allChecked;
+			cb.indeterminate = false; // 핵심: 부분 상태(-)를 절대 쓰지 않음
 		};
 
 		// 헤더 엘리먼트 준비
@@ -237,17 +240,29 @@ $(function () {
 			const cb = headerEl.querySelector('input.hdr-auth-checkbox');
 			if (!cb) return;
 
-			// 헤더 체크박스가 “보이긴 하는데 클릭이 안 먹는” 현상(헤더 셀 이벤트와 충돌) 방지
 			cb.addEventListener('mousedown', (e) => e.stopPropagation());
 
 			cb.addEventListener('click', (e) => {
-				e.stopPropagation(); // 헤더 클릭 이벤트(정렬 등) 충돌 방지
-				grid.finishEditing(); // 편집중이면 마무리
+				e.stopPropagation();
+				grid.finishEditing();
 
 				const checked = cb.checked;
-				grid.setColumnValues(columnName, checked);
 
-				// 즉시 헤더 상태 반영(부분 체크는 afterChange에서도 동기화됨)
+				// (핵심) setColumnValues 대신 row별 setValue로 확실하게 데이터 반영
+				const rowCount = grid.getRowCount();
+				for (let i = 0; i < rowCount; i++) {
+					const row = grid.getRowAt(i);
+					const rowKey = row.rowKey;
+
+					// boolean 값 반영
+					grid.setValue(rowKey, columnName, checked, false);
+
+					// 즉시 bitmask도 같이 반영(일괄 변경은 여기서 강제 동기화)
+					const newMask = $modal.buildAuthMask(grid.getRow(rowKey));
+					grid.setValue(rowKey, 'authBitmask', newMask, false);
+				}
+
+				// 헤더 상태 갱신
 				$modal.syncHeaderCheckboxState(grid, columnName, headerEl);
 			});
 		};
@@ -264,16 +279,30 @@ $(function () {
 
 			const authCols = new Set(['isWorker', 'isTechSub', 'isTechMain']);
 			const touchedRowKeys = new Set();
+			const touchedCols = new Set();
 
 			changes.forEach((c) => {
-				if (authCols.has(c.columnName)) touchedRowKeys.add(c.rowKey);
+				if (authCols.has(c.columnName)) {
+					touchedRowKeys.add(c.rowKey);
+					touchedCols.add(c.columnName); // 어떤 컬럼이 바뀌었는지 기록
+				}
 			});
 
-			// 권한 컬럼이 바뀐 행만 bitmask 갱신
+			// 1) 권한 컬럼이 바뀐 행만 bitmask 갱신
 			touchedRowKeys.forEach((rowKey) => {
 				const row = $modal.itemAuthGrid.getRow(rowKey);
 				const newMask = $modal.buildAuthMask(row);
-				$modal.itemAuthGrid.setValue(rowKey, 'authBitmask', newMask);
+				$modal.itemAuthGrid.setValue(rowKey, 'authBitmask', newMask, false);
+			});
+
+			// 2) (추가) 헤더 체크박스 상태 자동 갱신
+			// - 하나라도 해제되면 cb.checked=false
+			// - 모두 체크되면 cb.checked=true
+			// - 일부만 체크면 indeterminate=true
+			touchedCols.forEach((col) => {
+				if (col === 'isWorker') $modal.syncHeaderCheckboxState($modal.itemAuthGrid, col, $modal.headerWorker);
+				if (col === 'isTechSub') $modal.syncHeaderCheckboxState($modal.itemAuthGrid, col, $modal.headerTechSub);
+				if (col === 'isTechMain') $modal.syncHeaderCheckboxState($modal.itemAuthGrid, col, $modal.headerTechMain);
 			});
 		});
 
@@ -351,6 +380,7 @@ $(function () {
 							throw new Error('비밀번호는 소문자, 대문자, 숫자, 특수문자(!@#$%^)들로 구성된 8~20자리여야 합니다.');
 						}
 					}
+					formData.append('id', id);
 				}
 				// 등록
 				else {
@@ -410,11 +440,6 @@ $(function () {
 				formData.delete('leaveDate');
 			}
 
-			// 입력값 확인
-			for (const [key, value] of formData.entries()) {
-				console.log('key: ' + key + ' value: ' + value);
-			}
-
 			// 그리드 데이터 담기
 			const itemAuthData = $modal.itemAuthGrid.getData();
 			// FormData에 그리드 데이터를 담아서 서버에 전송하기 위해선 아래 방식 또는 Blob을 통해 @RequestPart를 사용해야 함.
@@ -425,6 +450,11 @@ $(function () {
 				// formData.append(`itemAuthData[${i}].memberId`, memberId); // 필요 시만
 			});
 			// formData.append('itemAuthData', JSON.stringify(itemAuthData));
+
+			// 입력값 확인
+			for (const [key, value] of formData.entries()) {
+				console.log('key: ' + key + ' value: ' + value);
+			}
 
 			// 저장 진행
 			const saveTypeKr = id != null && id > 0 ? '수정' : '등록';
@@ -443,9 +473,9 @@ $(function () {
 							await g_message(`직원정보 ${saveTypeKr}`, '저장되었습니다.', 'success', 'alert');
 							if (resData.data != undefined && resData.data > 0) {
 								const savedId = Number(resData.data);
-								location.href = `member/memberModify?id=${savedId}`;
+								location.href = `/member/memberModify?id=${savedId}`;
 							} else {
-								location.href = `member/memberManage`;
+								location.href = `/member/memberManage`;
 							}
 						} else {
 							await g_message(`직원정보 ${saveTypeKr}`, resData.msg ?? '저장하는 데 실패했습니다', 'warning', 'alert');
@@ -483,6 +513,31 @@ $(function () {
 		})
 		// 이미지 삭제 클릭
 		.on('click', '.deleteUserImg', async function (e) {
+			// 이미지 파일이 존재하는 경우, db에서 삭제를 시킨다.
+			const imgFileId = $('input[name=imgFileId]', $modal).val();
+			if (imgFileId > 0) {
+				const deleteCheck = await g_message('이미지 삭제', '기존 업로드 이미지를 삭제하시겠습니까?', 'question', 'confirm');
+				if (deleteCheck.isConfirmed === true) {
+					g_loading_message();
+					try {
+						const resDelete = await g_ajax('/api/file/fileDelete/' + imgFileId);
+						Swal.close(); // 통신이 끝나면 로딩창을 닫는다.
+						if (resDelete?.code > 0) {
+							await g_message(`이미지 삭제`, `삭제되었습니다.`, 'success', 'alert');
+							$('input[name=imgFileId]', $modal).val('');
+						} else {
+							await g_message(`이미지 삭제`, `삭제처리에 실패했습니다.`, 'warning', 'alert');
+						}
+					} catch (xhr) {
+						custom_ajax_handler(xhr);
+					} finally {
+						Swal.close();
+					}
+				}
+			} else {
+				return false;
+			}
+
 			// 미리보기 객체가 있다면, 지우고 기본 이미지 경로로 교체한다.
 			if (previewUrl) {
 				URL.revokeObjectURL(previewUrl);
@@ -490,6 +545,15 @@ $(function () {
 			// input file 초기화
 			$('input[name=memberImage]', $modal).val('');
 			$modal.find('.memberImgEle').attr('src', '/images/basic_user.png').css('display', 'block');
+		})
+		// 리스트 돌아가기
+		.on('click', '.goBack', async function (e) {
+			const confirm = await g_message('직원관리 이동', '리스트로 이동하시겠습니까?', 'question', 'confirm');
+			if (confirm.isConfirmed === true) {
+				location.href = '/member/memberManage';
+			} else {
+				return false;
+			}
 		});
 
 	$modal.data('modal-data', $modal);

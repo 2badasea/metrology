@@ -14,7 +14,6 @@ $(function () {
 
 	$modal.init_modal = (param) => {
 		$modal.param = param;
-		console.log('🚀 ~ $modal.param:', $modal.param);
 	};
 
 	// 교정접수 리스트 가져오기
@@ -67,21 +66,21 @@ $(function () {
 				header: '접수번호',
 				name: 'orderNum',
 				className: 'cursor_pointer',
-				width: '120',
+				width: '140',
 				align: 'center',
 			},
 			{
 				header: '신청업체',
 				name: 'custAgent',
 				className: 'cursor_pointer',
-				with: '150',
+				// with: '150',
 				align: 'center',
 			},
 			{
 				header: '성적서발행처',
 				name: 'reportAgent',
 				className: 'cursor_pointer',
-				width: '150',
+				// width: '150',
 				align: 'center',
 			},
 			{
@@ -114,9 +113,9 @@ $(function () {
 				className: 'cursor_pointer',
 				width: '70',
 				align: 'center',
-				formatter: function (data) {
+				formatter: function ({row}) {
 					// 모달을 통해서 볼 수 있도록 할 것
-					let btnClass = data.remark ? 'btn-info' : 'btn-secondary';
+					let btnClass = (row.remark) ? 'btn-info' : 'btn-secondary';
 					return `<button type='button' class='btn ${btnClass} w-100 h-100 rounded-0' ><i class='bi bi-chat-left-text'></i></button>
 					`;
 				},
@@ -147,7 +146,7 @@ $(function () {
 				formatter: function (data) {
 					let row = data.row;
 					let cntText = '';
-					let btnClass = 'btn-secondary';
+					let btnClass = 'btn-success';
 					if (row.reportCnt != undefined && row.reportCnt > 0) {
 						cntText = '1개 이상 존재';
 						btnClass = 'default p-0';
@@ -160,55 +159,55 @@ $(function () {
 					`;
 				},
 			},
-			{
-				header: '대행',
-				className: 'cursor_pointer',
-				width: '70',
-				align: 'center',
-				formatter: function (data) {
-					// FIX 대행 작업 시 진행.   접수내역과 같이 개수를 표기하도록 한다.
-					return '';
-				},
-			},
-			{
-				header: '복사',
-				className: 'cursor_pointer',
-				width: '70',
-				align: 'center',
-				formatter: function (data) {
-					// FIX 자체+대행 포함하여 성적서 개수가 1개 이상이어야 표기
-					return '';
-				},
-			},
-			{
-				header: '교정신청서',
-				className: 'cursor_pointer',
-				width: '120',
-				align: 'center',
-				formatter: function (data) {
-					// 버튼 2개로 구성할 것
-					return `
-								<div class="btn-group btn-group-sm w-100 h-100" role="group" aria-label="Basic example">
-									<button type="button" class="h-100 rounded-0 btn btn-info downCaliOrder" data-type="excel"><i class="bi bi-download"></i></button>
-									<button type="button" class="h-100 rounded-0 btn sendCaliOrder btn-secondary" data-type="mail"><i class="bi bi-envelope"></i></button>
-								</div>
-							`;
-				},
-			},
-			{
-				header: '완료통보서',
-				className: 'cursor_pointer',
-				width: '80',
-				align: 'center',
-				formatter: function (data) {
-					// 모달을 통해서 볼 수 있도록 할 것
-					return `
-								'<button type="button" class="btn w-100 h-100 rounded-0 checkCpt">
-									<i class="bi bi-pencil-square"></i>
-								</button>
-							`;
-				},
-			},
+			// {
+			// 	header: '대행',
+			// 	className: 'cursor_pointer',
+			// 	width: '70',
+			// 	align: 'center',
+			// 	formatter: function (data) {
+			// 		// FIX 대행 작업 시 진행.   접수내역과 같이 개수를 표기하도록 한다.
+			// 		return '';
+			// 	},
+			// },
+			// {
+			// 	header: '복사',
+			// 	className: 'cursor_pointer',
+			// 	width: '70',
+			// 	align: 'center',
+			// 	formatter: function (data) {
+			// 		// FIX 자체+대행 포함하여 성적서 개수가 1개 이상이어야 표기
+			// 		return '';
+			// 	},
+			// },
+			// {
+			// 	header: '교정신청서',
+			// 	className: 'cursor_pointer',
+			// 	width: '120',
+			// 	align: 'center',
+			// 	formatter: function (data) {
+			// 		// 버튼 2개로 구성할 것
+			// 		return `
+			// 					<div class="btn-group btn-group-sm w-100 h-100" role="group" aria-label="Basic example">
+			// 						<button type="button" class="h-100 rounded-0 btn btn-info downCaliOrder" data-type="excel"><i class="bi bi-download"></i></button>
+			// 						<button type="button" class="h-100 rounded-0 btn sendCaliOrder btn-secondary" data-type="mail"><i class="bi bi-envelope"></i></button>
+			// 					</div>
+			// 				`;
+			// 	},
+			// },
+			// {
+			// 	header: '완료통보서',
+			// 	className: 'cursor_pointer',
+			// 	width: '80',
+			// 	align: 'center',
+			// 	formatter: function (data) {
+			// 		// 모달을 통해서 볼 수 있도록 할 것
+			// 		return `
+			// 					'<button type="button" class="btn w-100 h-100 rounded-0 checkCpt">
+			// 						<i class="bi bi-pencil-square"></i>
+			// 					</button>
+			// 				`;
+			// 	},
+			// },
 		],
 		pageOptions: {
 			useClient: false, // 서버 페이징
@@ -384,6 +383,28 @@ $(function () {
 			if (e.columnName == 'grid_btn_orderDetails') {
 				// TODO 나중에 window.open 방식을 get이 아닌 from으로 변경할 수 있도록 할 것
 				window.open(`/cali/orderDetails?caliOrderId=${row.id}&custAgent=${row.custAgent}&reportAgent=${row.reportAgent}`, '_blank');
+			}
+			// 요청사항 확인
+			else if (e.columnName == 'grid_btn_remark') {
+				const ele = $modal.grid.getElement(e.rowKey, e.columnName);
+				if ($(ele).find('button').hasClass('btn-info')) {
+					// FIX 추후 테이블명, 아이디, 필드명을 기준으로 값을 얻을 수 있는 공통 기능 만들기
+					const resModal = await g_modal('/basic/showContent', {
+						id: row.id,
+						remark: row.remark,
+					}, {
+						title: '요청사항 확인',
+						size: 'lg',
+						show_confirm_button: false,
+						show_close_button: true
+					});
+
+					if (resModal) {
+						$modal.grid.reloadData();
+					}
+				} else {
+					return false;
+				}
 			}
 			// 접수수정
 			else {

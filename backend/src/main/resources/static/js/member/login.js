@@ -13,8 +13,12 @@ $(function () {
 	}
 	let $modal_root = $modal.closest('.modal');
 
-	$modal.init_modal = (param) => {
+	$modal.init_modal = async (param) => {
 		console.log('🚀 ~ param:', param);
+
+		// 테스트 계정에 대한 안내 모달 호출(로컬 스토리지 활용)
+		// FIX 추후 DB상의 환경설정을 통해 구분할 수 있도록 할 것 (가이드 모드 ON/OFF 기능)
+		await $modal.checUseTesterGuide();
 	};
 
 	// 페이지에 대한 이벤트
@@ -102,12 +106,71 @@ $(function () {
 					show_close_button: true,
 					show_confirm_button: true,
 					confirm_button_text: '가입신청',
-				}
-			).then(resData => {
-				console.log("🚀 ~ resData:", resData);
-				
+				},
+			).then((resData) => {
+				console.log('🚀 ~ resData:', resData);
 			});
 		});
+
+	// 테스터 가이드 호출 유무
+	$modal.checUseTesterGuide = async () => {
+		console.log('테스터 가이드 호출 유무 호출');
+		// 로컬스토리지 key명
+		const LC_IS_USE_TESTER = 'isUseTester';
+
+		// 오늘 날짜(로컬 스토리지와 비교)
+		const getTodayYmd = () => {
+			const d = new Date();
+			const y = d.getFullYear();
+			const m = String(d.getMonth() + 1).padStart(2, '0');
+			const day = String(d.getDate()).padStart(2, '0');
+			return `${y}-${m}-${day}`;
+		};
+		const today = getTodayYmd();
+		// try/catch => 브라우저 또는 사용자 환경에 따라 로컬스토리지에 접근하는 것 자체가 차단될 수 있기 때문
+		let hideYmd = null;
+		try {
+			hideYmd = localStorage.getItem(LC_IS_USE_TESTER);
+		} catch (e) {
+			hideYmd = null;
+		}
+
+		// 오늘 날짜가 저장되어 있으면 스킵
+		if (hideYmd === today) {
+			return false;
+		}
+		setTimeout(async () => {
+			const resModal = await g_modal(
+				'/guide/testerIntro',
+				{}, // 필요 파라미터 있으면 여기에
+				{
+					title: '안내',
+					size: 'md',
+					show_close_button: true,
+					show_confirm_button: false,
+					confirm_button_text: '확인',
+					custom_btn_html_arr: [
+						`
+							<div class="form-check form-check-inline mb-0 mr-2">
+								<input class="form-check-input js-testerIntro-hide-today" type="checkbox" id="testerIntroHideToday">
+								<label class="form-check-label" for="testerIntroHideToday">오늘 그만 보기</label>
+							</div>
+							`,
+					],
+				},
+			);
+
+			console.log('resModal');
+			console.log(resModal);
+			if (resModal.useAutoLogin != undefined && resModal.useAutoLogin == true) {
+				$('input[name=username]', $modal).val(resModal.username);
+				$('input[name=password]', $modal).val(resModal.password);
+				setTimeout(() => {
+					$('.login_btn', $modal).trigger('click');
+				}, 500);
+			}
+		}, 300);
+	};
 
 	$modal.data('modal-data', $modal);
 	$modal.addClass('modal-view-applied');

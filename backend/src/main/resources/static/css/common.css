@@ -26,7 +26,7 @@ ol {
 	background-color: #212529; /* 어두운 회색 (bootstrap bg-dark 느낌) */
 	color: #f8f9fa;
 	min-height: 100vh;
-	width: 230px;
+	width: 200px;
 }
 
 /* 상단 로고 이미지 */
@@ -144,6 +144,21 @@ ol {
 
 .topbar-actions .action-icon:hover {
 	background: rgba(0, 0, 0, 0.06);
+}
+
+/* 사용자 영역(myPage)은 아이콘+텍스트이므로 고정폭 해제 */
+.topbar-actions .action-user {
+	width: auto;
+	padding: 0 10px;
+	gap: 6px;
+	white-space: nowrap;
+}
+
+/* 사용자 이름 텍스트 톤 */
+.topbar-actions .action-user .label {
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1;
 }
 
 .customBreadcrumb {
@@ -290,7 +305,7 @@ i.close:hover {
 }
 
 .w-90 {
-	width: 90% !important
+	width: 90% !important;
 }
 
 /* 토스트 그리드 관련 */
