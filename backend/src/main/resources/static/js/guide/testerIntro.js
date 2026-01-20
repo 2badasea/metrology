@@ -53,8 +53,6 @@ $(function () {
 		return $modal.param;
 	};
 
-	// 아이디 및 비밀번호 복사 기능 구현하기 -> 선택 시, 일정 시간 뒤 모달이 닫히면서 아이디/비밀번호가 채워지고, 로그인 시도
-
 	$modal.data('modal-data', $modal);
 	$modal.addClass('modal-view-applied');
 	if ($modal.hasClass('modal-body')) {

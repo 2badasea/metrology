@@ -14,7 +14,6 @@ $(function () {
 
 	$modal.init_modal = (param) => {
 		$modal.param = param;
-		console.log('🚀 ~ $modal.param:', $modal.param);
 	};
 
 	// 교정접수 리스트 가져오기
@@ -114,9 +113,9 @@ $(function () {
 				className: 'cursor_pointer',
 				width: '70',
 				align: 'center',
-				formatter: function (data) {
+				formatter: function ({row}) {
 					// 모달을 통해서 볼 수 있도록 할 것
-					let btnClass = data.remark ? 'btn-info' : 'btn-secondary';
+					let btnClass = (row.remark) ? 'btn-info' : 'btn-secondary';
 					return `<button type='button' class='btn ${btnClass} w-100 h-100 rounded-0' ><i class='bi bi-chat-left-text'></i></button>
 					`;
 				},
@@ -384,6 +383,28 @@ $(function () {
 			if (e.columnName == 'grid_btn_orderDetails') {
 				// TODO 나중에 window.open 방식을 get이 아닌 from으로 변경할 수 있도록 할 것
 				window.open(`/cali/orderDetails?caliOrderId=${row.id}&custAgent=${row.custAgent}&reportAgent=${row.reportAgent}`, '_blank');
+			}
+			// 요청사항 확인
+			else if (e.columnName == 'grid_btn_remark') {
+				const ele = $modal.grid.getElement(e.rowKey, e.columnName);
+				if ($(ele).find('button').hasClass('btn-info')) {
+					// FIX 추후 테이블명, 아이디, 필드명을 기준으로 값을 얻을 수 있는 공통 기능 만들기
+					const resModal = await g_modal('/basic/showContent', {
+						id: row.id,
+						remark: row.remark,
+					}, {
+						title: '요청사항 확인',
+						size: 'lg',
+						show_confirm_button: false,
+						show_close_button: true
+					});
+
+					if (resModal) {
+						$modal.grid.reloadData();
+					}
+				} else {
+					return false;
+				}
 			}
 			// 접수수정
 			else {
