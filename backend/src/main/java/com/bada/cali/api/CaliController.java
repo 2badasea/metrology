@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestController
+@RestController("ApiCaliController")
 @RequestMapping("/api/caliOrder")
 @Log4j2
 @RequiredArgsConstructor
-public class ApiCaliController {
+public class CaliController {
 	
 	private final CaliOrderServiceImpl caliOrderService;
 	private final LogRepository logRepository;

@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@RestController("ApiFileController")
 @RequestMapping("/api/file")
 @Log4j2
 @RequiredArgsConstructor
-public class ApiFileController {
+public class FileController {
 	
 	private final FileServiceImpl fileService;
 	

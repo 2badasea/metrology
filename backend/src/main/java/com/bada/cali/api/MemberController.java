@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.*;
  * Api 요청을 처리하기 위한 RestController
  */
 @RequestMapping("/api/member")
-@RestController
+@RestController("ApiMemberController")
 @Log4j2
 @RequiredArgsConstructor
-public class ApiMemberController {
+public class MemberController {
 	private final MemberServiceImpl memberService;
 	
 	/**
