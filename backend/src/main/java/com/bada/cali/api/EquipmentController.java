@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+@RestController("ApiEquipmentController")
 @Log4j2
 @AllArgsConstructor
 @RequestMapping(value = "/api/equipment")
-public class ApiEquipmentController {
+public class EquipmentController {
 	
 	private final EquipmentServiceImpl equipmentService;
 	

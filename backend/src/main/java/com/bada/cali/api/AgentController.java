@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RequestMapping("/api/agent")
-@RestController
+@RestController("ApiAgentController")
 @Log4j2
 @RequiredArgsConstructor
-public class ApiAgentController {
+public class AgentController {
 	
 	private final AgentServiceImpl agentService;
 	

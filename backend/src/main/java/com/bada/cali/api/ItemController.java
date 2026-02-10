@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+@RestController("ApiItemController")
 @Log4j2
 @RequestMapping("/api/item")
 @AllArgsConstructor
-public class ApiItemController {
+public class ItemController {
 	
 	private final ItemServiceImpl itemService;
 	
