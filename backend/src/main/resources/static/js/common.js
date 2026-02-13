@@ -481,6 +481,55 @@ function custom_ajax_handler(err) {
 }
 
 /**
+ * 범용 에러 핸들러
+ * @param {any} err - Error 객체, Response 객체, 또는 jqXHR 객체
+ */
+async function errorHandler(err) {
+    let message = '요청 처리 중 오류가 발생했습니다.';
+    console.error('[errorHandler Trace]', err);
+
+    // 1. 직접 throw new Error("메시지")를 한 경우 (사용자 요구사항 1번)
+    if (err instanceof Error && !err.response) {
+        message = err.message;
+    }
+    
+    // 2. Axios 에러 객체인 경우 (사용자 요구사항 3번)
+    else if (err.response && err.response.data) {
+        // 서버에서 ResMessage 형태로 보낸 경우 msg 추출
+        message = err.response.data.msg || `오류가 발생했습니다. (Code: ${err.response.status})`;
+    }
+
+    // 3. Fetch API의 Response 객체인 경우 (사용자 요구사항 3번)
+    else if (err instanceof Response) {
+        try {
+            const resData = await err.json();
+            message = resData.msg || `서버 오류가 발생했습니다. (Status: ${err.status})`;
+        } catch (e) {
+            message = `서버 응답 해석 실패 (Status: ${err.status})`;
+        }
+    }
+
+    // 4. jQuery jqXHR 객체인 경우 (사용자 요구사항 3번)
+    else if (err.responseText !== undefined) {
+        try {
+            const resData = JSON.parse(err.responseText);
+            message = resData.msg || message;
+        } catch (e) {
+            message = `서버 응답 오류 (Status: ${err.status})`;
+        }
+    }
+
+    // 최종적으로 추출된 메시지를 사용자에게 알림
+    // g_toast 또는 g_message를 사용하여 출력
+    if (typeof g_toast === 'function') {
+        g_toast(message, 'error');
+    } else {
+        alert(message);
+    }
+}
+
+
+/**
  * php uniquid와 유사한 id 만드는 것으로
  * @param {string} prefix
  * @param {boolean} random

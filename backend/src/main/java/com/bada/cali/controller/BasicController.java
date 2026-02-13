@@ -60,6 +60,7 @@ public class BasicController {
 		model.addAttribute("fileList", fileList);
 		return "basic/fileList";
 	}
+	
 	//
 	// 로드뷰 모달 호출
 	@PostMapping(value = "/viewRoadMap")
@@ -70,7 +71,6 @@ public class BasicController {
 	// 분류코드관리 페이지 호출
 	@GetMapping(value = "/itemCode")
 	public String itemCode(Model model) {
-		log.info("분류코드 페이지 호출");
 		model.addAttribute("title", "분류코드관리");
 		return "basic/itemCode";
 	}
@@ -83,7 +83,8 @@ public class BasicController {
 	
 	// 품목관리
 	@GetMapping(value = "/item")
-	public String item() {
+	public String item(Model model) {
+		model.addAttribute("title", "분류코드관리");
 		return "basic/item";
 	}
 	
@@ -110,5 +111,12 @@ public class BasicController {
 	@PostMapping(value = "/showContent")
 	public String showContent() {
 		return "basic/showContent";
+	}
+	
+	// 샘플관리 페이지 이동
+	@GetMapping(value = "sampleManage")
+	public String sampleManage(Model model) {
+		model.addAttribute("title", "샘플관리");
+		return "basic/sampleManage";
 	}
 }
