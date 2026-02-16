@@ -1,6 +1,7 @@
 package com.bada.cali.security;
 
 import com.bada.cali.common.ResMessage;
+import com.bada.cali.common.Utils;
 import com.bada.cali.entity.Log;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.entity.Member;
@@ -44,13 +45,14 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 	 */
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-		log.info("Login fail hook called");
-		
+		log.debug("Login fail hook called");
+
 		String resMsg = FAIL_MSG;
 		int resCode = -1;
-		
+
 		String loginId = request.getParameter("username");
-		
+		String clientIp = Utils.getClientIp(request);
+
 		// 계정이 차단되어 있거나 로그인 시도 10분 제한이 걸린 경우
 		if (exception instanceof InternalAuthenticationServiceException && exception.getCause() instanceof LockedException lockedException) {
 			resMsg = lockedException.getMessage();
@@ -64,9 +66,10 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 					int updateCountValue = (tryLoginMember.getLoginCount() <= 4) ? (tryLoginMember.getLoginCount() + 1) : 1;
 					int resUpdateLoginCnt = memberRepository.updateMemberLoginCount(tryLoginMember.getId(), updateCountValue);
 				}
-				
+
 				// 로그인 실패 이력 남기기
 				Log failLog = Log.builder()
+						.logIp(clientIp)
 						.workerName("")
 						.logContent("[로그인 실패]")
 						.logType("l")
@@ -75,16 +78,16 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 						.createDatetime(LocalDateTime.now())
 						.createMemberId(tryLoginMember.getId())
 						.build();
-				Log resSaveLog = logRepository.save(failLog);
-				
+				logRepository.save(failLog);
+
 			} else {
-				log.info("로그인 실패 훅 내부 오류");
+				log.debug("로그인 실패 - 존재하지 않는 아이디: {}", loginId);
 			}
 		}
-		
-		// 응답 메시지 생성
+
+		// 인증 실패 → 401 Unauthorized
 		ResMessage<Object> resMessage = new ResMessage<>(resCode, resMsg, null);
-		response.setStatus(HttpStatus.OK.value());        // 500에러를 제외하고 잡을 수 있는 에러들에 대해선 정상흐름으로 상태값 리턴하기
+		response.setStatus(HttpStatus.UNAUTHORIZED.value());
 		response.setContentType("application/json;charset=utf-8");
 		response.getWriter().write(objectMapper.writeValueAsString(resMessage));
 	}

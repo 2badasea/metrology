@@ -45,49 +45,33 @@ $(function () {
 
 			// 비동기 요청 자체를 try/catch로 감싸준다. (네트워크에러, 서버 4xx/5xx, JSON파싱 실패 등의 이유로 Promise가 reject되면 흐름이 깨지기 때문)
 			try {
-				// promise 객체를 반환하는 형태의 비동기요청은 success/error 옵션은 빼는 게 깔끔.
-				// 콜백 옵션을 넘기면서 await까지 쓴느 건 이중 구조
-				// json 데이터를 넘길 때, key:value명이 동일하다면 단축 표현식으로 사용 가능
-				const res = await g_ajax('/api/member/login', {
-					username: username,
-					password: password,
-					'remember-me': $('input[name=remember-me]').val(),
-				});
+				const payload = { username, password };
+				if ($('input[name="remember-me"]', $form).is(':checked')) {
+					payload['remember-me'] = 'on';
+				}
+				const res = await g_ajax('/api/member/login', payload);
 
-				// 응답 코드에 대해서 처리
-				if (!res) {
-					g_toast('응답 형식이 올바르지 않습니다.', 'error');
-				}
-				// 정상적인 응답 코드에 대한 처리
+				// 로그인 성공
 				if (res.code > 0) {
-					Swal.fire(res.msg ?? '로그인 성공', '', 'success').then(() => {
-						// 로그인 성공에 대한 URL 리턴 구분
-						let return_url = '';
-						// 일반 user
-						if (res.code == 1) {
-							return_url = '/cali/caliOrder';
-						}
-						// admin 권한을 가진 유저 (admin페이지 개발 이후 경로 변경할 것)
-						else {
-							return_url = '/cali/caliOrder';
-						}
-						location.href = return_url;
+					g_message(res.msg ?? '로그인 성공', '', 'success').then(() => {
+						location.href = '/cali/caliOrder';
 					});
-				} else {
-					Swal.fire(res.msg ?? '로그인 실패', '', 'warning');
-					// g_toast(res.msg, 'warning');
+					return;
 				}
+
+				// 서버가 200으로 내려줬지만 code<=0인 “업무 실패” 케이스
+				await g_message(res?.msg ?? '로그인에 실패했습니다.', '', 'warning', 'alert');
 			} catch (err) {
-				console.log('catch!!');
-				custom_ajax_handler(err);
+				// API 요청/응답 오류 → gErrorHandler + g_message로 처리
+				await gApiErrorHandler(err);
 			} finally {
 				// 로그인 버튼 비활성화 해제
 				$(this).prop('disabled', false);
 			}
 		})
-		// 로그인 이벤트 키업
+		// Enter 키 입력 시 로그인 시도
 		.on('keyup', 'input[name=password]', (e) => {
-			if (e.keyCode == 13) {
+			if (e.key === 'Enter') {
 				$('.login_btn', $modal).trigger('click');
 			}
 		})
@@ -105,14 +89,11 @@ $(function () {
 					show_confirm_button: true,
 					confirm_button_text: '가입신청',
 				},
-			).then((resData) => {
-				console.log('🚀 ~ resData:', resData);
-			});
+			).then((resData) => {});
 		});
 
 	// 테스터 가이드 호출 유무
 	$modal.checUseTesterGuide = async () => {
-		console.log('테스터 가이드 호출 유무 호출');
 		// 로컬스토리지 key명
 		const LC_IS_USE_TESTER = 'isUseTester';
 
