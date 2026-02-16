@@ -261,8 +261,7 @@ $(function () {
 		e.preventDefault();
 
 		// g_modal을 띄워 업데이트 사항 공지를 보여준다.
-	})
-	;
+	});
 
 /**
  * 모달이 아니고 페이지일 경우 페이지 자신 js를 다 수행 후 이 함수를 실행해서 init_modal 함수를 실행해야 한다.
@@ -478,6 +477,155 @@ function custom_ajax_handler(err) {
 	const label = status ? `[${status}] ${message}` : message;
 
 	g_toast(label, 'error');
+}
+
+/**
+ * 입력값 검증(로컬 로직) 전용 에러 핸들러
+ * - throw new Error("...")로 던진 메시지는 그대로 warning 토스트로 출력
+ * - 메시지가 없으면 err.message / err / 기본 메시지 순으로 출력
+ */
+function gErrorHandler(err, defaultMsg = '입력값을 확인해주세요.') {
+	let msg = defaultMsg;
+
+	// 문자열로 던진 경우: throw "메시지"
+	if (typeof err === 'string') {
+		msg = err;
+	}
+	// Error로 던진 경우: throw new Error("메시지")
+	else if (err instanceof Error) {
+		msg = err.message && err.message.trim() ? err.message.trim() : defaultMsg;
+	}
+	// 그 외 객체/값
+	else if (err != null) {
+		msg = String(err);
+	}
+
+	if (typeof g_toast === 'function') g_toast(msg, 'warning');
+	else alert(msg);
+
+	return false; // 기존 스타일대로 return false로 끊기 좋게
+}
+
+/**
+ * API 요청/응답 전용 에러 핸들러
+ * - axios / fetch(Response) / jqXHR(g_ajax) 에러를 받아서
+ * - ResMessage.msg 우선으로 g_message(title=msg, icon=...)로 출력
+ */
+async function gApiErrorHandler(err, options = {}) {
+	const opt = {
+		defaultMessage: '요청 처리 중 오류가 발생했습니다.',
+		type: 'alert', // g_message type
+		icon: null, // null이면 status 기반 자동
+		showConsole: true,
+		...options,
+	};
+
+	if (opt.showConsole) console.error('[gApiErrorHandler Trace]', err);
+
+	let status;
+	let msg = opt.defaultMessage;
+
+	const fallbackByStatus = (s) => {
+		if (typeof s !== 'number') return opt.defaultMessage;
+		switch (s) {
+			case 400:
+				return '요청이 올바르지 않습니다.';
+			case 401:
+				return '인증이 필요합니다. 다시 로그인해주세요.';
+			case 403:
+				return '권한이 없습니다.';
+			case 404:
+				return '요청한 자원을 찾을 수 없습니다.';
+			case 409:
+				return '요청이 현재 상태와 충돌합니다.';
+			case 422:
+				return '입력값이 유효하지 않습니다.';
+			case 500:
+				return '서버 오류가 발생했습니다.';
+			case 502:
+			case 503:
+			case 504:
+				return '서버가 일시적으로 불안정합니다. 잠시 후 다시 시도해주세요.';
+			default:
+				return opt.defaultMessage;
+		}
+	};
+
+	const pickIconByStatus = (s) => {
+		if (typeof s !== 'number') return 'warning';
+		if (s >= 500) return 'error';
+		if (s === 401 || s === 403) return 'warning';
+		if (s >= 400) return 'warning';
+		return 'info';
+	};
+
+	const pickResMessageMsg = (obj) => {
+		// ResMessage 기준: msg 우선
+		if (!obj) return '';
+		if (typeof obj === 'string') return obj.trim();
+		if (typeof obj === 'object') {
+			return (obj.msg ?? obj.message ?? obj.error ?? '').toString().trim();
+		}
+		return '';
+	};
+
+	// 1) fetch Response를 throw 한 경우: throw res;
+	if (typeof Response !== 'undefined' && err instanceof Response) {
+		status = err.status;
+		try {
+			const ct = err.headers?.get?.('content-type') || '';
+			let data;
+
+			if (ct.includes('application/json')) data = await err.json();
+			else {
+				const text = await err.text();
+				try {
+					data = JSON.parse(text);
+				} catch {
+					data = text;
+				}
+			}
+
+			msg = pickResMessageMsg(data) || fallbackByStatus(status);
+		} catch {
+			msg = fallbackByStatus(status);
+		}
+	}
+
+	// 2) axios 에러
+	else if (err?.response) {
+		status = err.response.status;
+		const data = err.response.data; // ResMessage 기대
+		msg = pickResMessageMsg(data) || err.message || fallbackByStatus(status);
+	}
+
+	// 3) jqXHR 또는 g_ajax 에러(혹은 err.xhr 래핑)
+	else {
+		const xhr = err?.xhr || err;
+		if (xhr && (xhr.responseJSON !== undefined || xhr.responseText !== undefined || xhr.status !== undefined)) {
+			status = xhr.status;
+
+			const data =
+				xhr.responseJSON ??
+				(() => {
+					try {
+						return JSON.parse(xhr.responseText);
+					} catch {
+						return xhr.responseText;
+					}
+				})();
+
+			msg = pickResMessageMsg(data) || fallbackByStatus(status);
+		} else {
+			// 네트워크 오류/알 수 없는 에러
+			msg = err?.message && String(err.message).trim() ? String(err.message).trim() : opt.defaultMessage;
+		}
+	}
+
+	const icon = opt.icon ?? pickIconByStatus(status);
+	await g_message(msg, '', icon, opt.type);
+
+	return { status, message: msg, raw: err };
 }
 
 /**

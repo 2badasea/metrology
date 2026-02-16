@@ -53,16 +53,16 @@ public class CustomUserDetailService implements UserDetailsService {
 //				.build();
 //		return userDetails;
 		
-		// var: java10부터 들어온 로컬 변수 타입 추론. 컴파일러가 우측 표현식을 보고 타입을 알아서 결정해줌
-		// 유저에게 ROLE_USER 권한을 하나 부여한 권한 목록을 생성
+		// 회원의 auth 값 기반으로 Spring Security 권한(ROLE_USER / ROLE_ADMIN) 생성
+		// NOTE var는 Java 10+ 로컬 변수 타입 추론 (컴파일러가 우측 표현식으로 타입 결정)
 		AuthType authType = (loginMember.getAuth() == null) ? AuthType.user : loginMember.getAuth();
 		String role = "ROLE_" + authType.name().toUpperCase(); // 'ROLE_USER' | 'ROLE_ADMIN'
 		var authorities = List.of(new SimpleGrantedAuthority(role));
 		
 		// 유저가 읽기 가능한 메뉴 id 리스트 조회
 		List<Long> readableMenuIds = memberPermissionReadRepository.findMenuIdsByMemberId(loginMember.getId());
-		// 중복제거 + contains() 빠른 검색 위해 Set으로 변환. 변수타입은 set으로 두고, 실제 객체는 구현체인 HashMap사용
-		// NOTE 1) 실제 객체를 구현체로 넣는 패턴 사용 시, 나중에 구현체를 다른 것으로 변경하는 것에 대한 유연성 확보 위함
+		// 메뉴 접근 권한 체크 시 contains() 성능을 위해 Set으로 변환
+		// NOTE 변수 타입은 인터페이스(Set), 실제 객체는 구현체(HashSet) → 구현체 교체에 유연
 		Set<Long> readableMenuIdSet = new HashSet<>(readableMenuIds);
 		
 		// 스프링시큐리티 환경에선 api 요청별로 사용자의 정보를 얻기 위해 httpsession을 이용하는 것은 권장되지 않음

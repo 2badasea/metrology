@@ -1,6 +1,7 @@
 package com.bada.cali.security;
 
 import com.bada.cali.common.ResMessage;
+import com.bada.cali.common.Utils;
 import com.bada.cali.common.enums.AuthType;
 import com.bada.cali.entity.Log;
 import com.bada.cali.common.enums.YnType;
@@ -41,9 +42,10 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 	 */
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-		log.info("Login success hook called");
-		
+		log.debug("Login success hook called");
+
 		String loginId = authentication.getName();
+		String clientIp = Utils.getClientIp(request);
 		// loginId를 바탕으로 유저 정보를 가져온다.
 		// NOTE 예외를 명시적으로 던지게 될 경우 'RuntimeException'보다는 illegalStateException 등 가급적 구체적 명시
 		Member loginMember = memberRepository.findByLoginId(loginId, YnType.y).orElseThrow(() -> new IllegalStateException("Successful authentication but user not found"));
@@ -53,9 +55,9 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 		String resMsg = loginMember.getName() + "님 로그인을 환영합니다.";
 		int resCode = 1;
 		
-		// 로그인 시도 count 초기화
+		// 로그인 성공 시 실패 카운트 초기화 (잠금 조건 해제를 위해)
+		// NOTE JPA 파생 쿼리는 조회에만 적용되며, UPDATE/DELETE는 @Modifying + @Query로 직접 작성 필요
 		if (loginMember.getLoginCount() > 0) {
-			// JpaRepository는 메서드 이름만 보고 쿼리를 자동으로 생성 및 수행하지만, 업데이트/삭제는 그렇게 동작 X
 			int resUpdateLoginCount = memberRepository.updateMemberLoginCount(loginMember.getId(), 0);
 		}
 		
@@ -74,8 +76,9 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 			resCode = 2;
 		}
 		
-		// 이력남기기 (TODO 'logip'를 남기는 것에 대해선 추후 로그를 남기는 것 자체를 service로 분리해서 처리할 것)
+		// 이력남기기 (TODO 추후 로그 저장 자체를 service로 분리해서 처리할 것)
 		Log logEntity = Log.builder()
+				.logIp(clientIp)
 				.workerName(loginMember.getName())
 				.logContent("[로그인 성공] - " + loginMember.getName() + " 님이 로그인 하셨습니다.")
 				.logType("l")
@@ -84,8 +87,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 				.createDatetime(now)
 				.createMemberId(loginMember.getId())
 				.build();
-		// 이력 저장
-		Log resSaveLog = logRepository.save(logEntity);
+		logRepository.save(logEntity);
 		
 		// JSON으로 응답 리턴
 		ResMessage<Object> resMessage = new ResMessage<>(resCode, resMsg, null);
