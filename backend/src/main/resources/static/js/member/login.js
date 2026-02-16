@@ -14,8 +14,6 @@ $(function () {
 	let $modal_root = $modal.closest('.modal');
 
 	$modal.init_modal = async (param) => {
-		console.log('🚀 ~ param:', param);
-
 		// 테스트 계정에 대한 안내 모달 호출(로컬 스토리지 활용)
 		// FIX 추후 DB상의 환경설정을 통해 구분할 수 있도록 할 것 (가이드 모드 ON/OFF 기능)
 		await $modal.checUseTesterGuide();
@@ -160,8 +158,6 @@ $(function () {
 				},
 			);
 
-			console.log('resModal');
-			console.log(resModal);
 			if (resModal.useAutoLogin != undefined && resModal.useAutoLogin == true) {
 				$('input[name=username]', $modal).val(resModal.username);
 				$('input[name=password]', $modal).val(resModal.password);

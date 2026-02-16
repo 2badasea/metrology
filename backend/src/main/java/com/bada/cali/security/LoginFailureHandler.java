@@ -58,7 +58,8 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 			Optional<Member> optLoginMember = memberRepository.findByLoginId(loginId, YnType.y);
 			if (optLoginMember.isPresent()) {
 				Member tryLoginMember = optLoginMember.get();
-				// 입력 아이디 존재 시, 로그인 시도 횟수 카운트 (현재 값이 4이하 일때만 업데이트)
+				// 로그인 실패 시 시도 횟수 증가 (5회 도달 시 10분 잠금 → CustomUserDetailService에서 체크)
+				// count 0~4: +1 증가, count 5: 잠금 해제 후 재실패이므로 1로 리셋하여 새 카운트 시작
 				if (tryLoginMember.getLoginCount() <= 5) {
 					int updateCountValue = (tryLoginMember.getLoginCount() <= 4) ? (tryLoginMember.getLoginCount() + 1) : 1;
 					int resUpdateLoginCnt = memberRepository.updateMemberLoginCount(tryLoginMember.getId(), updateCountValue);

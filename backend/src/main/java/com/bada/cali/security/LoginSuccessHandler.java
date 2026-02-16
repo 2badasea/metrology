@@ -53,9 +53,9 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 		String resMsg = loginMember.getName() + "님 로그인을 환영합니다.";
 		int resCode = 1;
 		
-		// 로그인 시도 count 초기화
+		// 로그인 성공 시 실패 카운트 초기화 (잠금 조건 해제를 위해)
+		// NOTE JPA 파생 쿼리는 조회에만 적용되며, UPDATE/DELETE는 @Modifying + @Query로 직접 작성 필요
 		if (loginMember.getLoginCount() > 0) {
-			// JpaRepository는 메서드 이름만 보고 쿼리를 자동으로 생성 및 수행하지만, 업데이트/삭제는 그렇게 동작 X
 			int resUpdateLoginCount = memberRepository.updateMemberLoginCount(loginMember.getId(), 0);
 		}
 		
