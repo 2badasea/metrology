@@ -11,8 +11,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -33,7 +31,7 @@ public class CustomSecurityConfig {
 	private final AuthenticationFailureHandler LoginFailureHandler;        // 로그인 실패 훅
 	private final DataSource dataSource;        // 자동로그인 기능을 위한 의존성 주입
 	private final RememberMeProperties rememberMeProperties;              // Remember-Me 설정
-	
+
 	// filterChain 메서드 호출 시, 전역에서 로그인 검증을 하지 않고, 원하는 URL의 자원을 반환
 	// NOTE 시큐리티 필터체인(filterChain) 내부에서 던지는 예외들에 대해선 로그인 성공/실패 훅 내부로 전달됨(훅 내부에서 체크 가능)
 	@Bean
@@ -54,6 +52,8 @@ public class CustomSecurityConfig {
 								, "/member/memberJoin"
 								, "/guide/**"
 								, "/api/member/**"
+								, "/swagger-ui/**"           // Swagger UI 리소스
+								, "/v3/api-docs/**"          // OpenAPI 스펙 JSON
 						).permitAll()
 						.anyRequest().authenticated()                // 그외 요청에 대해선 인증된 사용자만 허용
 				)
@@ -93,7 +93,7 @@ public class CustomSecurityConfig {
 
 		return http.build();
 	}
-	
+
 	// 자동로그인 기능을 위한 등록
 	@Bean
 	public PersistentTokenRepository persistentTokenRepository() {
@@ -101,7 +101,7 @@ public class CustomSecurityConfig {
 		repository.setDataSource(dataSource);
 		return repository;
 	}
-	
+
 	// 정적 리소스(css, js, images 등)는 보안 필터 자체를 스킵하여 불필요한 필터 처리 방지 (성능 이점)
 	// web.ignoring(): 필터 체인 자체를 태우지 않음 (SecurityContext 없음)
 	// permitAll(): 필터 체인은 통과하되 인증 없이 접근 허용 (SecurityContext 존재)
@@ -110,22 +110,16 @@ public class CustomSecurityConfig {
 	public WebSecurityCustomizer webSecurityCustomizer() {
 		return (web) -> web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
 	}
-	
-	// 암호화 알고리즘 빈 등록
-	@Bean
-	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
-	}
-	
+
 	// 허용되지 않은 URL 접근 시에 대한 예외처리
 	@Bean
 	public AuthenticationEntryPoint unauthenticatedEntryPoint() {
 		return (request, response, authException) -> {
-			// 여기서 “로그인이 필요한 상황”이라고 판단된 경우 login 페이지로 보냄
+			// 여기서 "로그인이 필요한 상황"이라고 판단된 경우 login 페이지로 보냄
 			String redirectUrl = "/member/login" + ("/".equals(request.getRequestURI()) ? "" : "?required=-1");
 			response.sendRedirect(redirectUrl);
 		};
 	}
-	
-	
+
+
 }

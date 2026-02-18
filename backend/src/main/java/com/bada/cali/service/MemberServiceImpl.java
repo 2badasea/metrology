@@ -1,6 +1,7 @@
 package com.bada.cali.service;
 
 import com.bada.cali.common.ResMessage;
+import com.bada.cali.common.enums.AuthType;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.MemberDTO;
 import com.bada.cali.dto.TuiGridDTO;
@@ -48,6 +49,93 @@ public class MemberServiceImpl {
 	private final PasswordEncoder passwordEncoder;
 	private final MemberMapper memberMapper;
 	
+	/**
+	 * 로그인 성공 처리 (로그인 카운트 초기화, 마지막 로그인 일시 갱신, 비밀번호 만료 경고, 이력 저장)
+	 *
+	 * @param loginId  로그인 아이디
+	 * @param clientIp 클라이언트 IP
+	 * @return 응답 코드(1: 일반, 2: 관리자)와 환영 메시지
+	 */
+	@Transactional
+	public ResMessage<Object> processLoginSuccess(String loginId, String clientIp) {
+		Member loginMember = memberRepository.findByLoginId(loginId, YnType.y)
+				.orElseThrow(() -> new IllegalStateException("Successful authentication but user not found"));
+
+		LocalDateTime now = LocalDateTime.now();
+		String resMsg = loginMember.getName() + "님 로그인을 환영합니다.";
+		int resCode = 1;
+
+		// 로그인 성공 시 실패 카운트 초기화
+		if (loginMember.getLoginCount() > 0) {
+			memberRepository.updateMemberLoginCount(loginMember.getId(), 0);
+		}
+
+		// 마지막 로그인 일시 업데이트
+		memberRepository.updateLastLogin(loginMember.getId());
+
+		// 마지막 비밀번호 변경일시 체크(3개월)
+		LocalDateTime lastPwdUpdate = loginMember.getLastPwdUpdated();
+		if (lastPwdUpdate != null && now.isAfter(lastPwdUpdate.plusMonths(3))) {
+			resMsg += "<br>비밀번호를 마지막으로 변경한 지<br>3개월이 지났습니다.<br>변경을 권장드립니다.";
+		}
+
+		// 관리자 계정 구분
+		if (loginMember.getAuth() == AuthType.admin) {
+			resCode = 2;
+		}
+
+		// 로그인 성공 이력 저장
+		Log successLog = Log.builder()
+				.logIp(clientIp)
+				.workerName(loginMember.getName())
+				.logContent("[로그인 성공] - " + loginMember.getName() + " 님이 로그인 하셨습니다.")
+				.logType("l")
+				.refTable("member")
+				.refTableId(loginMember.getId())
+				.createDatetime(now)
+				.createMemberId(loginMember.getId())
+				.build();
+		logRepository.save(successLog);
+
+		return new ResMessage<>(resCode, resMsg, null);
+	}
+
+	/**
+	 * 로그인 실패 처리 (실패 카운트 증가, 이력 저장)
+	 * LockedException 등 계정 상태 예외는 Handler에서 처리하며, 이 메서드는 자격증명 실패 시만 호출.
+	 *
+	 * @param loginId  로그인 아이디
+	 * @param clientIp 클라이언트 IP
+	 */
+	@Transactional
+	public void processLoginFailure(String loginId, String clientIp) {
+		Optional<Member> optLoginMember = memberRepository.findByLoginId(loginId, YnType.y);
+		if (optLoginMember.isEmpty()) {
+			log.debug("로그인 실패 - 존재하지 않는 아이디: {}", loginId);
+			return;
+		}
+
+		Member tryLoginMember = optLoginMember.get();
+		// count 0~4: +1 증가, count 5: 잠금 해제 후 재실패이므로 1로 리셋하여 새 카운트 시작
+		if (tryLoginMember.getLoginCount() <= 5) {
+			int updateCountValue = (tryLoginMember.getLoginCount() <= 4) ? (tryLoginMember.getLoginCount() + 1) : 1;
+			memberRepository.updateMemberLoginCount(tryLoginMember.getId(), updateCountValue);
+		}
+
+		// 로그인 실패 이력 저장
+		Log failLog = Log.builder()
+				.logIp(clientIp)
+				.workerName("")
+				.logContent("[로그인 실패]")
+				.logType("l")
+				.refTable("member")
+				.refTableId(tryLoginMember.getId())
+				.createDatetime(LocalDateTime.now())
+				.createMemberId(tryLoginMember.getId())
+				.build();
+		logRepository.save(failLog);
+	}
+
 	/**
 	 * 사용자 계정(loginId) 중복 체크
 	 *
@@ -276,7 +364,7 @@ public class MemberServiceImpl {
 		String resMsg = "";
 		
 		YnType isVisible = YnType.y;
-		GetMemberInfoPr getMemberInfo = memberRepository.GetMemberInfo(memberId, isVisible);
+		GetMemberInfoPr getMemberInfo = memberRepository.getMemberInfo(memberId, isVisible);
 		Long imgFileInfoId = getMemberInfo.getImgFileId();
 		String memberImgPath = "";
 		if (imgFileInfoId != null && imgFileInfoId > 0) {

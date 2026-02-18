@@ -44,10 +44,18 @@ npm run lint                     # ESLint
 
 ## 2) 작업 범위 원칙(가장 중요)
 
-- **요청받은 범위만 수정**합니다. “같이 고치면 좋아 보이는 것”은 **제안만** 하고 임의 리팩토링은 금지합니다.
+- **요청받은 범위만 수정**합니다. "같이 고치면 좋아 보이는 것"은 **제안만** 하고 임의 리팩토링은 금지합니다.
 - 변경은 가능한 작은 단위로 쪼개어 **diff가 과도하게 커지지 않게** 합니다.
-- “UI만” 요청이면 **API/비즈니스/DB/연동 로직은 구현하지 않습니다**  
+- "UI만" 요청이면 **API/비즈니스/DB/연동 로직은 구현하지 않습니다**
   → UI 구조/레이아웃/Toast Grid 정의/이벤트 바인딩(핸들러 골격)까지만.
+
+### 페이지/기능 검토 지시 시 전체 스택 점검 원칙
+
+- 특정 페이지 또는 기능에 대한 **검토/점검**을 지시받으면, 해당 기능과 관련된 **프론트엔드 및 백엔드 로직 전체**를 직접 읽고 점검합니다.
+  - **프론트엔드**: Thymeleaf HTML 템플릿, JS 파일, CSS 파일
+  - **백엔드**: Entity, DTO, SSR Controller, REST API Controller, Service, Repository, Security(인증/인가 핸들러 포함)
+- 탐색 에이전트 요약만 참고하는 것은 점검으로 인정하지 않습니다. **파일을 직접 읽은 것만** 점검한 것으로 간주합니다.
+- 점검 후 수정 사항은 "즉시 수정 항목"과 "제안 사항(승인 필요)"으로 구분하여 보고합니다.
 
 ---
 
@@ -170,20 +178,21 @@ npm run lint                     # ESLint
 
 - Swagger 문서화는 **REST API 컨트롤러(`com.bada.cali.api.*`) 중심**으로 작성합니다.
 - 최소 권장 애너테이션
-    - Controller 메서드: `@Operation`(요약/설명)
+    - Controller 메서드: `@Operation`(요약/설명) + `@ApiResponses`(응답코드)
     - DTO 필드: `@Schema`
     - 파라미터: `@Parameter`(필요 시)
-- 표준 에러 응답이 있다면 문서에 포함시키는 방향을 우선합니다.
+- `GlobalApiExceptionHandler`에서 처리하는 표준 에러 응답 코드(400/403/404/500)는 반드시 Swagger `@ApiResponses`에 포함합니다.
 - Swagger UI 접근 정책(운영 노출 여부)은 **임의로 변경하지 않습니다**(사전 승인).
+- description 부분을 작성할 때는 서술형/문어체가 보통 단답/명료하게 작성할 것
+  - ex) "Spring Security 필터가 요청을 가로채어 처리하므로 이 핸들러는 실행되지 않습니다." => "Spring Security 필터가 요청을 가로채어 처리하므로 이 핸들러는 실행되지 않음"
 
 ---
 
 ## B4) 트랜잭션 원칙
 
-- 조회 로직은 기본적으로 `@Transactional`을 사용하지 않습니다.
+- 조회 로직은 기본적으로 `@Transactional(readOnly=true)`을 사용
 - 등록/수정/삭제는 `@Transactional` 사용.
 - Lazy 이슈는 projection/fetch join/DTO 매핑으로 회피하는 것을 우선합니다.
-- 정말 필요할 때만 `@Transactional(readOnly = true)` 를 제한적으로 사용합니다.
 - 트랜잭션 경계는 **Service 레이어**에 둡니다(Controller 남발 금지).
 
 ---
@@ -226,6 +235,7 @@ npm run lint                     # ESLint
 - 에러 응답 포맷은 가능한 한 **표준화**합니다.
 - 401/403은 프론트에서 처리 가능한 형태(코드/메시지)로 내려줍니다.
 - 예외는 무시하지 말고 “의미 있는 메시지 + 로그”로 처리합니다(스택트레이스 노출 금지).
+- 전역예외처리 @RestControllerAdvice, @ControllerAdvice 를 활용하여 예외를 처리하여 적절한 응답코드와 메시지를 ResMessage를 활용하여 응답할 수 있도록 할 것
 
 ---
 
