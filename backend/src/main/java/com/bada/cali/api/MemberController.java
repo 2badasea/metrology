@@ -11,6 +11,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -63,7 +64,7 @@ public class MemberController {
 	 * @return
 	 */
 	@PostMapping(value = "/memberJoin")
-	public ResponseEntity<MemberDTO.MemberJoinRes> memberJoin(@RequestBody MemberDTO.MemberJoinReq memberJoinReq) {
+	public ResponseEntity<MemberDTO.MemberJoinRes> memberJoin(@RequestBody @Valid MemberDTO.MemberJoinReq memberJoinReq) {
 		// cf) dto의 값이 null일 때, dto.toString()은 NPE 일으킴. log.info를 활용하면 null이라도 "null" 형태로 반환
 		log.info("회원가입 요청: {}", memberJoinReq);
 		

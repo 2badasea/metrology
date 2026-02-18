@@ -3,6 +3,9 @@ package com.bada.cali.dto;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.repository.projection.GetMemberInfoPr;
 import com.bada.cali.repository.projection.MemberCodeAuthPr;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,32 +40,41 @@ public class MemberDTO {
 	@AllArgsConstructor
 	public static class MemberJoinReq {
 		// 사용자계정(업체) & 업체정보(Agent)의 사업자번호(agent_num)
+		@NotBlank(message = "사업자번호를 입력해주세요.")
+		@Size(min = 12, max = 12, message = "사업자번호는 12자리여야 합니다.")
 		private String loginId;
-		
+
 		// 업체명(agent)
+		@NotBlank(message = "업체명을 입력해주세요.")
 		private String name;
-		
+
 		// 업체(agent) 우편번호
 		private String agentZipCode;
-		
+
 		// 업체(agent) 주소
 		private String addr;
-		
+
 		// 사용자(member) 비밀번호 (암호화 후 DB에 삽입)
+		@NotBlank(message = "비밀번호를 입력해주세요.")
+		@Size(min = 8, max = 16, message = "비밀번호는 8~16자리여야 합니다.")
+		@Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$", message = "비밀번호는 영어 소문자, 대문자, 숫자를 모두 포함해야 합니다.")
 		private String pwd;
-		
+
 		// 업체담당자명(agent) & 업체담당자(agent_manager)의 담당자명
+		@NotBlank(message = "담당자명을 입력해주세요.")
 		private String manager;
-		
+
 		// 업체대표명(agent)
 		private String ceo;
-		
+
 		// 담당자(agent, agent_manager)
+		@NotBlank(message = "이메일 주소를 입력해주세요.")
 		private String email;
-		
+
 		// 담당자 연락처(agent, agent_manager)
+		@NotBlank(message = "휴대폰번호를 입력해주세요.")
 		private String phone;
-		
+
 		// 업체번호(agent)
 		private String agentTel;
 	}
