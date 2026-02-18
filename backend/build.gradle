@@ -81,6 +81,9 @@ dependencies {
     // 로그 메시지를 출력하기 위한 API. (런타임 이슈로 인해 추가)
     implementation 'org.jboss.logging:jboss-logging'
 
+    // Swagger (springdoc-openapi)
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
+
     // 테스트 의존성
     testImplementation 'org.springframework.boot:spring-boot-starter-test'   // JUnit, Mockito 등 포함
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'             // 테스트 런타임 실행기

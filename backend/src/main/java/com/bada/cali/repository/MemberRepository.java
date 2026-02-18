@@ -5,7 +5,6 @@ import com.bada.cali.entity.Member;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.repository.projection.GetMemberInfoPr;
 import com.bada.cali.repository.projection.MemberListPr;
-import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,17 +24,14 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 	@Query("SELECT m FROM Member m WHERE m.loginId = :username AND m.isVisible = :isVisible ")
 	Optional<Member> findByLoginId(String username, YnType isVisible);
 	
-	// 로그인 시도 횟수 초기화
-	// 트랜잭션 애너테이션의 경우, 서비스 계층에서 선언 권장.(서비스 계층이 '비즈니스 로직의 단위')
+	// 로그인 시도 횟수 초기화 - @Transactional은 Service 계층(processLoginSuccess/processLoginFailure)에서 관리
 	@Modifying
 	@Query("UPDATE Member m SET m.loginCount = :setCount, m.lastLoginFailDatetime = CASE WHEN :setCount >= 1 AND :setCount <= 5 THEN CURRENT_TIMESTAMP ELSE m.lastLoginFailDatetime END  WHERE m.id = :id")
-	@Transactional
 	int updateMemberLoginCount(@Param("id") Long id, @Param("setCount") Integer setCount);
-	
-	// 마지막 로그인일시 업데이트
+
+	// 마지막 로그인일시 업데이트 - @Transactional은 Service 계층(processLoginSuccess)에서 관리
 	@Modifying
 	@Query("UPDATE Member m SET m.lastLoginDatetime = CURRENT_TIMESTAMP  WHERE m.id = :id")
-	@Transactional
 	int updateLastLogin(@Param("id") Long id);
 	
 	// 개별 id로 회원 조회
@@ -140,7 +136,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 			     AND f.isVisible = :isVisible
 			    WHERE m.id = :id
 			""")
-	GetMemberInfoPr GetMemberInfo(
+	GetMemberInfoPr getMemberInfo(
 			@Param("id") Long id,
 			@Param("isVisible") YnType isVisible
 	);
