@@ -54,8 +54,7 @@
 		};
 
 		// 그리드 정의
-		$modal.grid = new Grid({
-			el: document.querySelector('.reportList'),
+		$modal.grid = gGrid('.reportList', {
 			columns: [
 				{
 					header: '구분',

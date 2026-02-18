@@ -32,8 +32,7 @@ $(function () {
 		};
 
 		// 그리드 정의
-		$modal.grid = new Grid({
-			el: document.querySelector('.searchAgentList'),
+		$modal.grid = gGrid('.searchAgentList', {
 			columns: [
 				{
 					header: '업체명',

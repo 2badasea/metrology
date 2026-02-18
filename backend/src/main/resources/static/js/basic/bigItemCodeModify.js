@@ -31,8 +31,7 @@ $(function () {
 		};
 
 		// 그리드 정의
-		$modal.grid = new Grid({
-			el: document.querySelector('.bigGrid'),
+		$modal.grid = gGrid('.bigGrid', {
 			columns: [
 				{
 					name: 'id',

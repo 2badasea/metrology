@@ -34,8 +34,7 @@
 		};
 
 		// 직원관리 그리드
-		$modal.grid = new Grid({
-			el: document.querySelector('.memberList'),
+		$modal.grid = gGrid('.memberList', {
 			columns: [
 				// 사번, 아이디, 이메일, 이름, 영문이름, 휴대번호, 부서, 직급, 상태(재직여부)
 				{

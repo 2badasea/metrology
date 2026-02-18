@@ -63,8 +63,7 @@ $(function () {
 		}
 
 		// 업체 담당자 그리드
-		$modal.grid = new Grid({
-			el: document.querySelector('.feeHistoryGrid'),
+		$modal.grid = gGrid('.feeHistoryGrid', {
 			columns: [
 				{
 					name: 'id',

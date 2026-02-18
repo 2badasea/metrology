@@ -73,8 +73,7 @@ $(function () {
 		};
 
 		// 업체 담당자 그리드
-		$modal.grid = new Grid({
-			el: document.querySelector('.agentManagerGrid'),
+		$modal.grid = gGrid('.agentManagerGrid', {
 			columns: [
 				{
 					header: '담당자명',

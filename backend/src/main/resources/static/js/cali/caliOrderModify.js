@@ -74,8 +74,7 @@ $(function () {
 			// };
 
 			// 업체 담당자 그리드
-			$modal.grid = new Grid({
-				el: document.querySelector('.reportList'),
+			$modal.grid = gGrid('.reportList', {
 				columns: [
 					{
 						header: '구분',

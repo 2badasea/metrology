@@ -109,8 +109,7 @@ $(function () {
 		};
 
 		// 표준장비 그리드 (더미데이터만 우선 표시)
-		$modal.grid = new Grid({
-			el: document.querySelector('.equipageList'),
+		$modal.grid = gGrid('.equipageList', {
 			columns: [
 				{
 					name: 'equipmentId',

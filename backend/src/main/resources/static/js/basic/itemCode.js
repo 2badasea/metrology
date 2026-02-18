@@ -45,8 +45,7 @@ $(function () {
 		};
 
 		// 그리드 정의
-		$modal.middleGrid = new Grid({
-			el: document.querySelector('.middleGrid'),
+		$modal.middleGrid = gGrid('.middleGrid', {
 			columns: [
 				{
 					header: '품목코드',
@@ -115,8 +114,7 @@ $(function () {
 		};
 
 		// 그리드 정의
-		$modal.smallGrid = new Grid({
-			el: document.querySelector('.smallGrid'),
+		$modal.smallGrid = gGrid('.smallGrid', {
 			columns: [
 				{
 					header: '품목코드',

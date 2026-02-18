@@ -42,8 +42,7 @@
 		const smallMapListItems = await $modal.buildSmallMapListItems(smallItemCodeSetObj); // 소분류 데이터 가공
 
 		// 그리드 정의
-		$modal.grid = new Grid({
-			el: document.querySelector('.addReportList'),
+		$modal.grid = gGrid('.addReportList', {
 			columns: [
 				// 추후에 부모/자식 구분해서 표시하는 행과 자식행을 추가하는 버튼 구분할 것
 				{

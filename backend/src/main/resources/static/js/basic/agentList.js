@@ -35,8 +35,7 @@
 	};
 
 	// 그리드 정의
-	$modal.grid = new Grid({
-		el: document.querySelector('.agentList'),
+	$modal.grid = gGrid('.agentList', {
 		columns: [
 			{
 				header: '가입방식',

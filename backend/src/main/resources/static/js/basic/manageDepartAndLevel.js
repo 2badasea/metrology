@@ -31,8 +31,7 @@ $(function () {
 		};
 
 		// 그리드 정의
-		$modal.departmentGrid = new Grid({
-			el: document.querySelector('.departmentGrid'),
+		$modal.departmentGrid = gGrid('.departmentGrid', {
 			columns: [
 				{
 					name: 'id',
@@ -84,8 +83,7 @@ $(function () {
 		};
 
 		// 그리드 정의
-		$modal.memberLevelGrid = new Grid({
-			el: document.querySelector('.memberLevelGrid'),
+		$modal.memberLevelGrid = gGrid('.memberLevelGrid', {
 			columns: [
 				{
 					name: 'id',

@@ -34,8 +34,7 @@ $(function () {
 		};
 
 		// 그리드 정의
-		$modal.grid = new Grid({
-			el: document.querySelector('.equipmentList'),
+		$modal.grid = gGrid('.equipmentList', {
 			columns: [
 				{
 					header: '분야',

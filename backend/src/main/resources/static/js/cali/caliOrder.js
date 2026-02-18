@@ -38,8 +38,7 @@ $(function () {
 	};
 
 	// 그리드 정의
-	$modal.grid = new Grid({
-		el: document.querySelector('.orderList'),
+	$modal.grid = gGrid('.orderList', {
 		columns: [
 			{
 				header: '긴급여부',

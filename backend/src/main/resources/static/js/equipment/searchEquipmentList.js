@@ -53,8 +53,7 @@ $(function () {
 		};
 
 		// 그리드 정의
-		$modal.grid = new Grid({
-			el: document.querySelector('.searchEquipGrid'),
+		$modal.grid = gGrid('.searchEquipGrid', {
 			columns: [
 				{
 					header: '분야',

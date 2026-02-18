@@ -1,19 +1,4 @@
-﻿// FIX 그리드 선언하는 것 공통함수로 만들기
-const Grid = tui.Grid;
-Grid.applyTheme('custom', {
-	grid: {
-		border: '#004082',
-	},
-	frozenBorder: {
-		border: '#DCE1E6',
-	},
-	row: {
-		hover: {
-			background: '#eeeeee',
-		},
-	},
-});
-$(function () {
+﻿$(function () {
 	console.log('++ common.js');
 
 	if ($('.modal-dialog').length > 0) {

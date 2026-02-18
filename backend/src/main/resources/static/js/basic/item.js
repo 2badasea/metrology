@@ -66,8 +66,7 @@ $(function () {
 	};
 
 	// 그리드 정의
-	$modal.grid = new Grid({
-		el: document.querySelector('.itemList'),
+	$modal.grid = gGrid('.itemList', {
 		columns: [
 			{
 				header: '생성타입',

@@ -146,8 +146,7 @@
 
 		// Grid 생성
 		$modal.initGrid = (isUseMiddleCodeData = []) => {
-			$modal.itemAuthGrid = new Grid({
-				el: document.querySelector('.itemAuthGrid'),
+			$modal.itemAuthGrid = gGrid('.itemAuthGrid', {
 				columns: [
 					{
 						header: '중분류코드',

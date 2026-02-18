@@ -20,8 +20,7 @@ $(function () {
 		// 화면 내 중분류, 소분류 항목 초기화
 		await $modal.initItemCodeSet();
 
-		$modal.sampleListGrid = new Grid({
-			el: document.querySelector('.sampleListGrid'),
+		$modal.sampleListGrid = gGrid('.sampleListGrid', {
 			data: [], // TODO 데이터 바인딩은 추후
 			columns: [
 				{
@@ -66,8 +65,7 @@ $(function () {
 			scrollY: true,
 		});
 
-		$modal.sampleFileGrid = new Grid({
-			el: document.querySelector('.sampleFileGrid'),
+		$modal.sampleFileGrid = gGrid('.sampleFileGrid', {
 			data: [], // TODO 데이터 바인딩은 추후
 			columns: [
 				{

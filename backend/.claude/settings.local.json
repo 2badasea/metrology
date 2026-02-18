@@ -8,7 +8,11 @@
       "Bash(\"C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe\" --login -c \"echo hello\")",
       "Bash(powershell -Command:*)",
       "Bash(py -3 -c:*)",
-      "Bash(powershell -ExecutionPolicy Bypass -File \"C:\\\\BadaDev\\\\cali\\\\backend\\\\replace_names.ps1\")"
+      "Bash(powershell -ExecutionPolicy Bypass -File \"C:\\\\BadaDev\\\\cali\\\\backend\\\\replace_names.ps1\")",
+      "Bash(command -v python:*)",
+      "Bash(command -v:*)",
+      "Bash(dir:*)",
+      "Bash(node:*)"
     ]
   }
 }
