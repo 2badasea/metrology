@@ -20,8 +20,7 @@ $(function () {
 		// 화면 내 중분류, 소분류 항목 초기화
 		await $modal.initItemCodeSet();
 
-		$modal.sampleListGrid = new Grid({
-			el: document.querySelector('.sampleListGrid'),
+		$modal.sampleListGrid = gGrid('.sampleListGrid', {
 			data: [], // TODO 데이터 바인딩은 추후
 			columns: [
 				{
@@ -66,8 +65,7 @@ $(function () {
 			scrollY: true,
 		});
 
-		$modal.sampleFileGrid = new Grid({
-			el: document.querySelector('.sampleFileGrid'),
+		$modal.sampleFileGrid = gGrid('.sampleFileGrid', {
 			data: [], // TODO 데이터 바인딩은 추후
 			columns: [
 				{
@@ -114,7 +112,7 @@ $(function () {
 	// 중분류, 소분류 코드 초기화
 	$modal.initItemCodeSet = async () => {
 		try {
-			const resGetItemCodeSet = await g_ajax(
+			const resGetItemCodeSet = await gAjax(
 				'/api/basic/getItemCodeInfos',
 				{},
 				{
@@ -160,7 +158,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

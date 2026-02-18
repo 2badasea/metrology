@@ -1,4 +1,4 @@
-$(function () {
+﻿$(function () {
 	console.log('++ member/memberJoin.js');
 
 	// 1) 아직 modal-view-applied 안 된 애들 중에서
@@ -25,7 +25,7 @@ $(function () {
 			const $btn = $(this);
 			const loginId = $('input[name=loginId]', $modal).val();
 			if (!loginId || loginId.trim().length === 0 || loginId.length != 12) {
-				g_toast('사업자번호를 입력하세요', 'warning');
+				gToast('사업자번호를 입력하세요', 'warning');
 				return false;
 			}
 			// 버튼 활성화
@@ -33,7 +33,7 @@ $(function () {
 
 			try {
 				// 사업자번호지만, 로그인ID로 사용되기 때문에 loginId 키값으로 보낸다.
-				const res = await g_ajax('/api/member/chkDuplicateLoginId', {
+				const res = await gAjax('/api/member/chkDuplicateLoginId', {
 					loginId: loginId,
 					refPage: 'memberJoin',
 				});
@@ -54,7 +54,7 @@ $(function () {
 				} else {
 					$btn.val('n').removeClass('btn-success').addClass('btn-secondary');
 				}
-				g_toast(msg, code == 1 ? 'success' : 'warning');
+				gToast(msg, code == 1 ? 'success' : 'warning');
 			} catch (err) {
 				gApiErrorHandler(err);
 			} finally {
@@ -131,7 +131,7 @@ $(function () {
 
 			// [필수]업체명 확인
 			if (name === 'name') {
-				if (!check_input(value)) {
+				if (!checkInput(value)) {
 					chkMsg = '업체명을 입력해주세요.';
 					flagForm = false;
 				}
@@ -145,12 +145,12 @@ $(function () {
 
 			// [필수]비밀번호
 			if (name === 'pwd') {
-				if (!check_input(value)) {
+				if (!checkInput(value)) {
 					chkMsg = '비밀번호를 입력해주세요.';
 					flagForm = false;
 				} else {
 					const chkPwd = $('.confirmPassword', $form).val();
-					if (value !== chkPwd || !check_input(chkPwd)) {
+					if (value !== chkPwd || !checkInput(chkPwd)) {
 						chkMsg = '비밀번호 확인을 해주세요.';
 						flagForm = false;
 					}
@@ -159,7 +159,7 @@ $(function () {
 
 			// 이름
 			if (name === 'manager') {
-				if (!check_input(value)) {
+				if (!checkInput(value)) {
 					chkMsg = '이름(담당자)를 입력해주세요.';
 					flagForm = false;
 				}
@@ -188,7 +188,7 @@ $(function () {
 
 			// 휴대폰번호
 			if (name === 'phone') {
-				if (!check_input(value)) {
+				if (!checkInput(value)) {
 					chkMsg = '휴대폰번호를 입력해주세요.';
 					flagForm = false;
 				}
@@ -208,7 +208,7 @@ $(function () {
 
 		// 값 검증에 실패한 경우 멈춤
 		if (!flagForm) {
-			g_toast(chkMsg, 'warning');
+			gToast(chkMsg, 'warning');
 			$btn.prop('disabled', false);
 			return false;
 		}
@@ -236,18 +236,18 @@ $(function () {
 				},
 			}).then((result) => {});
 
-			const res = await g_ajax('/api/member/memberJoin', JSON.stringify(memberJoinData), {
+			const res = await gAjax('/api/member/memberJoin', JSON.stringify(memberJoinData), {
 				contentType: 'application/json;charset=utf-8',
 			});
 			if (!res) {
-				g_toast('응답 형식이 올바르지 않습니다.', 'error');
+				gToast('응답 형식이 올바르지 않습니다.', 'error');
 			}
 			// 가입 성공 시,
 			if (res.code > 0) {
 				// 가입신청이 완료되었다는 메시지와 함께 모달창이 닫히도록 한다.
 				Swal.fire(res.msg ?? '회원가입 신청 성공', '', 'success').then((result) => {
 					if (result.isConfirmed) {
-						// NOTE confirm_modal을 통해서 값 세팅을 하는 경우, 응답이 오자마자 g_modal을 호출한 쪽의 resData가 조회
+						// NOTE confirm_modal을 통해서 값 세팅을 하는 경우, 응답이 오자마자 gModal을 호출한 쪽의 resData가 조회
 						// NOTE 리턴값이 필요한 경우에는 select_modal이나 다른 커스텀 함수 사용 필요
 						// $modal.param.joinResult = 'success';		// 모달창 닫힐 때 데이터 확인
 						$modal_root.modal('hide');
@@ -255,7 +255,7 @@ $(function () {
 					}
 				});
 			} else {
-				g_toast('응답 형식이 올바르지 않습니다.', 'error');
+				gToast('응답 형식이 올바르지 않습니다.', 'error');
 			}
 		} catch (err) {
 			gApiErrorHandler(err);
@@ -291,7 +291,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

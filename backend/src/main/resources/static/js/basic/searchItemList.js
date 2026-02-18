@@ -46,8 +46,7 @@ $(function () {
 		};
 
 		// 그리드 정의
-		$modal.grid = new Grid({
-			el: document.querySelector('.searchItemList'),
+		$modal.grid = gGrid('.searchItemList', {
 			columns: [
 				{
 					header: '생성타입',
@@ -125,7 +124,7 @@ $(function () {
 					className: 'cursor_pointer',
 					align: 'right',
 					formatter: function (data) {
-						return `${number_format(Number(data.value ?? 0))}`;
+						return `${numberFormat(Number(data.value ?? 0))}`;
 					},
 				},
 				// {
@@ -194,7 +193,7 @@ $(function () {
 	// 중분류와 소분류코드를 가져와서 중분류select 세팅 및 소분류코드 데이터를 초기화시킨다.
 	$modal.initItemCodeSet = async () => {
 		try {
-			const resGetItemCodeSet = await g_ajax(
+			const resGetItemCodeSet = await gAjax(
 				'/api/basic/getItemCodeInfos',
 				{},
 				{
@@ -221,7 +220,7 @@ $(function () {
 			}
 		} catch (xhr) {
 			console.error('통신에러');
-			custom_ajax_handler(xhr);
+			customAjaxHandler(xhr);
 		}
 	};
 
@@ -276,7 +275,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

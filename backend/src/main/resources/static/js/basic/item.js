@@ -14,7 +14,7 @@ $(function () {
 		console.log('🚀 ~ $modal.param:', $modal.param);
 
 		try {
-			const resGetItemCodeSet = await g_ajax(
+			const resGetItemCodeSet = await gAjax(
 				'/api/basic/getItemCodeInfos',
 				{},
 				{
@@ -42,7 +42,7 @@ $(function () {
 			}
 		} catch (xhr) {
 			console.error('통신에러');
-			custom_ajax_handler(xhr);
+			customAjaxHandler(xhr);
 		}
 	};
 
@@ -66,8 +66,7 @@ $(function () {
 	};
 
 	// 그리드 정의
-	$modal.grid = new Grid({
-		el: document.querySelector('.itemList'),
+	$modal.grid = gGrid('.itemList', {
 		columns: [
 			{
 				header: '생성타입',
@@ -146,7 +145,7 @@ $(function () {
 				className: 'cursor_pointer',
 				align: 'right',
 				formatter: function (data) {
-					return `${number_format(Number(data.value ?? 0))}`;
+					return `${numberFormat(Number(data.value ?? 0))}`;
 				},
 			},
 			{
@@ -208,9 +207,9 @@ $(function () {
 			// 복사
 			if (e.columnName == 'grid_btn_copy') {
 				console.log('품목복사 클릭');
-				const copyConfirm = await g_message('품목 복사', '해당 품목을 복사하시겠습니까?', 'question', 'confirm');
+				const copyConfirm = await gMessage('품목 복사', '해당 품목을 복사하시겠습니까?', 'question', 'confirm');
 				if (copyConfirm.isConfirmed === true) {
-					g_loading_message();
+					gLoadingMessage();
 					try {
 						const options = {
 							method: 'POST',
@@ -222,15 +221,15 @@ $(function () {
 						if (resCopy.ok) {
 							const resData = await resCopy.json();
 							if (resData?.code > 0) {
-								await g_message('품목 복사', '복사되었습니다', 'success', 'alert');
+								await gMessage('품목 복사', '복사되었습니다', 'success', 'alert');
 								$modal.grid.reloadData();
 							} else {
-								await g_message('품목 복사', '복사에 실패했습니다.', 'error', 'alert');
+								await gMessage('품목 복사', '복사에 실패했습니다.', 'error', 'alert');
 							}
 						}
 					} catch (err) {
 						console.error(err);
-						custom_ajax_handler(err);
+						customAjaxHandler(err);
 					} finally {
 						Swal.close();
 					}
@@ -239,7 +238,7 @@ $(function () {
 			// 접수수정
 			else {
 				try {
-					const resModal = await g_modal(
+					const resModal = await gModal(
 						'/basic/itemModify',
 						{
 							id: row.id,
@@ -259,7 +258,7 @@ $(function () {
 						$modal.grid.reloadData();
 					}
 				} catch (err) {
-					console.error('g_modal 실행 중 에러', err);
+					console.error('gModal 실행 중 에러', err);
 				}
 			}
 		}
@@ -271,7 +270,7 @@ $(function () {
 		const totalCnt = jsonRow.data.pagination.totalCount ?? 0;
 		const rowCnt = jsonRow.data.contents.length ?? 0;
 		$modal.grid.setSummaryColumnContent('name', {
-			template: () => `총 ${number_format(totalCnt)} 건 중 ${number_format(rowCnt)} 건 조회`,
+			template: () => `총 ${numberFormat(totalCnt)} 건 중 ${numberFormat(rowCnt)} 건 조회`,
 		});
 	});
 
@@ -299,7 +298,7 @@ $(function () {
 			e.preventDefault();
 
 			try {
-				const resModal = await g_modal(
+				const resModal = await gModal(
 					'/basic/itemModify',
 					{
 						smallItemCodeSetObj: smallItemCodeSet, // 소분류 데이터
@@ -319,7 +318,7 @@ $(function () {
 					$modal.grid.reloadData();
 				}
 			} catch (err) {
-				console.error('g_modal 실행 중 에러', err);
+				console.error('gModal 실행 중 에러', err);
 			}
 		})
 		// 삭제
@@ -327,14 +326,14 @@ $(function () {
 			e.preventDefault();
 			const gUserAuth = $('.gLoginAuth').val();
 			if (gUserAuth !== 'admin') {
-				g_toast('권한이 없습니다', 'warning');
+				gToast('권한이 없습니다', 'warning');
 				return false;
 			}
 
 			// 1. 그리드 내 체크된 항목 확인
 			const checkedRows = $modal.grid.getCheckedRows();
 			if (checkedRows.length === 0) {
-				g_toast('삭제할 품목을 선택해주세요.', 'warning');
+				gToast('삭제할 품목을 선택해주세요.', 'warning');
 				return false;
 			} else {
 				// 각 접수의 id를 담는다.
@@ -347,24 +346,24 @@ $(function () {
 				});
 
 				// 2. 삭제유무 confirm 확인
-				const delConfirm = await g_message('품목 삭제', '품목을 삭제하시겠습니까?', 'warning', 'confirm');
+				const delConfirm = await gMessage('품목 삭제', '품목을 삭제하시겠습니까?', 'warning', 'confirm');
 				if (delConfirm.isConfirmed === true) {
-					g_loading_message('삭제 처리 중입니다...');
+					gLoadingMessage('삭제 처리 중입니다...');
 
 					try {
-						const resDelete = await g_ajax('/api/item/deleteItem', JSON.stringify(deletItemInfo), {
+						const resDelete = await gAjax('/api/item/deleteItem', JSON.stringify(deletItemInfo), {
 							type: 'DELETE',
 							contentType: 'application/json; charset=utf-8',
 						});
 						if (resDelete?.code === 1) {
-							await g_message('품목 삭제', '품목이 삭제되었습니다', 'success', 'alert');
+							await gMessage('품목 삭제', '품목이 삭제되었습니다', 'success', 'alert');
 							// 그리드 갱신
 							$modal.grid.reloadData();
 						} else {
-							await g_message('품목 삭제', resDelete.msg ?? '삭제에 실패했습니다.', 'error', 'alert');
+							await gMessage('품목 삭제', resDelete.msg ?? '삭제에 실패했습니다.', 'error', 'alert');
 						}
 					} catch (err) {
-						custom_ajax_handler(err);
+						customAjaxHandler(err);
 					} finally {
 						Swal.close();
 					}
@@ -413,7 +412,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

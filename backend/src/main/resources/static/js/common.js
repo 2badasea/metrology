@@ -1,23 +1,8 @@
-// FIX 그리드 선언하는 것 공통함수로 만들기
-const Grid = tui.Grid;
-Grid.applyTheme('custom', {
-	grid: {
-		border: '#004082',
-	},
-	frozenBorder: {
-		border: '#DCE1E6',
-	},
-	row: {
-		hover: {
-			background: '#eeeeee',
-		},
-	},
-});
-$(function () {
+﻿$(function () {
 	console.log('++ common.js');
 
 	if ($('.modal-dialog').length > 0) {
-		modal_draggable();
+		modalDraggable();
 	}
 
 	$('input[type=text]').attr('autocomplete', 'user-do-not-autofill'); // input창 자동완성 제거
@@ -219,15 +204,15 @@ $(function () {
 		}
 
 		try {
-			// POST 호출 (g_ajax 내부가 POST 기본이면 데이터는 빈 객체여도 OK)
-			const res = await g_ajax('/logout', {}); // 서버에서 200/204/302 상관없음
+			// POST 호출 (gAjax 내부가 POST 기본이면 데이터는 빈 객체여도 OK)
+			const res = await gAjax('/logout', {}); // 서버에서 200/204/302 상관없음
 			// 시큐리티 필터 체인 내부에서 로그아웃 요청에 대해 처리 후 response.setContentType과 reponse.getWriter().get()를 통해 응답 메시지 설정 후 반환
 			if (res?.ok != undefined && res.ok === true) {
 				location.href = res.redirect;
 			}
 		} catch (err) {
 			console.error(err);
-			g_toast('로그아웃에 실패했습니다.', 'error');
+			gToast('로그아웃에 실패했습니다.', 'error');
 		}
 	})
 	// 로드뷰 이벤트 정의
@@ -235,8 +220,8 @@ $(function () {
 		const addrType = $(this).data('target');
 		const $form = $(this).closest('form');
 		const address = $(`input[name=${addrType}]`, $form).val(); // 주소정보 가져오기
-		if (!check_input(address)) {
-			g_toast('주소정보가 없습니다', 'warning');
+		if (!checkInput(address)) {
+			gToast('주소정보가 없습니다', 'warning');
 			return false;
 		} else {
 			showRoadMapView(address);
@@ -250,7 +235,7 @@ $(function () {
 			return false; // gId 없으면 막기(또는 메시지)
 		}
 
-		const myPageConfrim = await g_message('회원정보를 수정하시겠습니까?', '', 'question', 'confirm');
+		const myPageConfrim = await gMessage('회원정보를 수정하시겠습니까?', '', 'question', 'confirm');
 		if (myPageConfrim.isConfirmed === true) {
 			location.href = `/member/memberModify?id=${id}`;
 		} else {
@@ -260,7 +245,7 @@ $(function () {
 	.on('click', '.updateNotice', function (e) {
 		e.preventDefault();
 
-		// g_modal을 띄워 업데이트 사항 공지를 보여준다.
+		// gModal을 띄워 업데이트 사항 공지를 보여준다.
 	});
 
 /**
@@ -269,7 +254,7 @@ $(function () {
  * @param {jquery} $modal
  * @param {object} param
  */
-function init_page($modal, param = {}) {
+function initPage($modal, param = {}) {
 	$('body').height($(window).height());
 	$('.modal-view').height($(window).height() - $('.card-header.bg-dark.text-white').height());
 	//부트스트랩 모달의 FocusTrap 무력화(모달 밖의 요소로 포커스가 이동하면 포커스를 탈취)
@@ -295,7 +280,7 @@ function init_page($modal, param = {}) {
  * @param {object} options
  * @returns primise
  */
-function g_ajax(url, data = {}, options = {}) {
+function gAjax(url, data = {}, options = {}) {
 	// 기본적으로 post요청과 응답형식은 json으로 고정한다.
 	let settings = $.extend(
 		{
@@ -363,7 +348,7 @@ $.fn.serialize_object = function () {
  * @param {string} type
  * @param {object} options
  */
-function g_toast(text = '알림', type = 'info', options = {}) {
+function gToast(text = '알림', type = 'info', options = {}) {
 	if (type != 'info' && type != 'warning' && type != 'success' && type != 'error') {
 		//허용되지 않은 타입일경우 info로 강제로 설정한다.
 		type = 'info';
@@ -393,7 +378,7 @@ function g_toast(text = '알림', type = 'info', options = {}) {
 	toastr[type](text);
 	// }
 	// });
-	var message = g_get_data('message');
+	var message = gGetData('message');
 	if (message == null) {
 		message = [];
 	}
@@ -401,7 +386,7 @@ function g_toast(text = '알림', type = 'info', options = {}) {
 		text: text,
 		type: type,
 	});
-	g_set_data('message', message);
+	gSetData('message', message);
 }
 
 /**
@@ -410,7 +395,7 @@ function g_toast(text = '알림', type = 'info', options = {}) {
  * @param {string} key 데이터를 관리할 키 값
  * @returns {json}
  */
-function g_get_data(key, storage = localStorage) {
+function gGetData(key, storage = localStorage) {
 	try {
 		var value = JSON.parse(storage.getItem(key));
 	} catch (e) {
@@ -425,7 +410,7 @@ function g_get_data(key, storage = localStorage) {
  * @param {string} key 데이터를 관리할 키 값
  * @param {mixed} value 저장할 데이터(array / object)
  */
-function g_set_data(key, value, storage = localStorage) {
+function gSetData(key, value, storage = localStorage) {
 	let data = JSON.stringify(value);
 	storage.setItem(key, data);
 }
@@ -437,14 +422,14 @@ function g_set_data(key, value, storage = localStorage) {
  *
  * @return  {[type]}       [return description]
  */
-function custom_ajax_handler(err) {
+function customAjaxHandler(err) {
 	// jQuery xhr 스타일에 맞춰서 구현
-	console.error('custom_ajax_handler문 동작!!');
+	console.error('customAjaxHandler문 동작!!');
 	console.error(err);
 
 	// 일반 Error(message) 처리
 	if (err instanceof Error) {
-		g_toast(err.message || '요청 중 오류가 발생했습니다.', 'error');
+		gToast(err.message || '요청 중 오류가 발생했습니다.', 'error');
 		return false;
 	}
 
@@ -454,11 +439,11 @@ function custom_ajax_handler(err) {
 
 	// 옵셔널체이닝 문법(null/undefined이면 에러를 발생시키지 않고, undefined를 반환.)
 	if (respJSON?.code != undefined && respJSON?.msg != undefined) {
-		g_toast(respJSON.msg, 'error');
+		gToast(respJSON.msg, 'error');
 	}
 	// 다른 형식으로 받는 경우
 	else {
-		g_toast('요청을 처리 중 서버에서 오류가 발생했습니다. 적절한 응답 형식을 찾지 못했습니다.', 'error');
+		gToast('요청을 처리 중 서버에서 오류가 발생했습니다. 적절한 응답 형식을 찾지 못했습니다.', 'error');
 	}
 	return false;
 
@@ -471,12 +456,12 @@ function custom_ajax_handler(err) {
 	const msgText = typeof respText === 'string' && respText.length < 300 ? respText : null;
 
 	const message = msgFromJson || msgText || xhr?.statusText || err?.message || '요청 처리 중 오류가 발생했습니다.';
-	console.log('🚀 ~ custom_ajax_handler ~ message:', message);
+	console.log('🚀 ~ customAjaxHandler ~ message:', message);
 
 	// 상태코드가 있으면 붙여주면 디버깅 편함
 	const label = status ? `[${status}] ${message}` : message;
 
-	g_toast(label, 'error');
+	gToast(label, 'error');
 }
 
 /**
@@ -500,7 +485,7 @@ function gErrorHandler(err, defaultMsg = '입력값을 확인해주세요.') {
 		msg = String(err);
 	}
 
-	if (typeof g_toast === 'function') g_toast(msg, 'warning');
+	if (typeof gToast === 'function') gToast(msg, 'warning');
 	else alert(msg);
 
 	return false; // 기존 스타일대로 return false로 끊기 좋게
@@ -508,13 +493,13 @@ function gErrorHandler(err, defaultMsg = '입력값을 확인해주세요.') {
 
 /**
  * API 요청/응답 전용 에러 핸들러
- * - axios / fetch(Response) / jqXHR(g_ajax) 에러를 받아서
- * - ResMessage.msg 우선으로 g_message(title=msg, icon=...)로 출력
+ * - axios / fetch(Response) / jqXHR(gAjax) 에러를 받아서
+ * - ResMessage.msg 우선으로 gMessage(title=msg, icon=...)로 출력
  */
 async function gApiErrorHandler(err, options = {}) {
 	const opt = {
 		defaultMessage: '요청 처리 중 오류가 발생했습니다.',
-		type: 'alert', // g_message type
+		type: 'alert', // gMessage type
 		icon: null, // null이면 status 기반 자동
 		showConsole: true,
 		...options,
@@ -599,7 +584,7 @@ async function gApiErrorHandler(err, options = {}) {
 		msg = pickResMessageMsg(data) || err.message || fallbackByStatus(status);
 	}
 
-	// 3) jqXHR 또는 g_ajax 에러(혹은 err.xhr 래핑)
+	// 3) jqXHR 또는 gAjax 에러(혹은 err.xhr 래핑)
 	else {
 		const xhr = err?.xhr || err;
 		if (xhr && (xhr.responseJSON !== undefined || xhr.responseText !== undefined || xhr.status !== undefined)) {
@@ -623,7 +608,7 @@ async function gApiErrorHandler(err, options = {}) {
 	}
 
 	const icon = opt.icon ?? pickIconByStatus(status);
-	await g_message(msg, '', icon, opt.type);
+	await gMessage(msg, '', icon, opt.type);
 
 	return { status, message: msg, raw: err };
 }
@@ -634,7 +619,7 @@ async function gApiErrorHandler(err, options = {}) {
  * @param {boolean} random
  * @returns
  */
-function g_uniqid(prefix = '', random = false) {
+function gUniqid(prefix = '', random = false) {
 	const sec = Date.now() * 1000 + Math.random() * 1000;
 	const id = sec.toString(16).replace(/\./g, '').padEnd(14, '0');
 	return `${prefix}${id}${random ? `.${Math.trunc(Math.random() * 100000000)}` : ''}`;
@@ -647,11 +632,11 @@ function g_uniqid(prefix = '', random = false) {
  * @param {object} options 모달 설정값
  * @return {promise}
  */
-async function g_modal(url, param = {}, options = {}) {
+async function gModal(url, param = {}, options = {}) {
 	return new Promise(function (resolve) {
 		let settings = $.extend(
 			{
-				uuid: g_uniqid(''),
+				uuid: gUniqid(''),
 				title: '',
 				size: 'xl', //fullscreen, sm, lg, xl(default is xl)
 				show_close_button: false, //닫기 버튼을 보여줄지
@@ -900,7 +885,7 @@ async function g_modal(url, param = {}, options = {}) {
  *
  * @return  {[type]}  [return description]
  */
-function modal_draggable() {
+function modalDraggable() {
 	var modal_dialog = $('.modal-dialog');
 	modal_dialog.draggable({
 		handle: '.modal-header',
@@ -916,7 +901,7 @@ function modal_draggable() {
  *
  * @return  {[type]}                  [return description]
  */
-function sample4_execDaumPostcode(zipCodeColName, addrColname, addrEnColname = '') {
+function sample4ExecDaumPostcode(zipCodeColName, addrColname, addrEnColname = '') {
 	return new Promise((resolve) => {
 		new daum.Postcode({
 			oncomplete: function (data) {
@@ -940,13 +925,13 @@ function sample4_execDaumPostcode(zipCodeColName, addrColname, addrEnColname = '
 
 // 입력값 체크
 /**
- * [check_input description]
+ * [checkInput description]
  *
  * @param   {[string]}  value
  *
  * @return  {[boolean]}
  */
-function check_input(value) {
+function checkInput(value) {
 	return value != null && String(value).replace(/\s+/g, '') !== '';
 }
 
@@ -961,7 +946,7 @@ function checkEmailReg(value) {
 	return value != null && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
 }
 
-function g_loading_message(title) {
+function gLoadingMessage(title) {
 	Swal.fire({
 		title: title,
 		allowOutsideClick: false,
@@ -1000,7 +985,7 @@ function cloneObject(obj) {
  * @param {object} options 설정(columns, data 필수)
  * @returns Grid object
  */
-function g_grid(selector, options) {
+function gGrid(selector, options) {
 	let response;
 	if (options.response != undefined) {
 		response = options.response;
@@ -1136,7 +1121,7 @@ function g_grid(selector, options) {
 		let json_row = JSON.parse(e.xhr.response);
 		if (undefined != json_row && undefined != json_row.data && undefined != json_row.data.pagination) {
 			let total_count = json_row.data.pagination.totalCount;
-			g_append_pagenation_side_grid($(selector), `총 ${number_format(total_count)} 건`);
+			gAppendPagenationSideGrid($(selector), `총 ${numberFormat(total_count)} 건`);
 		}
 		if (typeof response === 'function') {
 			response(e);
@@ -1318,13 +1303,13 @@ function g_grid(selector, options) {
 				});
 				$('button.setting_reset', table).on('click', async function (e) {
 					e.preventDefault();
-					let question = await g_message('설정 초기화', '정말 이 화면의 개인설정을 초기화하시겠습니까?', 'warning', 'confirm');
+					let question = await gMessage('설정 초기화', '정말 이 화면의 개인설정을 초기화하시겠습니까?', 'warning', 'confirm');
 					if (question.isConfirmed == true) {
-						g_ajax('/member/ajax_delete_config', {
+						gAjax('/member/ajax_delete_config', {
 							config_key: settings.config_key,
 						}).done(function (response) {
 							if (response.code == 1) {
-								g_toast('설정이 초기화되었습니다.');
+								gToast('설정이 초기화되었습니다.');
 								dropdown.dropdown('toggle');
 								grid.setColumns(settings.defaultColumns);
 								window.location.reload();
@@ -1359,7 +1344,7 @@ function g_grid(selector, options) {
 	return grid;
 }
 
-function g_append_pagenation_side_grid($grid_parent, text, font_size = 16, delay = 50, side = 'left') {
+function gAppendPagenationSideGrid($grid_parent, text, font_size = 16, delay = 50, side = 'left') {
 	setTimeout(function () {
 		var $span = $('.tui-grid-pagination', $grid_parent).find(`span.${side}`);
 		if (0 < $span.length) {
@@ -1469,9 +1454,9 @@ $.fn.setupValues = function (data = {}, excludes = [], isTrigger) {
  * @param {string} type 경고창 종류 [alert, confirm, prompt] 기본값: alert
  * @param {object} options 오버라이딩 할 옵션값
  */
-function g_message(title = '', html = '', icon = 'info', type = 'alert', options = {}) {
+function gMessage(title = '', html = '', icon = 'info', type = 'alert', options = {}) {
 	// NOTE 아래처럼 단순히 swal.fire 형태로 문구를 띄우는 것도 가능
-	// g_message("결재문서", `검토자의 결재가 미결이 아닌 경우 결재자가 있어야 합니다.`, "warning");
+	// gMessage("결재문서", `검토자의 결재가 미결이 아닌 경우 결재자가 있어야 합니다.`, "warning");
 
 	let settings = {
 		title: title,
@@ -1565,7 +1550,7 @@ function isValidateDate(start = '', end = '') {
 
 // 주소 api 호출하기
 async function showRoadMapView(address = '') {
-	(await g_modal('/basic/viewRoadMap', {
+	(await gModal('/basic/viewRoadMap', {
 		address: address,
 	}),
 		{
@@ -1582,7 +1567,7 @@ async function showRoadMapView(address = '') {
  * @param {int} value
  * @returns {string}
  */
-function number_format(value) {
+function numberFormat(value) {
 	if (value) {
 		if (typeof value.value != 'undefined') {
 			if (typeof value.value == 'undefined' || value.value == '' || value.value == null || isNaN(Number(value.value))) {

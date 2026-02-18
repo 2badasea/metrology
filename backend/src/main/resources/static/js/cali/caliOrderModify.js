@@ -47,14 +47,14 @@ $(function () {
 						$modal.setCaliType(data.caliType, data.caliTakeType);
 					}
 				} else {
-					g_toast('접수 정보를 가져오지 못 했습니다.', 'error');
+					gToast('접수 정보를 가져오지 못 했습니다.', 'error');
 				}
 
 				// TODO 신청업체 & 성적서업체 정보는 기본적으로 readonly 처리
 				$('input[name=custAgent]', $modal).prop('readonly', true);
 				$('input[name=reportAgent]', $modal).prop('readonly', true);
 			} catch (err) {
-				custom_ajax_handler(err);
+				customAjaxHandler(err);
 			} finally {
 			}
 
@@ -74,8 +74,7 @@ $(function () {
 			// };
 
 			// 업체 담당자 그리드
-			$modal.grid = new Grid({
-				el: document.querySelector('.reportList'),
+			$modal.grid = gGrid('.reportList', {
 				columns: [
 					{
 						header: '구분',
@@ -136,8 +135,8 @@ $(function () {
 		$modal.searchAgent = async (type, agentName) => {
 			const agentFlag = type == 'custAgent' ? 1 : 4;
 
-			// g_modal 호출
-			const resModal = await g_modal(
+			// gModal 호출
+			const resModal = await gModal(
 				'/agent/searchAgentModify',
 				{
 					agentFlag: agentFlag,
@@ -236,10 +235,10 @@ $(function () {
 			}
 
 			if (agentId == 0) {
-				g_toast(`${agentTypeKr}가 조회되지 않았습니다.<br>업체부터 선택해주세요.`, 'warning');
+				gToast(`${agentTypeKr}가 조회되지 않았습니다.<br>업체부터 선택해주세요.`, 'warning');
 				return false;
 			} else {
-				const resModal = await g_modal(
+				const resModal = await gModal(
 					'/agent/searchAgentManager',
 					{
 						agentId: agentId,
@@ -285,7 +284,7 @@ $(function () {
 				addrEnClass = 'reportAgentAddrEn';
 			}
 			// 프로미스 처리 (함수호출 즉시 아래 코드가 실행되는 것 방지)
-			const resPost = await sample4_execDaumPostcode((zipCode = ''), (addr = addrClass), (addrEn = addrEnClass));
+			const resPost = await sample4ExecDaumPostcode((zipCode = ''), (addr = addrClass), (addrEn = addrEnClass));
 			// 성적서발행처 주소의 경우, 교정유형이 '현장교정'인 경우, 소재지주소에도 할당
 			const caliType = $('input[name=caliType]:checked', $modal).val();
 			if (caliType == 'SITE' && agentType == 'reportAgent') {
@@ -359,7 +358,7 @@ $(function () {
 				const orderYear = orderDate.split('-')[0];
 				const originOrderYear = originOrderDate.split('-')[0];
 				if (orderYear != originOrderYear) {
-					g_toast(
+					gToast(
 						'접수일의 연도가 변경될 경우, 접수번호가 수정됩니다.<br>(결재가 진행중인 성적서가 존재할 경우 접수연도 수정 불가)',
 						'warning'
 					);
@@ -403,23 +402,23 @@ $(function () {
 
 		// 1. 필수값 확인
 		if (!orderData.orderDate) {
-			g_toast('접수일을 선택해주세요', 'warning');
+			gToast('접수일을 선택해주세요', 'warning');
 			return false;
 		}
 		// 신청업체, 성적서발행처 확인
-		if (!check_input(orderData.custAgent)) {
-			g_toast('신청업체 정보를<br>조회 또는 입력해주세요.', 'warning');
+		if (!checkInput(orderData.custAgent)) {
+			gToast('신청업체 정보를<br>조회 또는 입력해주세요.', 'warning');
 			return false;
 		}
-		if (!check_input(orderData.reportAgent)) {
-			g_toast('성적서발행처 정보를<br>조회 또는 입력해주세요.', 'warning');
+		if (!checkInput(orderData.reportAgent)) {
+			gToast('성적서발행처 정보를<br>조회 또는 입력해주세요.', 'warning');
 			return false;
 		}
 		// 출장일시 정보가 있는 경우, 체크
 		const resCheckDate = isValidateDate(orderData.btripStartDate, orderData.btripEndDate);
 		if (!resCheckDate.flag) {
 			const resMsg = resCheckDate.msg ?? '정보가 올바르지 않습니다.';
-			g_toast(`출장일시 ${resMsg}`, 'warning');
+			gToast(`출장일시 ${resMsg}`, 'warning');
 			return false;
 		}
 
@@ -443,7 +442,7 @@ $(function () {
 			// 유사 업체명이 존재함
 			if (resData1?.code > 0) {
 				const custData = resData1.data ?? '';
-				await g_message(
+				await gMessage(
 					'업체명 확인',
 					`<div class='text-left'>'${orderData.custAgent}'이 포함된 업체목록입니다.<br><br>'조회'가 아닌 직접 입력을 통해서 선택한 경우, 업체정보가<br>자동으로 등록되지만 중복이 발생할 수 있습니다. <br><br>${custData}</div>`,
 					'warning'
@@ -466,7 +465,7 @@ $(function () {
 			// 유사 업체명이 존재함
 			if (resData2?.code > 0) {
 				const reportData = resData2.data ?? '';
-				await g_message(
+				await gMessage(
 					'업체명 확인',
 					`<div class='text-left'>'${orderData.reportAgent}'이 포함된 업체목록입니다.<br><br>'조회'가 아닌 직접 입력을 통해서 선택한 경우, 업체정보가 자동으로 등록되지만 중복이 발생할 수 있습니다. <br><br>${reportData}</div>`,
 					'warning'
@@ -490,7 +489,7 @@ $(function () {
 		const $btn = $('button.btn_save', $modal_root);
 		$btn.prop('disabled', true);
 
-		const saveConfirm = await g_message('저장하시겠습니까?', saveConfirmMsg, 'info', 'confirm');
+		const saveConfirm = await gMessage('저장하시겠습니까?', saveConfirmMsg, 'info', 'confirm');
 		if (saveConfirm.isConfirmed === true) {
 			orderData.id = caliOrderId;
 			try {
@@ -505,13 +504,13 @@ $(function () {
 				if (resSave.ok) {
 					const resCode = await resSave.json();
 					if (resCode?.code > 0) {
-						await g_message('저장 성공', `${resCode.msg ?? '저장에 성공했습니다.'}`, 'success', 'alert').then((d) => {
+						await gMessage('저장 성공', `${resCode.msg ?? '저장에 성공했습니다.'}`, 'success', 'alert').then((d) => {
 							console.log('d');
 							console.log(d);
 							$modal_root.data('modal-data').click_return_button();
 						});
 					} else {
-						await g_message('저장 실패', `${resCode.msg ?? '저장에 실패했습니다.'}`, 'error', 'alert');
+						await gMessage('저장 실패', `${resCode.msg ?? '저장에 실패했습니다.'}`, 'error', 'alert');
 					}
 				} else {
 					throw new Error('api 오류 발생');
@@ -519,7 +518,7 @@ $(function () {
 
 				// 저장이 정상적으로 이루어지면, 모달을 닫는다.
 			} catch (err) {
-				custom_ajax_handler(err);
+				customAjaxHandler(err);
 			} finally {
 				$btn.prop('disabled', false);
 				return false;
@@ -560,7 +559,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

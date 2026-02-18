@@ -60,7 +60,7 @@ class itemSearchEditor {
 			if (e.keyCode === 13) {
 				grid.blur();
 				const rowData = grid.getRow(rowKey);
-				const resModal = await g_modal('/basic/searchItemList', rowData, {
+				const resModal = await gModal('/basic/searchItemList', rowData, {
 					size: 'xxxl',
 					title: '교정 품목 리스트',
 					show_close_button: true,

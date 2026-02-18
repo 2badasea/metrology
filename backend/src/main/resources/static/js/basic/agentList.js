@@ -1,4 +1,4 @@
-$(function () {
+﻿$(function () {
 	console.log('++ basic/agentList.js');
 
 	const $candidates = $('.modal-view:not(.modal-view-applied)');
@@ -35,8 +35,7 @@ $(function () {
 	};
 
 	// 그리드 정의
-	$modal.grid = new Grid({
-		el: document.querySelector('.agentList'),
+	$modal.grid = gGrid('.agentList', {
 		columns: [
 			{
 				header: '가입방식',
@@ -158,7 +157,7 @@ $(function () {
 			e.preventDefault();
 
 			try {
-				const resModal = await g_modal(
+				const resModal = await gModal(
 					'/basic/agentModify',
 					{},
 					{
@@ -175,7 +174,7 @@ $(function () {
 					$modal.grid.reloadData();
 				}
 			} catch (err) {
-				console.error('g_modal 실행 중 에러', err);
+				console.error('gModal 실행 중 에러', err);
 			}
 		})
 		// 삭제
@@ -183,14 +182,14 @@ $(function () {
 			e.preventDefault();
 			const gUserAuth = $('.gLoginAuth').val();
 			if (gUserAuth !== 'admin') {
-				g_toast('권한이 없습니다', 'warning');
+				gToast('권한이 없습니다', 'warning');
 				return false;
 			}
 
 			// 1. 그리드 내 체크된 업체 확인
 			const checkedRows = $modal.grid.getCheckedRows();
 			if (checkedRows.length === 0) {
-				g_toast('삭제할 업체를 선택해주세요.', 'warning');
+				gToast('삭제할 업체를 선택해주세요.', 'warning');
 				return false;
 			} else {
 				// 각 업체의 id를 담는다. (새로운 배열에 담기 위해 map 사용)
@@ -200,7 +199,7 @@ $(function () {
 
 				// 2. 삭제유무 confirm 확인
 				if (confirm('정말 삭제하시겠습니까?\n업체정보, 담당자, 로그인 계정이 삭제됩니다')) {
-					g_loading_message('삭제 처리 중입니다...');
+					gLoadingMessage('삭제 처리 중입니다...');
 
 					try {
 						// 서버에 전송할 때, obj 형태로 보냄(DTO로 받음)
@@ -209,7 +208,7 @@ $(function () {
 							ids: delAgentIds,
 						};
 
-						const resDelete = await g_ajax(
+						const resDelete = await gAjax(
 							'/api/basic/deleteAgent',
 							JSON.stringify(sendData),
 
@@ -229,7 +228,7 @@ $(function () {
 							$modal.grid.reloadData();
 						}
 					} catch (err) {
-						custom_ajax_handler(err);
+						customAjaxHandler(err);
 					} finally {
 					}
 				} else {
@@ -246,7 +245,7 @@ $(function () {
 			// 선택된 업체 존재하는지 확인
 			const checkedRows = $modal.grid.getCheckedRows();
 			if (checkedRows.length === 0) {
-				g_toast('관리할 업체를 선택해주세요.', 'warning');
+				gToast('관리할 업체를 선택해주세요.', 'warning');
 				return false;
 			}
 
@@ -255,7 +254,7 @@ $(function () {
 				return agent.id;
 			}); // 배열([]) 리턴
 
-			const resModal = await g_modal(
+			const resModal = await gModal(
 				'/basic/agentGroupModify',
 				{
 					ids: updateAgentIds,
@@ -283,7 +282,7 @@ $(function () {
 		if (row && e.columnName != '_checked') {
 			// 업체수정 모달 띄우기
 			try {
-				const resModal = await g_modal(
+				const resModal = await gModal(
 					'/basic/agentModify',
 					{
 						id: row.id,
@@ -302,7 +301,7 @@ $(function () {
 					$modal.grid.reloadData();
 				}
 			} catch (err) {
-				console.error('g_modal 실행 중 에러', err);
+				console.error('gModal 실행 중 에러', err);
 			}
 		}
 	});
@@ -322,9 +321,9 @@ $(function () {
 	if (typeof window.modal_deferred == 'object') {
 		window.modal_deferred.resolve('script end');
 	} else {
-		// 모달이 아닌 일반 페이지인 경우엔 아래 init_page가 동작한다.
+		// 모달이 아닌 일반 페이지인 경우엔 아래 initPage가 동작한다.
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

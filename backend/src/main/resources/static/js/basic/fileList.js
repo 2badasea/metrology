@@ -28,7 +28,7 @@ $(function () {
 			const fileId = $(this).closest('tr').data('fileId');
 			console.log('🚀 ~ fileId:', fileId);
 			if (!fileId || fileId == 0) {
-				g_toast('다운로드 받을 파일정보가 없습니다', 'warning');
+				gToast('다운로드 받을 파일정보가 없습니다', 'warning');
 				return false;
 			}
 			// get 방식으로 바로 호출
@@ -39,16 +39,16 @@ $(function () {
 			console.log('삭제클릭');
 			const $tr = $(this).closest('tr');
 			const fileId = $tr.data('fileId');
-			const deleteConfirm = await g_message(`파일 삭제`, `해당 파일을 삭제하시겠습니까?`, 'warning', 'confirm');
+			const deleteConfirm = await gMessage(`파일 삭제`, `해당 파일을 삭제하시겠습니까?`, 'warning', 'confirm');
 
 			if (deleteConfirm.isConfirmed) {
-				g_loading_message(); // 로딩창
+				gLoadingMessage(); // 로딩창
 
 				try {
-					const resDelete = await g_ajax('/api/file/fileDelete/' + fileId);
+					const resDelete = await gAjax('/api/file/fileDelete/' + fileId);
 					Swal.close();	// 통신이 끝나면 로딩창을 닫는다.
 					if (resDelete?.code > 0) {
-						await g_message(`파일 삭제`,`삭제되었습니다.`, 'success', 'alert');
+						await gMessage(`파일 삭제`,`삭제되었습니다.`, 'success', 'alert');
 						// 영역삭제
 						$tr.remove();
 
@@ -61,10 +61,10 @@ $(function () {
 						}
 
 					} else {
-						await g_message(`파일 삭제`, `삭제처리에 실패했습니다.`, 'warning', 'alert');
+						await gMessage(`파일 삭제`, `삭제처리에 실패했습니다.`, 'warning', 'alert');
 					}
 				} catch (xhr) {
-					custom_ajax_handler(xhr);
+					customAjaxHandler(xhr);
 				} finally {
 				}
 			} else {
@@ -93,7 +93,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

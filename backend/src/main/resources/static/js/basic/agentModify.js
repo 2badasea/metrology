@@ -28,7 +28,7 @@ $(function () {
 
 			// NOTE async, await으로도 가능한지 확인
 			try {
-				const resGetInfo = await g_ajax('/api/basic/getAgentInfo', { id: agentId });
+				const resGetInfo = await gAjax('/api/basic/getAgentInfo', { id: agentId });
 				if (resGetInfo) {
 					$modal.find('form.agentModifyForm input[name], textarea[name]').setupValues(resGetInfo);
 					if (resGetInfo.isClose == 'y') {
@@ -51,7 +51,7 @@ $(function () {
 					}
 				}
 			} catch (err) {
-				custom_ajax_handler(err);
+				customAjaxHandler(err);
 			} finally {
 			}
 
@@ -73,8 +73,7 @@ $(function () {
 		};
 
 		// 업체 담당자 그리드
-		$modal.grid = new Grid({
-			el: document.querySelector('.agentManagerGrid'),
+		$modal.grid = gGrid('.agentManagerGrid', {
 			columns: [
 				{
 					header: '담당자명',
@@ -212,23 +211,23 @@ $(function () {
 			const agentNumVal = $('input[name=agentNum]', $modal).val().trim();
 			// 업체수정 & 수정된 부분이 없는 경우 return
 			if (agentNumVal == originAgentNum) {
-				g_toast('동일한 사업자번호 입니다.', 'warning');
+				gToast('동일한 사업자번호 입니다.', 'warning');
 				return false;
 			}
 
 			// 값이 없거나 하이픈(-) 포함해서 12자리가 아닌 경우 return false;
-			if (!check_input(agentNumVal) || agentNumVal.length != 12) {
-				g_toast('사업자번호 형식이 올바르지 않습니다', 'warning');
+			if (!checkInput(agentNumVal) || agentNumVal.length != 12) {
+				gToast('사업자번호 형식이 올바르지 않습니다', 'warning');
 				return false;
 			}
 
 			$btn.prop('disabled', true); // 버튼 비활성화 처리
 
 			try {
-				g_loading_message(); // 로딩창 호출
+				gLoadingMessage(); // 로딩창 호출
 
 				// api 호출
-				const resChkAgentNum = await g_ajax('/api/member/chkDuplicateLoginId', {
+				const resChkAgentNum = await gAjax('/api/member/chkDuplicateLoginId', {
 					loginId: agentNumVal,
 					refPage: 'agentModify',
 				});
@@ -236,31 +235,31 @@ $(function () {
 				Swal.close(); // sweet alert창 있을 경우 닫아버리기
 
 				if (resChkAgentNum?.code == 1) {
-					await g_message('중복체크', '등록가능한 사업자번호 입니다.', 'success');
+					await gMessage('중복체크', '등록가능한 사업자번호 입니다.', 'success');
 					$btn.val('y').addClass('btn-success').removeClass('btn-secondary');
 				} else {
-					await g_message('중복체크', '이미 등록된 사업자번호 입니다.', 'warning');
+					await gMessage('중복체크', '이미 등록된 사업자번호 입니다.', 'warning');
 					$btn.val('n').addClass('btn-secondary').removeClass('btn-success');
 				}
 			} catch (err) {
 				Swal.close(); // sweet alert창 있을 경우 닫아버리기
 				// 에러처리
-				custom_ajax_handler(err);
+				customAjaxHandler(err);
 			} finally {
 				$btn.prop('disabled', false);
 			}
 		})
 		// 주소 및 우편번호 조회
 		.on('click', '.agentZipCode, .searchAddr', function () {
-			// sample4_execDaumPostcode(zipCode = 'agentZipCode', addr = 'addr1')
-			sample4_execDaumPostcode((zipCode = 'agentZipCode'), (addr = 'addr'));
+			// sample4ExecDaumPostcode(zipCode = 'agentZipCode', addr = 'addr1')
+			sample4ExecDaumPostcode((zipCode = 'agentZipCode'), (addr = 'addr'));
 		})
 		// 담당자 추가 클릭(저장 시점에 반영)
 		.on('click', '.addAgentManager', function () {
 			// 최대 10명까지만 등록할 수 있도록 변경
 			const rowCnt = $modal.grid.getRowCount();
 			if (rowCnt === 10) {
-				g_toast('담당자는 최대 10명만 등록됩니다.', 'warning');
+				gToast('담당자는 최대 10명만 등록됩니다.', 'warning');
 				return false;
 			} else {
 				$modal.grid.addGridRow('add');
@@ -271,7 +270,7 @@ $(function () {
 			// id가 존재하는 것만 배열에 담아서 '저장'시점에 반영
 			const checkedRows = $modal.grid.getCheckedRows();
 			if (checkedRows.length === 0) {
-				g_toast('삭제할 직원을 선택해주세요.', 'warning');
+				gToast('삭제할 직원을 선택해주세요.', 'warning');
 				return false;
 			} else {
 				for (let rowData of checkedRows) {
@@ -281,7 +280,7 @@ $(function () {
 					}
 					$modal.grid.removeRow(rowData.rowKey);
 				}
-				g_toast('삭제된 담당자는 저장 시 반영됩니다.', 'info');
+				gToast('삭제된 담당자는 저장 시 반영됩니다.', 'info');
 				if ($modal.grid.getRowCount() === 0) {
 					$modal.grid.addGridRow('init');
 				}
@@ -303,7 +302,7 @@ $(function () {
 
 			// 파일 개수 체크
 			if (files.length > MAX_FILE_COUNT) {
-				g_toast(`파일은 한 번에 최대 ${MAX_FILE_COUNT}개까지만 업로드 가능합니다.\n(선택한 파일 수: ${files.length}개)`, 'warning');
+				gToast(`파일은 한 번에 최대 ${MAX_FILE_COUNT}개까지만 업로드 가능합니다.\n(선택한 파일 수: ${files.length}개)`, 'warning');
 				$(this).replaceWith($newInput);
 				return false;
 			}
@@ -314,7 +313,7 @@ $(function () {
 
 				if (file.size > MAX_FILE_SIZE) {
 					const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-					g_toast(`'${file.name}' 파일의 크기(${sizeMB} MB)가 허용 용량(최대 10 MB)을 초과합니다.`, 'warning');
+					gToast(`'${file.name}' 파일의 크기(${sizeMB} MB)가 허용 용량(최대 10 MB)을 초과합니다.`, 'warning');
 					$(this).replaceWith($newInput);
 					return false;
 				}
@@ -324,8 +323,8 @@ $(function () {
 		.on('click', '.searchFile', async function () {
 			const $btn = $(this);
 			if ($btn.val() > 0) {
-				// g_modal 호출하기
-				await g_modal(
+				// gModal 호출하기
+				await gModal(
 					'/basic/fileList',
 					{
 						refTableName: 'agent',
@@ -344,7 +343,7 @@ $(function () {
 					}
 				});
 			} else {
-				g_toast('등록된 첨부파일이 없습니다', 'warning');
+				gToast('등록된 첨부파일이 없습니다', 'warning');
 				return false;
 			}
 		});
@@ -366,7 +365,7 @@ $(function () {
 			let flagMain = false;
 			for (const amRow of managerRows) {
 				// 담당자명이 존재하지 않는 경우
-				if (!check_input(amRow.name)) {
+				if (!checkInput(amRow.name)) {
 					flagMsg = '담당자명이 존재하지 않습니다.';
 					flagManager = false;
 					break;
@@ -382,11 +381,11 @@ $(function () {
 			}
 
 			if (!flagManager) {
-				g_toast(flagMsg, 'warning');
+				gToast(flagMsg, 'warning');
 				return false;
 			}
 		} else {
-			g_toast('대표담당자가 최소 한 명은 있어야 합니다.', 'warning');
+			gToast('대표담당자가 최소 한 명은 있어야 합니다.', 'warning');
 			return false;
 		}
 
@@ -394,7 +393,7 @@ $(function () {
 		const $chkBitInputs = $('.agentFlagTypes', $modal).find('.chkBit');
 		let agentFlag = getCheckBit($chkBitInputs); // save
 		if (!agentFlag || agentFlag == 0) {
-			g_toast('업체 형태를 선택해주세요.');
+			gToast('업체 형태를 선택해주세요.');
 			return false;
 		}
 		formData.agentFlag = agentFlag;
@@ -405,27 +404,27 @@ $(function () {
 		// 사업자등록번호 체크
 		const agentNum = formData.agentNum;
 		// 값이 있을 때만 체크
-		if (check_input(agentNum)) {
+		if (checkInput(agentNum)) {
 			if ($('.chkAgentNum', $modal).val() !== 'y') {
-				g_toast('사업자번호 중복체크를 해주세요.', 'warning');
+				gToast('사업자번호 중복체크를 해주세요.', 'warning');
 				return false;
 			}
 			// TODO 업체형태가 신청업체 포함 & 사업자번호를 입력했는데, 기존에 존재하지 않았다면 새롭게 생성(member)
 		}
 
 		// 업체명 확인
-		if (!check_input(formData.name)) {
-			g_toast('업체명은 필수입니다.');
+		if (!checkInput(formData.name)) {
+			gToast('업체명은 필수입니다.');
 			return false;
 		}
 
 		// 할인율 항목에 숫자만 입력했는지 확인 (값이 있을 때만 체크)
 		if (formData.selfDiscount && (formData.selfDiscount >= 100 || formData.selfDiscount < 0)) {
-			g_toast('할인율은 0이상 100이하여야 합니다.', 'waring');
+			gToast('할인율은 0이상 100이하여야 합니다.', 'waring');
 			return false;
 		}
 		if (formData.outDiscount && (formData.outDiscount >= 100 || formData.outDiscount < 0)) {
-			g_toast('할인율은 0이상 100이하여야 합니다.', 'waring');
+			gToast('할인율은 0이상 100이하여야 합니다.', 'waring');
 			return false;
 		}
 
@@ -447,23 +446,23 @@ $(function () {
 
 		// 저장여부 확인
 		const saveTypeTxt = agentId > 0 ? '수정' : '등록';
-		const saveConfrim = await g_message(`업체정보 ${saveTypeTxt}`, `업체정보를 ${saveTypeTxt} 하시겠습니까?`, 'question', 'confirm');
+		const saveConfrim = await gMessage(`업체정보 ${saveTypeTxt}`, `업체정보를 ${saveTypeTxt} 하시겠습니까?`, 'question', 'confirm');
 
 		$('.btn_save', $modal).prop('disabled', true); // 버튼 비활성화
 		if (saveConfrim.isConfirmed) {
-			g_loading_message(); // 로딩창
+			gLoadingMessage(); // 로딩창
 
 			try {
-				const res = await g_ajax('/api/basic/saveAgent', sendFormData);
+				const res = await gAjax('/api/basic/saveAgent', sendFormData);
 				if (res?.code == 1) {
-					await g_message(`업체정보 ${saveTypeTxt}`, `업체정보가 ${saveTypeTxt} 되었습니다.`, 'success');
+					await gMessage(`업체정보 ${saveTypeTxt}`, `업체정보가 ${saveTypeTxt} 되었습니다.`, 'success');
 					$modal_root.modal('hide');
 					return true;   // ✅ 이거 추가
 				} else {
-					await g_message(`업체정보 ${saveTypeTxt} 실패`, `업체정보가 ${saveTypeTxt}에 실패했습니다.`, 'warning');
+					await gMessage(`업체정보 ${saveTypeTxt} 실패`, `업체정보가 ${saveTypeTxt}에 실패했습니다.`, 'warning');
 				}
 			} catch (err) {
-				custom_ajax_handler(err);
+				customAjaxHandler(err);
 			} finally {
 				Swal.close();
 				$('.btn_save', $modal).prop('disabled', false);
@@ -495,7 +494,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

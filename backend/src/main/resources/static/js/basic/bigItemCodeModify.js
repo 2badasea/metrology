@@ -31,8 +31,7 @@ $(function () {
 		};
 
 		// 그리드 정의
-		$modal.grid = new Grid({
-			el: document.querySelector('.bigGrid'),
+		$modal.grid = gGrid('.bigGrid', {
 			columns: [
 				{
 					name: 'id',
@@ -110,7 +109,7 @@ $(function () {
 			.on('click', '.delBigCode', async function (e) {
 				const checkedRows = $modal.grid.getCheckedRows();
 				if (checkedRows.length === 0) {
-					g_toast('삭제할 행을 선택해주세요.<br>KOLAS 표준 분류코드의 경우 수정/삭제가 불가능합니다.', 'warning');
+					gToast('삭제할 행을 선택해주세요.<br>KOLAS 표준 분류코드의 경우 수정/삭제가 불가능합니다.', 'warning');
 					return false;
 				}
 
@@ -130,7 +129,7 @@ $(function () {
 
 				// id를 담은 요소가 있다면 서버에서 검증을 진행한다.(중분류 및 성적서가 존재하는지)
 				try {
-					g_loading_message();
+					gLoadingMessage();
 					const fetchOptions = {
 						method: 'POST',
 						headers: {
@@ -159,7 +158,7 @@ $(function () {
 						resMsg += confirmMsg;
 						if (resJson?.code > 0) {
 							// 삭제여부 확인
-							const deleteConfrim = await g_message('분류코드 삭제', resMsg, 'question', 'confirm');
+							const deleteConfrim = await gMessage('분류코드 삭제', resMsg, 'question', 'confirm');
 							if (deleteConfrim.isConfirmed === true) {
 								// 코드가 길어지므로, 별도의 삭제 함수 호출
 								$modal.deleteCode(ids);
@@ -170,7 +169,7 @@ $(function () {
 						} 
 						// 참조하는 하위 성적서 존재
 						else {
-							await g_message('분류코드 삭제', resMsg, 'warning', 'alert');
+							await gMessage('분류코드 삭제', resMsg, 'warning', 'alert');
 							return false;
 						}
 					} else {
@@ -179,7 +178,7 @@ $(function () {
 					}
 				} catch(err) {
 					console.error(err);
-					custom_ajax_handler(err);
+					customAjaxHandler(err);
 				} finally {
 					Swal.close();
 				}
@@ -191,7 +190,7 @@ $(function () {
 			const row = $modal.grid.getRow(e.rowKey);
 			if (row) {
 				if (row.isKolasStandard === 'y') {
-					g_toast('KOLAS 표준 분류코드는 수정/삭제가 불가능합니다.', 'warning');
+					gToast('KOLAS 표준 분류코드는 수정/삭제가 불가능합니다.', 'warning');
 					return false;
 				}
 			}
@@ -223,7 +222,7 @@ $(function () {
 
 		// 삭제진행 콜백함수
 		$modal.deleteCode = async (ids) => {
-			const resDelete = await g_ajax('/api/basic/deleteItemCode', JSON.stringify({
+			const resDelete = await gAjax('/api/basic/deleteItemCode', JSON.stringify({
 				ids: ids,
 				codeLevel: 'LARGE'
 			}), {
@@ -232,10 +231,10 @@ $(function () {
 			});
 
 			if (resDelete?.code > 0) {
-				await g_message('분류코드 삭제', '삭제되었습니다', 'success', 'alert');
+				await gMessage('분류코드 삭제', '삭제되었습니다', 'success', 'alert');
 				location.reload();
 			} else {
-				await g_message('분류코드 삭제', '삭제에 실패했습니다.', 'error', 'alert');
+				await gMessage('분류코드 삭제', '삭제에 실패했습니다.', 'error', 'alert');
 				return false;
 			}
 		}
@@ -271,7 +270,7 @@ $(function () {
 		});
 
 		if (saveRows.length === 0) {
-			g_toast('추가/변경된 항목이 존재하지 않습니다.', 'warning');
+			gToast('추가/변경된 항목이 존재하지 않습니다.', 'warning');
 			return false;
 		}
 
@@ -280,7 +279,7 @@ $(function () {
 		const uniqueCodeNums = [...setCodeNums];	// spread 연산자로 배열형태로 변경
 
 		if (codeNums.length !== uniqueCodeNums.length) {
-			g_toast('중복된 분류코드가 존재합니다.', 'warning');
+			gToast('중복된 분류코드가 존재합니다.', 'warning');
 			return false;
 		}
 
@@ -289,11 +288,11 @@ $(function () {
 		let flagMsg = "";
 		const regNum = /^[0-9]+$/;
 		saveRows = saveRows.filter(row => {
-			if (!check_input(row.codeNum) || !regNum.test(row.codeNum) || row.codeNum.length > 2) {
+			if (!checkInput(row.codeNum) || !regNum.test(row.codeNum) || row.codeNum.length > 2) {
 				flagMsg = "분류코드는 숫자(1~2자리)로만 구성되어야 합니다.";
 				saveFlag = false;
 			}
-			if (!check_input(row.codeName.trim())) {
+			if (!checkInput(row.codeName.trim())) {
 				flagMsg = "분류코드명을 입력해주세요.";
 				saveFlag = false;
 			}
@@ -301,7 +300,7 @@ $(function () {
 		})
 
 		if (!saveFlag) {
-			g_toast(flagMsg, 'warning');
+			gToast(flagMsg, 'warning');
 			return false;
 		}
 
@@ -310,7 +309,7 @@ $(function () {
 		try {
 			$btn.prop('disabled', true);
 
-			const saveConfirm = await g_message('분류코드 저장', '저장하시겠습니까?', 'question', 'confirm');
+			const saveConfirm = await gMessage('분류코드 저장', '저장하시겠습니까?', 'question', 'confirm');
 			if (saveConfirm.isConfirmed === true) {
 				const fetchOptions = {
 					method: 'POST',
@@ -325,10 +324,10 @@ $(function () {
 					const resData = await resSave.json();
 					console.log("🚀 ~ resData:", resData);
 					if (resData?.code > 0) {
-						await g_message('분류코드 저장', resData.msg ?? '저장에 성공했습니다.', 'success', 'alert');
+						await gMessage('분류코드 저장', resData.msg ?? '저장에 성공했습니다.', 'success', 'alert');
 						location.reload();
 					} else {
-						await g_message('분류코드 저장', '분류코드 저장에 실패했습니다.', 'error', 'alert');
+						await gMessage('분류코드 저장', '분류코드 저장에 실패했습니다.', 'error', 'alert');
 					}
 				}
 			} else {
@@ -336,7 +335,7 @@ $(function () {
 			}
 			
 		} catch (err) {
-			custom_ajax_handler(err);
+			customAjaxHandler(err);
 		} finally {
 			$btn.prop('disabled', false);
 		}
@@ -363,7 +362,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

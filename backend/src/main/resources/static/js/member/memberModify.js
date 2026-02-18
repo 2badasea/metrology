@@ -1,4 +1,4 @@
-$(function () {
+﻿$(function () {
 	console.log('++ member/memberModify.js');
 
 	const $candidates = $('.modal-view:not(.modal-view-applied)');
@@ -34,7 +34,7 @@ $(function () {
 
 			// NOTE 수정인 경우, 아이디 항목 readonly 처리
 			try {
-				const resGetInfo = await g_ajax(
+				const resGetInfo = await gAjax(
 					`/api/member/getMemberInfo?id=${id}`,
 					{},
 					{
@@ -56,7 +56,7 @@ $(function () {
 				}
 			} catch (xhr) {
 				console.error(xhr);
-				custom_ajax_handler(xhr);
+				customAjaxHandler(xhr);
 			} finally {
 			}
 		}
@@ -146,8 +146,7 @@ $(function () {
 
 		// Grid 생성
 		$modal.initGrid = (isUseMiddleCodeData = []) => {
-			$modal.itemAuthGrid = new Grid({
-				el: document.querySelector('.itemAuthGrid'),
+			$modal.itemAuthGrid = gGrid('.itemAuthGrid', {
 				columns: [
 					{
 						header: '중분류코드',
@@ -316,7 +315,7 @@ $(function () {
 
 	// 부서관리, 직급관리 정보를 가져와서 세팅한다.
 	$modal.setBasicOptions = async () => {
-		const resGetOptions = await g_ajax(
+		const resGetOptions = await gAjax(
 			'/api/basic/getBasicOptions',
 			{},
 			{
@@ -405,7 +404,7 @@ $(function () {
 
 				// 이름 확인
 				const name = formData.get('name');
-				if (!check_input(name)) {
+				if (!checkInput(name)) {
 					isFormValid = false;
 					throw new Error('이름을 입력해주세요.');
 				}
@@ -417,7 +416,7 @@ $(function () {
 					throw new Error('유효하지 않은 이메일 형식입니다.');
 				}
 			} catch (err) {
-				g_toast(err ?? '입력항목에 오류가 있습니다.', 'warning');
+				gToast(err ?? '입력항목에 오류가 있습니다.', 'warning');
 				$btn.prop('disabled', false);
 				isFormValid = false;
 			} finally {
@@ -458,9 +457,9 @@ $(function () {
 
 			// 저장 진행
 			const saveTypeKr = id != null && id > 0 ? '수정' : '등록';
-			const saveConfirm = await g_message(`직원정보 ${saveTypeKr}`, '저장하시겠습니까?', 'question', 'confirm');
+			const saveConfirm = await gMessage(`직원정보 ${saveTypeKr}`, '저장하시겠습니까?', 'question', 'confirm');
 			if (saveConfirm.isConfirmed === true) {
-				g_loading_message();
+				gLoadingMessage();
 				try {
 					const feOptions = {
 						method: 'POST',
@@ -470,7 +469,7 @@ $(function () {
 					if (resSave.ok) {
 						const resData = await resSave.json();
 						if (resData?.code > 0) {
-							await g_message(`직원정보 ${saveTypeKr}`, '저장되었습니다.', 'success', 'alert');
+							await gMessage(`직원정보 ${saveTypeKr}`, '저장되었습니다.', 'success', 'alert');
 							if (resData.data != undefined && resData.data > 0) {
 								const savedId = Number(resData.data);
 								location.href = `/member/memberModify?id=${savedId}`;
@@ -478,12 +477,12 @@ $(function () {
 								location.href = `/member/memberManage`;
 							}
 						} else {
-							await g_message(`직원정보 ${saveTypeKr}`, resData.msg ?? '저장하는 데 실패했습니다', 'warning', 'alert');
+							await gMessage(`직원정보 ${saveTypeKr}`, resData.msg ?? '저장하는 데 실패했습니다', 'warning', 'alert');
 						}
 					} else {
 					}
 				} catch (xhr) {
-					custom_ajax_handler(xhr);
+					customAjaxHandler(xhr);
 				} finally {
 					Swal.close();
 					$btn.prop('disabled', false);
@@ -500,7 +499,7 @@ $(function () {
 			}
 
 			if (!file.type.startsWith('image/')) {
-				g_toast('이미지 파일만 업로드 가능합니다.', 'warning');
+				gToast('이미지 파일만 업로드 가능합니다.', 'warning');
 				$(this).val('');
 				return false;
 			}
@@ -516,20 +515,20 @@ $(function () {
 			// 이미지 파일이 존재하는 경우, db에서 삭제를 시킨다.
 			const imgFileId = $('input[name=imgFileId]', $modal).val();
 			if (imgFileId > 0) {
-				const deleteCheck = await g_message('이미지 삭제', '기존 업로드 이미지를 삭제하시겠습니까?', 'question', 'confirm');
+				const deleteCheck = await gMessage('이미지 삭제', '기존 업로드 이미지를 삭제하시겠습니까?', 'question', 'confirm');
 				if (deleteCheck.isConfirmed === true) {
-					g_loading_message();
+					gLoadingMessage();
 					try {
-						const resDelete = await g_ajax('/api/file/fileDelete/' + imgFileId);
+						const resDelete = await gAjax('/api/file/fileDelete/' + imgFileId);
 						Swal.close(); // 통신이 끝나면 로딩창을 닫는다.
 						if (resDelete?.code > 0) {
-							await g_message(`이미지 삭제`, `삭제되었습니다.`, 'success', 'alert');
+							await gMessage(`이미지 삭제`, `삭제되었습니다.`, 'success', 'alert');
 							$('input[name=imgFileId]', $modal).val('');
 						} else {
-							await g_message(`이미지 삭제`, `삭제처리에 실패했습니다.`, 'warning', 'alert');
+							await gMessage(`이미지 삭제`, `삭제처리에 실패했습니다.`, 'warning', 'alert');
 						}
 					} catch (xhr) {
-						custom_ajax_handler(xhr);
+						customAjaxHandler(xhr);
 					} finally {
 						Swal.close();
 					}
@@ -548,7 +547,7 @@ $(function () {
 		})
 		// 리스트 돌아가기
 		.on('click', '.goBack', async function (e) {
-			const confirm = await g_message('직원관리 이동', '리스트로 이동하시겠습니까?', 'question', 'confirm');
+			const confirm = await gMessage('직원관리 이동', '리스트로 이동하시겠습니까?', 'question', 'confirm');
 			if (confirm.isConfirmed === true) {
 				location.href = '/member/memberManage';
 			} else {
@@ -571,9 +570,9 @@ $(function () {
 	if (typeof window.modal_deferred == 'object') {
 		window.modal_deferred.resolve('script end');
 	} else {
-		// 모달이 아닌 일반 페이지인 경우엔 아래 init_page가 동작한다.
+		// 모달이 아닌 일반 페이지인 경우엔 아래 initPage가 동작한다.
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

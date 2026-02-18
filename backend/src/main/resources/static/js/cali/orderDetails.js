@@ -1,4 +1,4 @@
-$(function () {
+﻿$(function () {
 	console.log('++ cali/orderDetails.js');
 
 	const $candidates = $('.modal-view:not(.modal-view-applied)');
@@ -54,8 +54,7 @@ $(function () {
 		};
 
 		// 그리드 정의
-		$modal.grid = new Grid({
-			el: document.querySelector('.reportList'),
+		$modal.grid = gGrid('.reportList', {
 			columns: [
 				{
 					header: '구분',
@@ -170,7 +169,7 @@ $(function () {
 				if (reportType === 'SELF') {
 					// 기술책임자 완료 및 결재 진행중인 건에 건은 '저장' 버튼 비활성화 (접수상세, 접수, 실무자, 기책 페이지별 구분)
 					const isModifiable = row.approvalDateTime || row.reportStatus === 'SUCCESS' || row.approvalStatus !== 'IDLE' ? false : true;
-					const resModal = await g_modal(
+					const resModal = await gModal(
 						'/cali/reportModify',
 						{
 							id: id,
@@ -191,7 +190,7 @@ $(function () {
 				}
 				// 대행
 				else {
-					g_toast('대행성적서 수정은 아직 제공되지 않습니다.', 'warning');
+					gToast('대행성적서 수정은 아직 제공되지 않습니다.', 'warning');
 					return false;
 				}
 			}
@@ -207,7 +206,7 @@ $(function () {
 		})
 		// 성적서 등록 모달 호출
 		.on('click', '.addReport', async function () {
-			const resModal = await g_modal(
+			const resModal = await gModal(
 				'/cali/registerMultiReport',
 				{
 					caliOrderId: caliOrderId,
@@ -245,12 +244,12 @@ $(function () {
 		.on('click', '.deleteReport', async function () {
 			const gUserAuth = $('#gLoginAuth').val();
 			if (gUserAuth !== 'ADMIN') {
-				g_toast('권한이 없습니다', 'warning');
+				gToast('권한이 없습니다', 'warning');
 				return false;
 			}
 			const checkedRows = $modal.grid.getCheckedRows();
 			if (checkedRows.length === 0) {
-				g_toast('삭제할 성적서를 선택해주세요.', 'warning');
+				gToast('삭제할 성적서를 선택해주세요.', 'warning');
 				return false;
 			}
 
@@ -272,7 +271,7 @@ $(function () {
 						if (row.workDatetime || row.approvalDateTime) {
 							// FIX 결재상태가 'IDLE'인지도 체크 필요
 							isFlag = false;
-							g_toast('결재가 진행중인 건이 존재합니다.', 'warning');
+							gToast('결재가 진행중인 건이 존재합니다.', 'warning');
 							return false;
 						} else {
 							if (validateInfo[orderType] != undefined && Array.isArray(validateInfo[orderType])) {
@@ -289,7 +288,7 @@ $(function () {
 					else {
 						if (row.reportStatus === 'COMPLETE') {
 							isFlag = false;
-							g_toast('이미 완료된 대행 건이 존재합니다.', 'warning');
+							gToast('이미 완료된 대행 건이 존재합니다.', 'warning');
 							return false;
 						} else {
 							// if (validateInfo['AGCY'] != undefined && Array.isArray(validateInfo['AGCY'])) {
@@ -308,7 +307,7 @@ $(function () {
 				});
 			} catch (err) {
 				isFlag = false;
-				g_toast(`삭제처리 중 오류가 있습니다.<br>${err}`, 'error');
+				gToast(`삭제처리 중 오류가 있습니다.<br>${err}`, 'error');
 			}
 
 			if (!isFlag) {
@@ -316,19 +315,19 @@ $(function () {
 				return false;
 			}
 
-			// g_ajax와 fetch api 혼용해서 사용해볼 것
+			// gAjax와 fetch api 혼용해서 사용해볼 것
 			try {
-				g_loading_message();
+				gLoadingMessage();
 				const sendData = {
 					caliOrderId: caliOrderId,
 					validateInfo: validateInfo,
 				};
-				const resValiDate = await g_ajax('/api/report/isValidDelete', JSON.stringify(sendData), {
+				const resValiDate = await gAjax('/api/report/isValidDelete', JSON.stringify(sendData), {
 					contentType: 'application/json; charset=utf-8',
 				});
 				// 문제 없는 경우
 				if (resValiDate?.code > 0) {
-					const confirmDelete = await g_message('성적서 삭제', '성적서를 삭제하시겠습니까?', 'question', 'confirm');
+					const confirmDelete = await gMessage('성적서 삭제', '성적서를 삭제하시겠습니까?', 'question', 'confirm');
 
 					// 삭제 OK인 경우
 					if (confirmDelete.isConfirmed === true) {
@@ -350,7 +349,7 @@ $(function () {
 						const resJson = await resDelete.json();
 						// 삭제 성공
 						if (resJson?.code > 0) {
-							await g_message('성적서 삭제', resJson.msg ?? '삭제되었습니다', 'success');
+							await gMessage('성적서 삭제', resJson.msg ?? '삭제되었습니다', 'success');
 							// 그리드 갱신
 							$modal.grid.reloadData();
 						}
@@ -359,12 +358,12 @@ $(function () {
 					}
 				} else {
 					// 유효하지 않은 경우, 해당 알림 안내
-					g_toast(resValiDate.msg ?? '삭제 검증에 실패했습니다', 'warning');
+					gToast(resValiDate.msg ?? '삭제 검증에 실패했습니다', 'warning');
 					Swal.close();
 					return false;
 				}
 			} catch (err) {
-				custom_ajax_handler(err);
+				customAjaxHandler(err);
 				Swal.close();
 			} finally {
 				$btn.prop('disabled', false);
@@ -398,7 +397,7 @@ $(function () {
 	// 중분류 세팅 및 소분류코드 초기화
 	$modal.initItemCodeInfos = async () => {
 		try {
-			const resGetItemCodeSet = await g_ajax(
+			const resGetItemCodeSet = await gAjax(
 				'/api/basic/getItemCodeInfos',
 				{},
 				{
@@ -426,7 +425,7 @@ $(function () {
 			}
 		} catch (xhr) {
 			console.error('통신에러');
-			custom_ajax_handler(xhr);
+			customAjaxHandler(xhr);
 		}
 	};
 
@@ -446,7 +445,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

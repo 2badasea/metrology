@@ -1,4 +1,4 @@
-$(function () {
+﻿$(function () {
 	console.log('++ member/login.js');
 
 	const $candidates = $('.modal-view:not(.modal-view-applied)');
@@ -32,11 +32,11 @@ $(function () {
 			const password = $('input[name=password]', $form).val().trim();
 
 			if (username.length === 0) {
-				g_toast('아이디를 입력해주세요.', 'warning');
+				gToast('아이디를 입력해주세요.', 'warning');
 				return false;
 			}
 			if (password.length === 0) {
-				g_toast('비밀번호를 입력해주세요.', 'warning');
+				gToast('비밀번호를 입력해주세요.', 'warning');
 				return false;
 			}
 
@@ -49,20 +49,20 @@ $(function () {
 				if ($('input[name="remember-me"]', $form).is(':checked')) {
 					payload['remember-me'] = 'on';
 				}
-				const res = await g_ajax('/api/member/login', payload);
+				const res = await gAjax('/api/member/login', payload);
 
 				// 로그인 성공
 				if (res.code > 0) {
-					g_message(res.msg ?? '로그인 성공', '', 'success').then(() => {
+					gMessage(res.msg ?? '로그인 성공', '', 'success').then(() => {
 						location.href = '/cali/caliOrder';
 					});
 					return;
 				}
 
 				// 서버가 200으로 내려줬지만 code<=0인 “업무 실패” 케이스
-				await g_message(res?.msg ?? '로그인에 실패했습니다.', '', 'warning', 'alert');
+				await gMessage(res?.msg ?? '로그인에 실패했습니다.', '', 'warning', 'alert');
 			} catch (err) {
-				// API 요청/응답 오류 → gErrorHandler + g_message로 처리
+				// API 요청/응답 오류 → gErrorHandler + gMessage로 처리
 				await gApiErrorHandler(err);
 			} finally {
 				// 로그인 버튼 비활성화 해제
@@ -77,7 +77,7 @@ $(function () {
 		})
 		// 회원가입 모달창 띄우기
 		.on('click', '.join_btn', async function () {
-			await g_modal(
+			await gModal(
 				'/member/memberJoin',
 				{
 					test: 'bada',
@@ -119,7 +119,7 @@ $(function () {
 			return false;
 		}
 		setTimeout(async () => {
-			const resModal = await g_modal(
+			const resModal = await gModal(
 				'/guide/testerIntro',
 				{}, // 필요 파라미터 있으면 여기에
 				{
@@ -165,7 +165,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

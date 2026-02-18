@@ -90,7 +90,7 @@ $(function () {
 				}
 			}
 		} catch (xhr) {
-			custom_ajax_handler(xhr);
+			customAjaxHandler(xhr);
 		} finally {
 		}
 
@@ -109,8 +109,7 @@ $(function () {
 		};
 
 		// 표준장비 그리드 (더미데이터만 우선 표시)
-		$modal.grid = new Grid({
-			el: document.querySelector('.equipageList'),
+		$modal.grid = gGrid('.equipageList', {
 			columns: [
 				{
 					name: 'equipmentId',
@@ -165,7 +164,7 @@ $(function () {
 	// 중분류와 소분류코드를 가져와서 중분류select 세팅 및 소분류코드 데이터를 초기화시킨다.
 	$modal.initItemCodeSet = async () => {
 		try {
-			const resGetItemCodeSet = await g_ajax(
+			const resGetItemCodeSet = await gAjax(
 				'/api/basic/getItemCodeInfos',
 				{},
 				{
@@ -190,7 +189,7 @@ $(function () {
 				throw new Error('/api/basic/getItemCodeInfos 호출 실패');
 			}
 		} catch (xhr) {
-			custom_ajax_handler(xhr);
+			customAjaxHandler(xhr);
 		}
 	};
 
@@ -247,20 +246,20 @@ $(function () {
 				const deleteId = $deleteTable.find('input[name=id]').val();
 				// id가 존재하는 경우
 				if (deleteId && Number(deleteId) > 0) {
-					const deleteConfirm = await g_message(
+					const deleteConfirm = await gMessage(
 						'성적서 삭제',
 						'성적서를 삭제하시겠습니까?<br>저장과 관계없이 바로 삭제됩니다. ',
 						'warning',
 						'confirm'
 					);
 					if (deleteConfirm.isConfirmed === true) {
-						g_loading_message();
+						gLoadingMessage();
 						// 삭제요청은 DELETE http method 형식으로 보낸다.
-						const resDelete = await g_ajax(`/api/report/delete/${deleteId}`, {}, { type: 'DELETE' });
+						const resDelete = await gAjax(`/api/report/delete/${deleteId}`, {}, { type: 'DELETE' });
 
 						// 삭제성공 시, 대상 table을 remove시키고, 넘버링을 새롭게 한다.
 						if (resDelete?.code > 0) {
-							await g_message('성적서 삭제', resDelete.msg, 'success', 'alert');
+							await gMessage('성적서 삭제', resDelete.msg, 'success', 'alert');
 							// 영역을 삭제 후, numbering을 새롭게 한다.
 							$deleteTable.remove();
 							$modal.setChildNumbering();
@@ -275,7 +274,7 @@ $(function () {
 					$modal.setChildNumbering();
 				}
 			} catch (err) {
-				custom_ajax_handler(err);
+				customAjaxHandler(err);
 			} finally {
 				$btn.prop('disabled', false);
 			}
@@ -328,7 +327,7 @@ $(function () {
 		})
 		// 품목정보 수정 안 되는 것 안내
 		.on('click', '.notMoidfy', function () {
-			g_toast('성적서 수정 시, 품목정보 변경은 조회로만 가능합니다.', 'warning');
+			gToast('성적서 수정 시, 품목정보 변경은 조회로만 가능합니다.', 'warning');
 			return false;
 		})
 		// 표준장비 조회 모달 호출
@@ -338,7 +337,7 @@ $(function () {
 			equipDatas.forEach((row) => {
 				row.id = row.equipmentId;
 			})
-			const resModal = await g_modal(
+			const resModal = await gModal(
 				'/equipment/searchEquipmentList',
 				{ equipDatas: equipDatas },
 				{
@@ -463,8 +462,8 @@ $(function () {
 						const key = $(input).attr('name');
 						let val = $(input).val();
 
-						if (key == 'itemName' && !check_input(val)) {
-							g_toast('기기명이 존재하지 않습니다.', 'warning');
+						if (key == 'itemName' && !checkInput(val)) {
+							gToast('기기명이 존재하지 않습니다.', 'warning');
 							isValid = false;
 							return false;
 						}
@@ -495,9 +494,9 @@ $(function () {
 		// 저장로직 진행
 		try {
 			$btn.prop('disabled', true);
-			const confirmSave = await g_message('성적서 수정', '성적서를 저장하시겠습니까?', 'question', 'confirm');
+			const confirmSave = await gMessage('성적서 수정', '성적서를 저장하시겠습니까?', 'question', 'confirm');
 			if (confirmSave.isConfirmed === true) {
-				g_loading_message();
+				gLoadingMessage();
 				const options = {
 					method: 'POST',
 					headers: {
@@ -509,11 +508,11 @@ $(function () {
 				if (resSave.ok) {
 					const resData = await resSave.json();
 					if (resData?.code > 0) {
-						await g_message('성적서 수정', resData.msg ?? '수정되었습니다', 'success', 'alert');
+						await gMessage('성적서 수정', resData.msg ?? '수정되었습니다', 'success', 'alert');
 						$modal_root.modal('hide');
 						return true;
 					} else {
-						await g_message('성적서 수정', '수정 실패', 'error', 'alert');
+						await gMessage('성적서 수정', '수정 실패', 'error', 'alert');
 					}
 				} else {
 					swal.close();
@@ -523,7 +522,7 @@ $(function () {
 			}
 		} catch (err) {
 			console.error(err);
-			custom_ajax_handler(err);
+			customAjaxHandler(err);
 		} finally {
 			swal.close();
 			$btn.prop('disabled', false);
@@ -541,7 +540,7 @@ $(function () {
 	$modal.itemSearch = async (table) => {
 		const isParent = table.hasClass('childTable') ? false : true;
 
-		const resModal = await g_modal(
+		const resModal = await gModal(
 			'/basic/searchItemList',
 			{},
 			{
@@ -651,7 +650,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });
