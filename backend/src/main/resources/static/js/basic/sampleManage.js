@@ -114,7 +114,7 @@ $(function () {
 	// 중분류, 소분류 코드 초기화
 	$modal.initItemCodeSet = async () => {
 		try {
-			const resGetItemCodeSet = await g_ajax(
+			const resGetItemCodeSet = await gAjax(
 				'/api/basic/getItemCodeInfos',
 				{},
 				{
@@ -160,7 +160,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

@@ -233,13 +233,13 @@ $(function () {
 
 			// 1. 날짜가 없는 경우 체크
 			if (!orderStartDate || !orderEndDate) {
-				g_toast('접수일 조회 기간을 선택해주세요.', 'warning');
+				gToast('접수일 조회 기간을 선택해주세요.', 'warning');
 				return false;
 			}
 
 			// 2. 앞뒤 순서 체크 (YYYY-MM-DD 문자열 비교로도 충분)
 			if (orderStartDate > orderEndDate) {
-				g_toast('조회 종료일이 시작일보다 빠를 수 없습니다.', 'warning');
+				gToast('조회 종료일이 시작일보다 빠를 수 없습니다.', 'warning');
 				return false;
 			}
 
@@ -254,7 +254,7 @@ $(function () {
 
 			// 365일 초과면 막기 (<= 365일까지만 허용)
 			if (diffDays > 365) {
-				g_toast('조회 기간은 최대 1년까지만 설정할 수 있습니다.', 'warning');
+				gToast('조회 기간은 최대 1년까지만 설정할 수 있습니다.', 'warning');
 				return false;
 			}
 
@@ -265,7 +265,7 @@ $(function () {
 			e.preventDefault();
 
 			try {
-				const resModal = await g_modal(
+				const resModal = await gModal(
 					'/cali/caliOrderModify',
 					{},
 					{
@@ -282,7 +282,7 @@ $(function () {
 					$modal.grid.reloadData();
 				}
 			} catch (err) {
-				console.error('g_modal 실행 중 에러', err);
+				console.error('gModal 실행 중 에러', err);
 			}
 		})
 		// TODO 아직 미구현
@@ -291,13 +291,13 @@ $(function () {
 			e.preventDefault();
 			const gUserAuth = $('.gLoginAuth').val();
 			if (gUserAuth !== 'admin') {
-				g_toast('권한이 없습니다', 'warning');
+				gToast('권한이 없습니다', 'warning');
 				return false;
 			}
 			// 1. 그리드 내 체크된 업체 확인
 			const checkedRows = $modal.grid.getCheckedRows();
 			if (checkedRows.length === 0) {
-				g_toast('삭제할 접수를 선택해주세요.', 'warning');
+				gToast('삭제할 접수를 선택해주세요.', 'warning');
 				return false;
 			} else {
 				// 각 접수의 id를 담는다.
@@ -307,14 +307,14 @@ $(function () {
 
 				// 2. 삭제유무 confirm 확인
 				if (confirm('정말 삭제하시겠습니까?\n')) {
-					g_loading_message('삭제 처리 중입니다...');
+					gLoadingMessage('삭제 처리 중입니다...');
 
 					try {
 						const sendData = {
 							ids: delOrderIds,
 						};
 
-						const resDelete = await g_ajax(
+						const resDelete = await gAjax(
 							'/api/basic/deleteOrder',
 							JSON.stringify(sendData),
 
@@ -333,7 +333,7 @@ $(function () {
 							$modal.grid.reloadData();
 						}
 					} catch (err) {
-						custom_ajax_handler(err);
+						customAjaxHandler(err);
 					} finally {
 					}
 				} else {
@@ -347,7 +347,7 @@ $(function () {
 			const $checkbox = $(this); // 클릭한 체크박스
 			const isChecked = $checkbox.prop('checked'); // 변경된 후의 상태 (true/false)
 
-			const isTaxConfirm = await g_message('세금계산서 발행 여부', '세금계산서 발행 여부를 변경하시겠습나까?', 'question', 'confirm');
+			const isTaxConfirm = await gMessage('세금계산서 발행 여부', '세금계산서 발행 여부를 변경하시겠습나까?', 'question', 'confirm');
 			if (isTaxConfirm.isConfirmed !== true) {
 				$checkbox.prop('checked', !isChecked);
 				return false;
@@ -355,7 +355,7 @@ $(function () {
 			const rowKey = Number($checkbox.attr('data-rowKey'));
 			const rowData = $modal.grid.getRow(rowKey);
 			// 상태를 변경한다.
-			const resUpdateIsTax = await g_ajax(
+			const resUpdateIsTax = await gAjax(
 				'/api/caliOrder/updateIsTax',
 				{
 					id: rowData.id,
@@ -367,10 +367,10 @@ $(function () {
 			);
 
 			if (resUpdateIsTax?.code > 0) {
-				await g_message('세금계산서 발행 여부 변경', '변경되었습니다', 'success', 'alert');
+				await gMessage('세금계산서 발행 여부 변경', '변경되었습니다', 'success', 'alert');
 				$modal.grid.reloadData();
 			} else {
-				await g_message('세금계산서 발행 여부 변경', '변경에 실패했습니다.', 'error', 'alert');
+				await gMessage('세금계산서 발행 여부 변경', '변경에 실패했습니다.', 'error', 'alert');
 			}
 		});
 
@@ -389,7 +389,7 @@ $(function () {
 				const ele = $modal.grid.getElement(e.rowKey, e.columnName);
 				if ($(ele).find('button').hasClass('btn-info')) {
 					// FIX 추후 테이블명, 아이디, 필드명을 기준으로 값을 얻을 수 있는 공통 기능 만들기
-					const resModal = await g_modal('/basic/showContent', {
+					const resModal = await gModal('/basic/showContent', {
 						id: row.id,
 						remark: row.remark,
 					}, {
@@ -409,7 +409,7 @@ $(function () {
 			// 접수수정
 			else {
 				try {
-					const resModal = await g_modal(
+					const resModal = await gModal(
 						'/cali/caliOrderModify',
 						{
 							id: row.id,
@@ -428,7 +428,7 @@ $(function () {
 						$modal.grid.reloadData();
 					}
 				} catch (err) {
-					console.error('g_modal 실행 중 에러', err);
+					console.error('gModal 실행 중 에러', err);
 				}
 			}
 		}
@@ -450,7 +450,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

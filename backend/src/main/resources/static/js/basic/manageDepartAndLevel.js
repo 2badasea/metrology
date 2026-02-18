@@ -132,7 +132,7 @@ $(function () {
 			targetGrid.getData().forEach((row) => {
 				targetGrid.setValue(row.rowKey, 'seq', seq++);
 			});
-			g_toast('표시순서는 저장 시 반영됩니다.', 'info');
+			gToast('표시순서는 저장 시 반영됩니다.', 'info');
 		};
 	}; // End init_modal
 
@@ -151,14 +151,14 @@ $(function () {
 			const names = saveGrid.getColumnValues('name');
 			const namesSet = new Set(names);
 			if (names.length != namesSet.size) {
-				g_toast(`중복되는 ${saveInfoKr}명이 존재합니다.`);
+				gToast(`중복되는 ${saveInfoKr}명이 존재합니다.`);
 				return false;
 			}
 
 			const rowData = saveGrid.getData();
 			rowData.forEach((row) => {
-				if (!check_input(row.name)) {
-					g_toast(`${saveInfoKr}명을 입력해주세요.`, 'warning');
+				if (!checkInput(row.name)) {
+					gToast(`${saveInfoKr}명을 입력해주세요.`, 'warning');
 					saveGrid.focus(row.rowKey, 'name');
 					isValid = false;
 					return false;
@@ -169,7 +169,7 @@ $(function () {
 			}
 
 			$btn.prop('disabled', true);
-			const saveConfirm = await g_message(`${saveInfoKr}관리 저장`, '저장하시겠습니까?', 'question', 'confirm');
+			const saveConfirm = await gMessage(`${saveInfoKr}관리 저장`, '저장하시겠습니까?', 'question', 'confirm');
 			// 저장
 			if (saveConfirm.isConfirmed == true) {
 				try {
@@ -188,16 +188,16 @@ $(function () {
 					if (resSave.ok) {
 						const resData = await resSave.json();
 						if (resData?.code > 0) {
-							await g_message(`${saveInfoKr}관리 저장`, '저장되었습니다.', 'success', 'alert');
+							await gMessage(`${saveInfoKr}관리 저장`, '저장되었습니다.', 'success', 'alert');
 							saveGrid.reloadData();
 						} else {
-							await g_message(`${saveInfoKr}관리 저장`, resData.msg ?? '저장 실패', 'warning', 'alert');
+							await gMessage(`${saveInfoKr}관리 저장`, resData.msg ?? '저장 실패', 'warning', 'alert');
 						}
 					} else {
 						throw new Error('저장하는 데 실패했습니다.');
 					}
 				} catch (xhr) {
-					custom_ajax_handler(xhr);
+					customAjaxHandler(xhr);
 				} finally {
 					$btn.prop('disabled', false);
 				}
@@ -213,7 +213,7 @@ $(function () {
 		.on('click', '.delete', async function () {
 			const gUserAuth = $('.gLoginAuth').val();
 			if (gUserAuth !== 'admin') {
-				g_toast('권한이 없습니다', 'warning');
+				gToast('권한이 없습니다', 'warning');
 				return false;
 			}
 
@@ -222,7 +222,7 @@ $(function () {
 			const typeKr = type == 'department' ? '부서' : '직급';
 			const checkedRows = grid.getCheckedRows();
 			if (checkedRows.length === 0) {
-				g_toast(`삭제할 ${typeKr}을 선택해주세요.`, 'warning');
+				gToast(`삭제할 ${typeKr}을 선택해주세요.`, 'warning');
 				return false;
 			}
 
@@ -241,7 +241,7 @@ $(function () {
 			});
 
 			if (hasId == true) {
-				g_toast('저장 시 반영됩니다', 'info');
+				gToast('저장 시 반영됩니다', 'info');
 			}
 			grid.removeRows(deleteRowKeys);
 			$modal.setGridSeq(grid); // 순서 초기화
@@ -279,7 +279,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

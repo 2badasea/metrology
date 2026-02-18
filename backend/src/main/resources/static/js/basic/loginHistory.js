@@ -19,7 +19,7 @@ $(function () {
 
 		// 중복호출 방지
 		try {
-			const res = await g_ajax('/api/basic/getLoginHistoryList', {});
+			const res = await gAjax('/api/basic/getLoginHistoryList', {});
 
 			if (res?.code > 0) {
 				const datas = res.data;
@@ -37,7 +37,7 @@ $(function () {
 			}
 		} catch (err) {
 			console.log('catch!');
-			custom_ajax_handler(err);
+			customAjaxHandler(err);
 		} finally {
 			Swal.close();
 			$(this).prop('disabled', false);
@@ -60,7 +60,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

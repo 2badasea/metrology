@@ -127,7 +127,7 @@ $(function () {
 			if (row) {
 				// 업체조회 버튼
 				if (e.columnName == 'grid_btn_modify') {
-					const resModal = await g_modal(
+					const resModal = await gModal(
 						'/basic/agentModify',
 						{
 							id: row.id,
@@ -182,7 +182,7 @@ $(function () {
 		$modal_root
 			// 업체등록
 			.on('click', '.addAgent', async function (e) {
-				const resModal = await g_modal(
+				const resModal = await gModal(
 					'/basic/agentModify',
 					{},
 					{
@@ -227,7 +227,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

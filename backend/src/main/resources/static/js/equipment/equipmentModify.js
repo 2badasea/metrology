@@ -29,7 +29,7 @@ $(function () {
 			equipmentId = Number($modal.param.id);
 
 			try {
-				const resGetInfo = await g_ajax(
+				const resGetInfo = await gAjax(
 					`/api/equipment/getEquipmentInfo/${equipmentId}`,
 					{},
 					{
@@ -60,7 +60,7 @@ $(function () {
 					}
 				}
 			} catch (xhr) {
-				custom_ajax_handler(xhr);
+				customAjaxHandler(xhr);
 			} finally {
 			}
 
@@ -105,7 +105,7 @@ $(function () {
 			$newInput.val('');
 
 			if (!file.type.startsWith('image/')) {
-				g_toast('이미지 파일만 업로드 가능합니다.', 'warning');
+				gToast('이미지 파일만 업로드 가능합니다.', 'warning');
 				 // input 교체 => 인터넷 익스플로러(IE) 시절의 호환성 때문에 사용되던 옛날방식
 				$(this).replaceWith($newInput);
 				return false;
@@ -142,15 +142,15 @@ $(function () {
 		let isValid = true;
 		try {
 			const name = fd.get('name'); // 장비명
-			if (!check_input(name)) {
-				g_toast('장비명을 입력해주세요.', 'warning');
+			if (!checkInput(name)) {
+				gToast('장비명을 입력해주세요.', 'warning');
 				$('input[name=name]', $modal).focus();
 				isValid = false;
 			}
 
 			const equipmentFieldId = fd.get('equipmentFieldId'); // 분야
 			if (!equipmentFieldId || equipmentFieldId == 0) {
-				g_toast('분야를 선택해주세요', 'warning');
+				gToast('분야를 선택해주세요', 'warning');
 				$('select[name=equipmentFieldId]', $modal).focus();
 				isValid = false;
 			}
@@ -158,7 +158,7 @@ $(function () {
 			// 도래알림일
 			const dueNotifyDays = fd.get('dueNotifyDays');
 			if (!dueNotifyDays || isNaN(dueNotifyDays) || Number(dueNotifyDays) == 0) {
-				g_toast('도래알림일(일수)를 입력하세요.', 'warning');
+				gToast('도래알림일(일수)를 입력하세요.', 'warning');
 				$('select[name=dueNotifyDays]', $modal).focus();
 				isValid = false;
 			}
@@ -188,7 +188,7 @@ $(function () {
 
 			// 예: 최대 5개 제한 (이미 change에서 검증해도 한번 더 안전장치)
 			if (files.length > 5) {
-				g_toast('첨부파일은 한번에 5개까지만 업로드 가능합니다', 'warning');
+				gToast('첨부파일은 한번에 5개까지만 업로드 가능합니다', 'warning');
 				isValid = false;
 			}
 
@@ -204,7 +204,7 @@ $(function () {
 				console.log('key: ', key, ' value: ', value);
 			}
 		} catch (err) {
-			g_toast(`입력 항목에 오류가 있습니다.<br>${err}`, 'warning');
+			gToast(`입력 항목에 오류가 있습니다.<br>${err}`, 'warning');
 			isValid = false;
 		}
 
@@ -221,9 +221,9 @@ $(function () {
 		}
 
 		$btn.prop('disabled', true);
-		const saveConfirm = await g_message('표준장비 저장', '저장하시겠습니까?', 'question', 'confirm');
+		const saveConfirm = await gMessage('표준장비 저장', '저장하시겠습니까?', 'question', 'confirm');
 		if (saveConfirm.isConfirmed === true) {
-			g_loading_message();
+			gLoadingMessage();
 
 			try {
 				const feOption = {
@@ -234,11 +234,11 @@ $(function () {
 				if (resSave.ok) {
 					const resData = await resSave.json();
 					if (resData?.code > 0) {
-						await g_message('표준장비 저장', '저장에 성공했습니다.', 'success', 'alert');
+						await gMessage('표준장비 저장', '저장에 성공했습니다.', 'success', 'alert');
 						$modal_root.modal('hide');
 						return true;
 					} else {
-						await g_message('표준장비 저장', resData.msg ?? '실패했습니다.', 'warning', 'alert');
+						await gMessage('표준장비 저장', resData.msg ?? '실패했습니다.', 'warning', 'alert');
 						return false;
 					}
 				} else {
@@ -246,7 +246,7 @@ $(function () {
 					throw { xhr: { status: resSave.status, responseJSON: 'fetch 통신 오류' } };
 				}
 			} catch (xhr) {
-				custom_ajax_handler(xhr);
+				customAjaxHandler(xhr);
 				return false;
 			} finally {
 				Swal.close();
@@ -289,7 +289,7 @@ $(function () {
 
 			// 한 번에 최대 5개 체크
 			if (files.length > MAX_FILES) {
-				g_toast(`최대 ${MAX_FILES}개까지만 업로드할 수 있습니다.`, 'warning');
+				gToast(`최대 ${MAX_FILES}개까지만 업로드할 수 있습니다.`, 'warning');
 				$input.replaceWith($newInput);
 				return false;
 			}
@@ -302,7 +302,7 @@ $(function () {
 				const ext = name.includes('.') ? name.split('.').pop().toLowerCase() : '';
 
 				if (size > MAX_SIZE) {
-					g_toast(`파일 용량은 최대 20MB까지 허용됩니다.<br>(초과 파일: ${name})`, 'warning');
+					gToast(`파일 용량은 최대 20MB까지 허용됩니다.<br>(초과 파일: ${name})`, 'warning');
 					$input.replaceWith($newInput);
 					return false;
 				}
@@ -312,7 +312,7 @@ $(function () {
 				const isAllowedByExt = allowedExt.has(ext); // 허용되는 확장자인지
 
 				if (!(isImage || isAllowedByMime || isAllowedByExt)) {
-					g_toast(
+					gToast(
 						`허용되지 않은 파일 형식입니다.<br>엑셀(.xls/.xlsx), PDF(.pdf), 이미지 파일만 가능합니다.<br>(문제 파일: ${name})`,
 						'warning'
 					);
@@ -321,14 +321,14 @@ $(function () {
 				}
 			}
 
-			g_toast('파일이 추가되었습니다<br>저장 시 반영됩니다', 'success');
+			gToast('파일이 추가되었습니다<br>저장 시 반영됩니다', 'success');
 		})
 		// 첨부파일 조회 
 		.on('click', '.searchFile', async function () {
 			const $btn = $(this);
 			if ($btn.val() > 0) {
-				// g_modal 호출하기
-				await g_modal(
+				// gModal 호출하기
+				await gModal(
 					'/basic/fileList',
 					{
 						refTableName: 'standard_equipment',
@@ -347,7 +347,7 @@ $(function () {
 					}
 				});
 			} else {
-				g_toast('등록된 첨부파일이 없습니다', 'warning');
+				gToast('등록된 첨부파일이 없습니다', 'warning');
 				return false;
 			}
 		});
@@ -377,7 +377,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

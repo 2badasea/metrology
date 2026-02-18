@@ -1,4 +1,4 @@
-$(function () {
+﻿$(function () {
 	console.log('++ cali/registerMultiReport.js');
 
 	const $candidates = $('.modal-view:not(.modal-view-applied)');
@@ -170,7 +170,7 @@ $(function () {
 					width: '80',
 					align: 'right',
 					formatter: ({ value }) => {
-						return number_format(value);
+						return numberFormat(value);
 					},
 				},
 				{
@@ -250,7 +250,7 @@ $(function () {
 		$modal.grid.addChildRow = (parentRowKey) => {
 			const depth = $modal.grid.getDepth(parentRowKey); // 클릭이 발생한 row의 깊이 (부모는 1임)
 			if (depth >= 2) {
-				g_toast('하위 성적서는 그 하위 성적서를<br>가질 수 없습니다.', 'warning');
+				gToast('하위 성적서는 그 하위 성적서를<br>가질 수 없습니다.', 'warning');
 				return false;
 			}
 
@@ -278,7 +278,7 @@ $(function () {
 
 			// 자식에 포커스면 차단
 			if (depth >= 2) {
-				g_toast('하위 성적서는 그 하위 성적서를<br>가질 수 없습니다.', 'warning');
+				gToast('하위 성적서는 그 하위 성적서를<br>가질 수 없습니다.', 'warning');
 				return false;
 			}
 
@@ -326,7 +326,7 @@ $(function () {
 
 				const checkedRowKeys = $modal.grid.getCheckedRowKeys();
 				if (checkedRowKeys.length === 0) {
-					g_toast('삭제할 행을 선택해주세요.', 'warning');
+					gToast('삭제할 행을 선택해주세요.', 'warning');
 					return false;
 				}
 
@@ -380,8 +380,8 @@ $(function () {
 			$.each(rows, function (index, item) {
 				const itemName = item.itemName;
 				const caliFee = item.caliFee;
-				if (!check_input(itemName.trim())) {
-					g_toast('품목명은 필수입니다', 'warning');
+				if (!checkInput(itemName.trim())) {
+					gToast('품목명은 필수입니다', 'warning');
 					$modal.grid.focus(item.rowKey, 'itemName'); // 해당 cell 포커스
 					isValid = false;
 					return false;
@@ -420,7 +420,7 @@ $(function () {
 				}
 			});
 		} catch (err) {
-			g_toast('오류가 있습니다.', 'error');
+			gToast('오류가 있습니다.', 'error');
 			isValid = false;
 			console.log(err);
 		} finally {
@@ -454,25 +454,25 @@ $(function () {
 			confirmMsg += `</div>`;
 		}
 
-		// g_ajax로 처리하기
-		const confirmSave = await g_message('성적서 등록', confirmMsg, 'info', 'confirm');
+		// gAjax로 처리하기
+		const confirmSave = await gMessage('성적서 등록', confirmMsg, 'info', 'confirm');
 		if (confirmSave.isConfirmed == true) {
-			g_loading_message();
+			gLoadingMessage();
 
 			try {
-				const resSave = await g_ajax(`/api/report/addReport?caliOrderId=${caliOrderId}`, JSON.stringify(sendData), {
+				const resSave = await gAjax(`/api/report/addReport?caliOrderId=${caliOrderId}`, JSON.stringify(sendData), {
 					contentType: 'application/json; charset=utf-8',
 				});
 				console.log('🚀 ~ resSave:', resSave);
 				if (resSave?.code > 0) {
-					await g_message('성적서 등록', '', 'success');
+					await gMessage('성적서 등록', '', 'success');
 					$modal_root.modal('hide');
 					return true;
 				} else {
-					await g_message('성적서 저장 실패', '', 'warning');
+					await gMessage('성적서 저장 실패', '', 'warning');
 				}
 			} catch (err) {
-				custom_ajax_handler(err);
+				customAjaxHandler(err);
 			} finally {
 				$saveBtn.prop('disabled', false);
 			}
@@ -511,7 +511,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

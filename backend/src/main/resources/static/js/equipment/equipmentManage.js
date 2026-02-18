@@ -148,7 +148,7 @@ $(function () {
 		$modal.grid.on('click', async function (e) {
 			const row = $modal.grid.getRow(e.rowKey);
 			if (row && e.columnName != '_checked') {
-				const resModal = await g_modal(
+				const resModal = await gModal(
 					'/equipment/equipmentModify',
 					{ id: row.id, fieldOptions: fieldOptions },
 					{
@@ -185,7 +185,7 @@ $(function () {
 			const totalCnt = jsonRow.data.pagination.totalCount ?? 0;
 			const rowCnt = jsonRow.data.contents.length ?? 0;
 			$modal.grid.setSummaryColumnContent('manageNo', {
-				template: () => `총 ${number_format(totalCnt)} 건 중 ${number_format(rowCnt)} 건 조회`,
+				template: () => `총 ${numberFormat(totalCnt)} 건 중 ${numberFormat(rowCnt)} 건 조회`,
 			});
 		});
 	};
@@ -228,7 +228,7 @@ $(function () {
 		})
 		// 표준장비 등록
 		.on('click', '.addEquipment', async function () {
-			const resModal = await g_modal(
+			const resModal = await gModal(
 				'/equipment/equipmentModify',
 				{ fieldOptions: fieldOptions },
 				{
@@ -258,21 +258,21 @@ $(function () {
 		.on('click', '.deleteEquipment', async function () {
 			const gUserAuth = $('.gLoginAuth').val();
 			if (gUserAuth !== 'admin') {
-				g_toast('권한이 없습니다', 'warning');
+				gToast('권한이 없습니다', 'warning');
 				return false;
 			}
 			const $btn = $(this);
 			const checkedRows = $modal.grid.getCheckedRows();
 			if (checkedRows.length === 0) {
-				g_toast('삭제할 장비를 선택해주세요.', 'warning');
+				gToast('삭제할 장비를 선택해주세요.', 'warning');
 				return false;
 			}
 
 			try {
 				$btn.prop('disabled', true);
-				const deleteConfirm = await g_message('표준장비 삭제', '선택한 표준장비를 삭제하시겠습니까?', 'question', 'confirm');
+				const deleteConfirm = await gMessage('표준장비 삭제', '선택한 표준장비를 삭제하시겠습니까?', 'question', 'confirm');
 				if (deleteConfirm.isConfirmed === true) {
-					g_loading_message();
+					gLoadingMessage();
 					const deletedIds = [];
 					checkedRows.forEach((row) => {
 						deletedIds.push(row.id);
@@ -287,10 +287,10 @@ $(function () {
 						const resData = await resDelete.json();
 						console.log('🚀 ~ resData:', resData);
 						if (resData?.code > 0) {
-							await g_message('표준장비 삭제', '삭제되었습니다.', 'success', 'alert');
+							await gMessage('표준장비 삭제', '삭제되었습니다.', 'success', 'alert');
 							$modal.grid.reloadData();
 						} else {
-							await g_message('표준장비 삭제', resData.msg ?? '삭제가 되지 않았습니다.', 'warning', 'alert');
+							await gMessage('표준장비 삭제', resData.msg ?? '삭제가 되지 않았습니다.', 'warning', 'alert');
 						}
 					} else {
 						throw new Error('삭제 요청에 문제가 있습니다.<br>다시 진행하시거나 개발팀에게 문의바랍니다.');
@@ -299,7 +299,7 @@ $(function () {
 					return false;
 				}
 			} catch (err) {
-				custom_ajax_handler(err);
+				customAjaxHandler(err);
 			} finally {
 				$btn.prop('disabled', false);
 			}
@@ -321,7 +321,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });

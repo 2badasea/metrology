@@ -27,7 +27,7 @@ $(function () {
 			itemId = Number($modal.param.id);
 			// 데이터를 가져와서 세팅한다.
 			try {
-				const resGetItemInfo = await g_ajax(
+				const resGetItemInfo = await gAjax(
 					`/api/item/getItemInfo/${itemId}`,
 					{},
 					{
@@ -41,7 +41,7 @@ $(function () {
 					$modal.setSmallCode(itemInfo.middleItemCodeId, itemInfo.smallItemCodeId, 500); // 중소분류 세팅
 				}
 			} catch (err) {
-				custom_ajax_handler(err);
+				customAjaxHandler(err);
 			} finally {
 			}
 
@@ -89,7 +89,7 @@ $(function () {
 					className: 'cursor_pointer',
 					align: 'right',
 					formatter: function (data) {
-						return number_format(data.value);
+						return numberFormat(data.value);
 					},
 				},
 				{
@@ -153,7 +153,7 @@ $(function () {
 		.on('click', '.delFeeHistory', function () {
 			const checkedRows = $modal.grid.getCheckedRows();
 			if (checkedRows.length === 0) {
-				g_toast('삭제할 이력을 선택해주세요.');
+				gToast('삭제할 이력을 선택해주세요.');
 				return false;
 			} else {
 				const removeRowKeyAry = [];
@@ -165,7 +165,7 @@ $(function () {
 					removeRowKeyAry.push(row.rowKey);
 				});
 				if (delHistoryIds.length > 0) {
-					g_toast('삭제된 이력은 저장 시 반영됩니다.', 'info');
+					gToast('삭제된 이력은 저장 시 반영됩니다.', 'info');
 				}
 				$modal.grid.removeRows(removeRowKeyAry);
 
@@ -221,22 +221,22 @@ $(function () {
 
 		// 중분류, 소분류, 품목명 체크
 		const name = formData.name;
-		if (!check_input(name)) {
-			g_toast('품목명을 입력해주세요.', 'warning');
+		if (!checkInput(name)) {
+			gToast('품목명을 입력해주세요.', 'warning');
 			return false;
 		}
 
 		const middleItemCodeId = formData.middleItemCodeId;
 		const smallItemCodeId = formData.smallItemCodeId;
 		if (!middleItemCodeId || !smallItemCodeId) {
-			g_toast('중분류, 소분류는 필수입니다.', 'warning');
+			gToast('중분류, 소분류는 필수입니다.', 'warning');
 			return false;
 		}
 
 		// 교정수수료 데이터 검증하기
 		const rowDatas = $modal.grid.getData();
 		if (rowDatas.length === 0) {
-			g_toast('수수료 이력은 최소 1개는 존재해야 합니다.', 'warning');
+			gToast('수수료 이력은 최소 1개는 존재해야 합니다.', 'warning');
 			return false;
 		}
 		// 반복문 순회로 체크해야 할 부분 1. 기준일자 값, 중복여부, 기준금액 존재여부, 가장 큰 금액이 본 품목의 교정수수료가 됨. (콤마제거해서 삽입할 것)
@@ -249,17 +249,17 @@ $(function () {
 			}
 			// 1. 기준일자 체크
 			if (!row.baseDate) {
-				g_toast('기준일자를 선택해주세요', 'warning');
+				gToast('기준일자를 선택해주세요', 'warning');
 				isValid = false;
 				return false;
 			}
 			if (!row.baseFee || Number(row.baseFee) == 0) {
-				g_toast('기준금액은 0원 이상이어야 합니다.', 'warning');
+				gToast('기준금액은 0원 이상이어야 합니다.', 'warning');
 				isValid = false;
 				return false;
 			}
 			if (baseDateMap.has(row.baseDate)) {
-				g_toast('기준일자는 중복이 될 수 없습니다.', 'warning');
+				gToast('기준일자는 중복이 될 수 없습니다.', 'warning');
 				isValid = false;
 				return false;
 			}
@@ -286,10 +286,10 @@ $(function () {
 		saveFormData.itemFeeHistoryList = rowDatas;
 
 		try {
-			const confirm = await g_message('품목 저장', '저장하시겠습니까?', 'question', 'confirm');
+			const confirm = await gMessage('품목 저장', '저장하시겠습니까?', 'question', 'confirm');
 			// 저장진행
 			if (confirm.isConfirmed === true) {
-				g_loading_message();
+				gLoadingMessage();
 
 				const options = {
 					method: 'POST',
@@ -303,12 +303,12 @@ $(function () {
 				if (resSave.ok) {
 					const resData = await resSave.json();
 					if (resData?.code > 0) {
-						await g_message('품목 저장', resData.msg ?? '저장되었습니다', 'success', 'alert');
+						await gMessage('품목 저장', resData.msg ?? '저장되었습니다', 'success', 'alert');
 						// NOTE 모달 닫히면서 갱신되는지 확인
 						$modal_root.modal('hide');
 						return true;
 					} else {
-						await g_message('품목 저장', resData.msg ?? '저장에 실패했습니다', 'warning', 'alert');
+						await gMessage('품목 저장', resData.msg ?? '저장에 실패했습니다', 'warning', 'alert');
 					}
 				} else {
 					throw new Error('저장에 실패했습니다.');
@@ -319,7 +319,7 @@ $(function () {
 		} catch (err) {
 			Swal.close();
 			console.log(err);
-			custom_ajax_handler(err);
+			customAjaxHandler(err);
 		} finally {
 		}
 
@@ -343,7 +343,7 @@ $(function () {
 		window.modal_deferred.resolve('script end');
 	} else {
 		if (!$modal_root.length) {
-			init_page($modal);
+			initPage($modal);
 		}
 	}
 });
