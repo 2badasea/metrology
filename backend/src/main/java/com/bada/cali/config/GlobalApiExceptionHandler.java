@@ -1,12 +1,19 @@
 package com.bada.cali.config;
 
 import com.bada.cali.common.ResMessage;
+import com.bada.cali.exceptions.ForbiddenAdminModifyException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.stream.Collectors;
 
 /**
  * API 요청을 처리하는 과정에서 발생하는 예외들 공통 처리
@@ -14,22 +21,44 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice(annotations = RestController.class)
 @Log4j2
 public class GlobalApiExceptionHandler {
-	
-	// FIX 대표적인 구체예외들에 대해선 케이스별로 구분한 뒤, 아래 메서드는 최종 방패용으로써 역할을 하도록 할 것 (비즈니스 로직 실패 ex) 잔액부족, 로그인ID 중복 등에 대해서도 전부 '서버 에러'처럼 표시될 수 있음
-//	실무에서 많이 쓰는 구조
-//	보통 이런 식으로 나눠:
-//	유효성 검증/요청 문제 → 400 BAD_REQUEST
-//	인증/인가 문제 → 401 / 403
-//	비즈니스 예외 → 400 또는 도메인에 맞는 상태
-//	나머지 전부 → 500 (마지막 방패: Exception.class)
+
+	// 1) Bean Validation (@Valid) 실패 → 400
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ResMessage<Object>> handleValidation(MethodArgumentNotValidException ex) {
+		String msg = ex.getBindingResult().getFieldErrors().stream()
+				.map(FieldError::getDefaultMessage)
+				.collect(Collectors.joining(", "));
+		log.warn("[Validation 실패] {}", msg);
+		return ResponseEntity.badRequest().body(new ResMessage<>(-1, msg, null));
+	}
+
+	// 2) 요청 형식 오류 → 400
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ResMessage<Object>> handleNotReadable(HttpMessageNotReadableException ex) {
+		log.warn("[요청 형식 오류] {}", ex.getMessage());
+		return ResponseEntity.badRequest().body(new ResMessage<>(-1, "요청 형식이 올바르지 않습니다.", null));
+	}
+
+	// 3) ForbiddenAdminModifyException → 403
+	@ExceptionHandler(ForbiddenAdminModifyException.class)
+	public ResponseEntity<ResMessage<Object>> handleForbidden(ForbiddenAdminModifyException ex) {
+		log.warn("[접근 금지] {}", ex.getMessage());
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ResMessage<>(-1, ex.getMessage(), null));
+	}
+
+	// 4) EntityNotFoundException → 404
+	@ExceptionHandler(EntityNotFoundException.class)
+	public ResponseEntity<ResMessage<Object>> handleNotFound(EntityNotFoundException ex) {
+		log.warn("[리소스 없음] {}", ex.getMessage());
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResMessage<>(-1, ex.getMessage(), null));
+	}
+
+	// 5) 최종 방패 → 500
 	// TODO 추후 각 예외에 맞는 커스텀 메시지를 구현하기 위해 커스텀 예외클래스에 대한 패키지를 별도로 만들어서 관리할 것
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ResMessage<Object>> handleApiException(Exception exception) {
-		log.info("[GlobalApiExceptionHandler]!!");
-		log.info("예외메시지: {}", exception.getMessage());
+		log.error("[GlobalApiExceptionHandler] 예외메시지: {}", exception.getMessage(), exception);
 		ResMessage<Object> resMessage = new ResMessage<>(-1, "서버 오류가 발생했습니다.", null);
-		
-		// 'return ResponseEntity.status(HttpStatus.OK).body(resMessage);' 형태와 아래는 동일한 방식으로 동작
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resMessage);
 	}
 }

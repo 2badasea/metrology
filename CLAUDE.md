@@ -178,10 +178,10 @@ npm run lint                     # ESLint
 
 - Swagger 문서화는 **REST API 컨트롤러(`com.bada.cali.api.*`) 중심**으로 작성합니다.
 - 최소 권장 애너테이션
-    - Controller 메서드: `@Operation`(요약/설명)
+    - Controller 메서드: `@Operation`(요약/설명) + `@ApiResponses`(응답코드)
     - DTO 필드: `@Schema`
     - 파라미터: `@Parameter`(필요 시)
-- 표준 에러 응답이 있다면 문서에 포함시키는 방향을 우선합니다.
+- `GlobalApiExceptionHandler`에서 처리하는 표준 에러 응답 코드(400/403/404/500)는 반드시 Swagger `@ApiResponses`에 포함합니다.
 - Swagger UI 접근 정책(운영 노출 여부)은 **임의로 변경하지 않습니다**(사전 승인).
 - description 부분을 작성할 때는 서술형/문어체가 보통 단답/명료하게 작성할 것
   - ex) "Spring Security 필터가 요청을 가로채어 처리하므로 이 핸들러는 실행되지 않습니다." => "Spring Security 필터가 요청을 가로채어 처리하므로 이 핸들러는 실행되지 않음"

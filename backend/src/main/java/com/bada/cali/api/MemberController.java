@@ -8,6 +8,10 @@ import com.bada.cali.security.CustomUserDetails;
 import com.bada.cali.service.MemberServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +38,10 @@ public class MemberController {
 					"실제 인증 처리는 LoginSuccessHandler / LoginFailureHandler 를 참고하세요. " +
 					"요청 파라미터: username(아이디), password(비밀번호), remember-me(자동로그인, 선택)"
 	)
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Spring Security 필터에서 처리됨 (이 핸들러 미실행)"),
+			@ApiResponse(responseCode = "401", description = "인증 실패")
+	})
 	@PostMapping(value = "/login")
 	public ResponseEntity<ResMessage<Object>> login(@RequestParam String username, @RequestParam String password) {
 		log.info("[API 요청 - 로그인 요청 & 처리]");
@@ -45,6 +53,13 @@ public class MemberController {
 			description = "회원가입 시 입력한 사업자번호가 이미 등록된 아이디인지 확인합니다. " +
 					"refPage=memberJoin 전달 시 중복된 업체의 업체명·주소도 함께 반환합니다."
 	)
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "확인 완료 (data.isDuplicate 로 중복 여부 판단)"),
+			@ApiResponse(responseCode = "400", description = "요청 파라미터 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class))),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
 	@PostMapping(value = "/chkDuplicateLoginId")
 	public ResponseEntity<ResMessage<MemberDTO.DuplicateLoginIdRes>> chkDuplicateLoginId(
 			@Parameter(description = "사업자번호 (12자리, 하이픈 제외)", required = true, example = "1234567890ab")
@@ -64,15 +79,27 @@ public class MemberController {
 			summary = "회원가입 신청",
 			description = "업체 정보와 담당자 정보를 등록하여 가입을 신청합니다. 관리자 승인 후 로그인이 가능합니다."
 	)
+	@ApiResponses({
+			@ApiResponse(responseCode = "201", description = "가입 신청 성공"),
+			@ApiResponse(responseCode = "400", description = "입력값 검증 실패",
+					content = @Content(schema = @Schema(implementation = ResMessage.class))),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
 	@PostMapping(value = "/memberJoin")
 	public ResponseEntity<MemberDTO.MemberJoinRes> memberJoin(@RequestBody @Valid MemberDTO.MemberJoinReq memberJoinReq) {
 		log.info("회원가입 요청: {}", memberJoinReq);
 
 		MemberDTO.MemberJoinRes memberJoinRes = memberService.memberJoin(memberJoinReq);
-		return ResponseEntity.ok(memberJoinRes);
+		return ResponseEntity.status(HttpStatus.CREATED).body(memberJoinRes);
 	}
 
 	@Operation(summary = "직원 목록 조회", description = "재직 상태, 검색 조건으로 직원 목록을 페이지네이션하여 조회합니다.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
 	@GetMapping(value = "/getMemberList")
 	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<MemberListPr>>> getMemberList(
 			@ModelAttribute MemberDTO.GetMemberListReq req
@@ -83,6 +110,15 @@ public class MemberController {
 	}
 
 	@Operation(summary = "직원 정보 등록/수정", description = "id가 없으면 신규 등록, 있으면 수정합니다.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "등록/수정 성공"),
+			@ApiResponse(responseCode = "400", description = "입력값 검증 실패",
+					content = @Content(schema = @Schema(implementation = ResMessage.class))),
+			@ApiResponse(responseCode = "403", description = "관리자 계정 수정 금지",
+					content = @Content(schema = @Schema(implementation = ResMessage.class))),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
 	@PostMapping("/memberSave")
 	public ResponseEntity<ResMessage<Long>> memberSave(
 			@ModelAttribute MemberDTO.SaveMemberInfo req,
@@ -93,6 +129,13 @@ public class MemberController {
 	}
 
 	@Operation(summary = "직원 상세 조회", description = "직원 고유 id로 상세 정보(기본 정보 + 서명 이미지 + 권한)를 조회합니다.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "404", description = "직원 정보 없음",
+					content = @Content(schema = @Schema(implementation = ResMessage.class))),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
 	@GetMapping(value = "/getMemberInfo")
 	public ResponseEntity<ResMessage<MemberDTO.GetMemberInfoSet>> getMemberInfo(
 			@Parameter(description = "직원 고유 id", required = true, example = "1")
