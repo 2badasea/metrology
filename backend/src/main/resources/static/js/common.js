@@ -1,4 +1,12 @@
-﻿$(function () {
+﻿const custom_style = {
+	border: '#DCE1E6',
+	scrollbar_bg: '#fafafa',
+	cell_normal_bg: '#fff',
+	cell_hd_bg: '#f7f7f7',
+	cell_focus_border: '#00cc6f',
+}
+
+$(function () {
 	console.log('++ common.js');
 
 	if ($('.modal-dialog').length > 0) {
@@ -1110,8 +1118,6 @@ function gGrid(selector, options) {
 	let defaultColumns = cloneObject(columns);
 
 	let grid = new Grid(settings);
-	grid.g_config_json = g_config_json;
-	grid.g_real_postfix = g_real_postfix;
 	grid.scroll_top = 0;
 	grid.on('beforeRequest', function (e) {
 		grid.scroll_top = $('.tui-grid-rside-area .tui-grid-body-area', grid.el)[0].scrollTop;
