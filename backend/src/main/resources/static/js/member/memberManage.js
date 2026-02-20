@@ -133,63 +133,6 @@
 		.on('click', '.addMember', async function (e) {
 			e.preventDefault();
 			location.href = `/member/memberModify`;
-		})
-		// 삭제
-		.on('click', '.deleteAgentBtn', async function (e) {
-			e.preventDefault();
-			const gUserAuth = $('.gLoginAuth').val();
-			if (gUserAuth !== 'admin') {
-				gToast('권한이 없습니다', 'warning');
-				return false;
-			}
-
-			const checkedRows = $modal.grid.getCheckedRows();
-			if (checkedRows.length === 0) {
-				gToast('삭제할 업체를 선택해주세요.', 'warning');
-				return false;
-			}
-			// 각 업체의 id를 담는다. (새로운 배열에 담기 위해 map 사용)
-			let delAgentIds = $.map(checkedRows, function (row, index) {
-				return row.id;
-			});
-
-			// 2. 삭제유무 confirm 확인
-			if (confirm('정말 삭제하시겠습니까?\n업체정보, 담당자, 로그인 계정이 삭제됩니다')) {
-				gLoadingMessage('삭제 처리 중입니다...');
-
-				try {
-					// 서버에 전송할 때, obj 형태로 보냄(DTO로 받음)
-					// NOTE contentType이 application/json이 아닌 기본형태라면 DTO가 아닌 @RequestParam으로 받는 것도 가능
-					const sendData = {
-						ids: delAgentIds,
-					};
-
-					const resDelete = await gAjax(
-						'/api/basic/deleteAgent',
-						JSON.stringify(sendData),
-
-						{
-							type: 'DELETE',
-							contentType: 'application/json; charset=utf-8',
-						}
-					);
-					if (resDelete?.code === 1) {
-						const delNames = resDelete.data || [];
-						Swal.fire({
-							icon: 'success',
-							title: '삭제 완료',
-							text: `삭제된 업체: ${delNames.join(', ')}`,
-						});
-						// 그리드 갱신
-						$modal.grid.reloadData();
-					}
-				} catch (err) {
-					customAjaxHandler(err);
-				} finally {
-				}
-			} else {
-				return false;
-			}
 		});
 
 	$modal.data('modal-data', $modal);

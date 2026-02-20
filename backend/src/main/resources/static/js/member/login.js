@@ -139,6 +139,10 @@
 				},
 			);
 
+			// 방어코드 추가
+			if (resModal == undefined) {
+				return;
+			}
 			if (resModal.useAutoLogin != undefined && resModal.useAutoLogin == true) {
 				$('input[name=username]', $modal).val(resModal.username);
 				$('input[name=password]', $modal).val(resModal.password);

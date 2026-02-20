@@ -176,10 +176,8 @@
 				rowHeaders: [],
 				bodyHeight: 500,
 				minBodyHeight: 500,
-				// pageOptions: {
-				// 	useClient: true, // 43개는 클라이언트에서 그냥 다 들고 가는 게 최적
-				// 	perPage: 100,
-				// },
+				scrollY: true,    // 세로 스크롤 활성화
+				pageOptions: {},  // gGrid 기본값(perPage:20) 덮어쓰기 → 페이지네이션 비활성화
 				data: [],
 			});
 
@@ -379,7 +377,6 @@
 							throw new Error('비밀번호는 소문자, 대문자, 숫자, 특수문자(!@#$%^)들로 구성된 8~20자리여야 합니다.');
 						}
 					}
-					formData.append('id', id);
 				}
 				// 등록
 				else {
@@ -461,11 +458,13 @@
 			if (saveConfirm.isConfirmed === true) {
 				gLoadingMessage();
 				try {
+					const isCreate = id == null || id <= 0;
+					const fetchUrl = isCreate ? '/api/member/members' : `/api/member/members/${id}`;
 					const feOptions = {
-						method: 'POST',
+						method: isCreate ? 'POST' : 'PATCH',
 						body: formData,
 					};
-					const resSave = await fetch('/api/member/memberSave', feOptions);
+					const resSave = await fetch(fetchUrl, feOptions);
 					if (resSave.ok) {
 						const resData = await resSave.json();
 						if (resData?.code > 0) {
@@ -480,6 +479,8 @@
 							await gMessage(`직원정보 ${saveTypeKr}`, resData.msg ?? '저장하는 데 실패했습니다', 'warning', 'alert');
 						}
 					} else {
+						const errData = await resSave.json().catch(() => null);
+						await gMessage(`직원정보 ${saveTypeKr}`, errData?.msg ?? '서버 오류가 발생했습니다.', 'warning', 'alert');
 					}
 				} catch (xhr) {
 					customAjaxHandler(xhr);

@@ -1,10 +1,15 @@
 <th:block th:fragment="config">
 	<title th:text="${title} ?: 'App'">App</title>
 
-	<input type="hidden" class="gLoginAuth" th:value="${gLoginAuth}" />
-	
 	<!-- 모달 페이지가 아닐 때에만 로드 -->
 	<th:block th:if="${renderMode != 'modal'}">
+		<script th:inline="javascript">
+			const G_USER = {
+				auth: /*[[${gLoginAuth}]]*/ 'user',
+				name: /*[[${gName}]]*/ '',
+				id:   /*[[${gId}]]*/ null
+			};
+		</script>
 		<!-- FIX  추후에 cdn 방식이 아닌, 파일을 직접 가지고 있는 방식으로 변경할 것 -->
 		<!-- jquery 3.7.1 -->
 		<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

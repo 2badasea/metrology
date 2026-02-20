@@ -265,96 +265,118 @@ public class MemberServiceImpl {
 				.build();
 	}
 	
-	// 회원정보를 등록 수정한다.
+	// 직원 등록
 	@Transactional
-	public ResMessage<Long> memberSave(MemberDTO.SaveMemberInfo req, CustomUserDetails user) {
-		int resCode = 0;
-		String resMsg = "";
-		
+	public ResMessage<Long> memberCreate(MemberDTO.CreateMemberReq req, CustomUserDetails user) {
 		LocalDateTime now = LocalDateTime.now();
 		Long userId = user.getId();
 		String workerName = user.getName();
-		
-		Long id = req.id();
-		
+
+		// 로그인 아이디 중복 체크
+		Optional<Member> optMember = memberRepository.findByLoginId(req.loginId(), YnType.y);
+		if (optMember.isPresent()) {
+			return new ResMessage<>(-1, "중복되는 아이디가 존재합니다.", null);
+		}
+
+		Member createMember = memberMapper.toMemberByCreateReq(req);
+		createMember.setCreateDatetime(now);
+		createMember.setCreateMemberId(userId);
+		createMember.setLastPwdUpdated(now);
+		createMember.setAgentId(0L);    // 자사 직원은 모두 0
+
+		Member savedMember = memberRepository.save(createMember);
+		Long id = savedMember.getId();
+
+		// 비밀번호 암호화 후 업데이트
 		String reqPwd = req.pwd();
 		if (reqPwd != null && !reqPwd.isBlank()) {
-			reqPwd = passwordEncoder.encode(reqPwd);    // 비밀번호 암호화
+			savedMember.updatePwd(passwordEncoder.encode(reqPwd));
 		}
-		
-		String saveTypeKr = (id == null || id <= 0) ? "등록" : "수정";
-		Member updatedMember = null;
-		
-		// 등록
-		if (id == null || id <= 0) {
-			// 로그인 아이디의 중복체크를 진행한다.
-			String loginId = req.loginId();
-			Optional<Member> optMember = memberRepository.findByLoginId(loginId, YnType.y);
-			// 중복되는 게 존재하는 경우 리턴
-			if (optMember.isPresent()) {
-				resCode = -1;
-				resMsg = "중복되는 아이디가 존재합니다.";
-				return new ResMessage<>(resCode, resMsg, null);
-			}
-			
-			Member createMember = memberMapper.toMemberByCreateReq(req);
-			createMember.setCreateDatetime(now);
-			createMember.setCreateMemberId(userId);
-			createMember.setLastPwdUpdated(now);    // 마지막 로그인 일시 업데이트
-			createMember.setAgentId(0L);        // 자사 직원은 모두 0
-			
-			updatedMember = memberRepository.save(createMember);
-			id = updatedMember.getId();
-		}
-		// 수정
-		else {
-			
-			Member originMember = memberRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("수정할 회원정보를 찾지 못 했습니다."));
-			
-			// record값 덮어씌우기
-			memberMapper.updateMemberByReq(req, originMember);
-			originMember.setUpdateMemberId(userId);
-			originMember.setUpdateDatetime(now);
-			
-			updatedMember = originMember;
-		}
-		
-		// 넘어온 비밀번호 값이 있다면 update
-		if (reqPwd != null && !reqPwd.isBlank()) {
-			updatedMember.updatePwd(reqPwd);
-		}
-		
-		// 이미지 확인
+
+		// 이미지 저장
 		MultipartFile memberImage = req.memberImage();
 		if (memberImage != null && !memberImage.isEmpty()) {
-			// 기존에 이미지가 존재하는 경우, 삭제(soft-delete()후, 새로운 이미지를 추가하는 함수 호출
-			fileServiceImpl.softDeleteAndInsert(
-					"member",
-					id,
-					memberImage,
-					userId
-			);
+			fileServiceImpl.softDeleteAndInsert("member", id, memberImage, userId);
 		}
-		
+
+		// 중분류 권한 저장
 		List<MemberDTO.MemberAuthData> itemAuthData = req.itemAuthData();
-		if (!itemAuthData.isEmpty()) {
-			// 중분류 코드 일괄 삭제 후, 다시 저장 (List에 담아서 일괄 saveAll처리)
-			int resDeleteItemAuth = memberCodeAuthRepository.deleteMemberCodeAuth(id);
-			// 반복문을 통해 Entity생성
-			List<MemberCodeAuth> saveCoeAuthList = new ArrayList<>();
-			
+		if (itemAuthData != null && !itemAuthData.isEmpty()) {
+			memberCodeAuthRepository.deleteMemberCodeAuth(id);
+			List<MemberCodeAuth> saveCodeAuthList = new ArrayList<>();
 			for (MemberDTO.MemberAuthData data : itemAuthData) {
-				saveCoeAuthList.add(memberCodeAuthMapper.toEntity(data, id));
+				saveCodeAuthList.add(memberCodeAuthMapper.toEntity(data, id));
 			}
-			// 일괄저장
-			if (!saveCoeAuthList.isEmpty()) {
-				memberCodeAuthRepository.saveAll(saveCoeAuthList);
+			if (!saveCodeAuthList.isEmpty()) {
+				memberCodeAuthRepository.saveAll(saveCodeAuthList);
 			}
 		}
-		resCode = 1;
-		resMsg = "저장 성공";
-		
-		return new ResMessage<>(resCode, resMsg, id);
+
+		// 등록 로그
+		logRepository.save(Log.builder()
+				.logType("i")
+				.refTable("member")
+				.refTableId(id)
+				.logContent("[직원 등록] 고유번호 - [" + id + "]")
+				.workerName(workerName)
+				.createDatetime(now)
+				.createMemberId(userId)
+				.build());
+
+		return new ResMessage<>(1, "저장 성공", id);
+	}
+
+	// 직원 수정
+	@Transactional
+	public ResMessage<Long> memberUpdate(Long id, MemberDTO.UpdateMemberReq req, CustomUserDetails user) {
+		LocalDateTime now = LocalDateTime.now();
+		Long userId = user.getId();
+		String workerName = user.getName();
+
+		Member originMember = memberRepository.findById(id)
+				.orElseThrow(() -> new EntityNotFoundException("수정할 회원정보를 찾지 못 했습니다."));
+
+		memberMapper.updateMemberByReq(req, originMember);
+		originMember.setUpdateMemberId(userId);
+		originMember.setUpdateDatetime(now);
+
+		// 비밀번호가 넘어온 경우 업데이트
+		String reqPwd = req.pwd();
+		if (reqPwd != null && !reqPwd.isBlank()) {
+			originMember.updatePwd(passwordEncoder.encode(reqPwd));
+		}
+
+		// 이미지 저장
+		MultipartFile memberImage = req.memberImage();
+		if (memberImage != null && !memberImage.isEmpty()) {
+			fileServiceImpl.softDeleteAndInsert("member", id, memberImage, userId);
+		}
+
+		// 중분류 권한 저장
+		List<MemberDTO.MemberAuthData> itemAuthData = req.itemAuthData();
+		if (itemAuthData != null && !itemAuthData.isEmpty()) {
+			memberCodeAuthRepository.deleteMemberCodeAuth(id);
+			List<MemberCodeAuth> saveCodeAuthList = new ArrayList<>();
+			for (MemberDTO.MemberAuthData data : itemAuthData) {
+				saveCodeAuthList.add(memberCodeAuthMapper.toEntity(data, id));
+			}
+			if (!saveCodeAuthList.isEmpty()) {
+				memberCodeAuthRepository.saveAll(saveCodeAuthList);
+			}
+		}
+
+		// 수정 로그
+		logRepository.save(Log.builder()
+				.logType("u")
+				.refTable("member")
+				.refTableId(id)
+				.logContent("[직원 수정] 고유번호 - [" + id + "]")
+				.workerName(workerName)
+				.createDatetime(now)
+				.createMemberId(userId)
+				.build());
+
+		return new ResMessage<>(1, "저장 성공", id);
 	}
 	
 	// 회원정보를 가져온다 (직원등록/수정 페이지)
@@ -365,6 +387,9 @@ public class MemberServiceImpl {
 		
 		YnType isVisible = YnType.y;
 		GetMemberInfoPr getMemberInfo = memberRepository.getMemberInfo(memberId, isVisible);
+		if (getMemberInfo == null) {
+			return new ResMessage<>(0, "직원 정보를 찾을 수 없습니다.", null);
+		}
 		Long imgFileInfoId = getMemberInfo.getImgFileId();
 		String memberImgPath = "";
 		if (imgFileInfoId != null && imgFileInfoId > 0) {

@@ -109,22 +109,41 @@ public class MemberController {
 		return ResponseEntity.ok(body);
 	}
 
-	@Operation(summary = "직원 정보 등록/수정", description = "id가 없으면 신규 등록, 있으면 수정합니다.")
+	@Operation(summary = "직원 등록", description = "신규 직원 등록")
 	@ApiResponses({
-			@ApiResponse(responseCode = "200", description = "등록/수정 성공"),
+			@ApiResponse(responseCode = "201", description = "등록 성공"),
 			@ApiResponse(responseCode = "400", description = "입력값 검증 실패",
-					content = @Content(schema = @Schema(implementation = ResMessage.class))),
-			@ApiResponse(responseCode = "403", description = "관리자 계정 수정 금지",
 					content = @Content(schema = @Schema(implementation = ResMessage.class))),
 			@ApiResponse(responseCode = "500", description = "서버 오류",
 					content = @Content(schema = @Schema(implementation = ResMessage.class)))
 	})
-	@PostMapping("/memberSave")
-	public ResponseEntity<ResMessage<Long>> memberSave(
-			@ModelAttribute MemberDTO.SaveMemberInfo req,
+	@PostMapping("/members")
+	public ResponseEntity<ResMessage<Long>> memberCreate(
+			@ModelAttribute MemberDTO.CreateMemberReq req,
 			@AuthenticationPrincipal CustomUserDetails user
 	) {
-		ResMessage<Long> resMessage = memberService.memberSave(req, user);
+		ResMessage<Long> resMessage = memberService.memberCreate(req, user);
+		return ResponseEntity.status(HttpStatus.CREATED).body(resMessage);
+	}
+
+	@Operation(summary = "직원 수정", description = "기존 직원 정보 수정. loginId는 변경 불가.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "수정 성공"),
+			@ApiResponse(responseCode = "400", description = "입력값 검증 실패",
+					content = @Content(schema = @Schema(implementation = ResMessage.class))),
+			@ApiResponse(responseCode = "404", description = "직원 정보 없음",
+					content = @Content(schema = @Schema(implementation = ResMessage.class))),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
+	@PatchMapping("/members/{id}")
+	public ResponseEntity<ResMessage<Long>> memberUpdate(
+			@Parameter(description = "직원 고유 id", required = true, example = "1")
+			@PathVariable Long id,
+			@ModelAttribute MemberDTO.UpdateMemberReq req,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		ResMessage<Long> resMessage = memberService.memberUpdate(id, req, user);
 		return ResponseEntity.ok(resMessage);
 	}
 

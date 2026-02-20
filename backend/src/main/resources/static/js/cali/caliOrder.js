@@ -288,7 +288,7 @@ $(function () {
 		// 삭제
 		.on('click', '.deleteOrder', async function (e) {
 			e.preventDefault();
-			const gUserAuth = $('.gLoginAuth').val();
+			const gUserAuth = G_USER.auth;
 			if (gUserAuth !== 'admin') {
 				gToast('권한이 없습니다', 'warning');
 				return false;

@@ -255,7 +255,7 @@ $(function () {
 		})
 		// 표준장비 삭제
 		.on('click', '.deleteEquipment', async function () {
-			const gUserAuth = $('.gLoginAuth').val();
+			const gUserAuth = G_USER.auth;
 			if (gUserAuth !== 'admin') {
 				gToast('권한이 없습니다', 'warning');
 				return false;

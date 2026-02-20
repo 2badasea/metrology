@@ -119,9 +119,8 @@ public class MemberDTO {
 	}
 	
 	
-	// 직원정보 등록 데이터셋 (직원 수정)
-	public record SaveMemberInfo(
-			Long id,
+	// 직원 등록 요청 DTO
+	public record CreateMemberReq(
 			String loginId,          // name="loginId"
 			String name,              // name="name"
 			String nameEng,           // name="nameEng"
@@ -142,7 +141,34 @@ public class MemberDTO {
 			Integer workType,         // name="workType"      (0/1/2)
 			// 비고
 			String remark,            // name="remark"
-			
+			// 성적서 이미지 파일
+			MultipartFile memberImage, // name="memberImage"
+			// 중분류 권한
+			List<MemberAuthData> itemAuthData
+	) {
+	}
+
+	// 직원 수정 요청 DTO (loginId 변경 불가, id는 path variable로 수신)
+	public record UpdateMemberReq(
+			String name,              // name="name"
+			String nameEng,           // name="nameEng"
+			String hp,                // name="hp"
+			String companyNo,         // name="companyNo"
+			LocalDate birth,          // name="birth"
+			String addr1,             // name="addr1"
+			String addr2,             // name="addr2"
+			String email,             // name="email"
+			String tel,               // name="tel"
+			Long departmentId,        // name="departmentId"  (select)
+			Long levelId,             // name="levelId"       (select)
+			YnType isActive,          // name="isActive"      (y/n)
+			String pwd,               // name="pwd" (선택, 값 없으면 변경 안 함)
+			// 재직/상태
+			LocalDate joinDate,       // name="joinDate"
+			LocalDate leaveDate,      // name="leaveDate"
+			Integer workType,         // name="workType"      (0/1/2)
+			// 비고
+			String remark,            // name="remark"
 			// 성적서 이미지 파일
 			MultipartFile memberImage, // name="memberImage"
 			// 중분류 권한
