@@ -83,10 +83,10 @@ npm run lint                     # ESLint
 - `git commit`, `git push`, merge/rebase는 **절대 자동 실행 금지**.
 - 작업 종료 시 항상 아래 항목을 제공합니다.
     - Changed files: 변경 파일 목록(경로)
-    - Summary: 핵심 변경 요약(3~7줄)
+    - Summary: 핵심 변경 요약(3~12줄)
     - How to verify: 실행/화면/간단 점검 방법
     - Notes/Risks: 주의점/추가 확인 포인트
-    - 권장 커밋 메시지(제안만)
+    - 권장 커밋 메시지(제안만, 한글로 작성할 것)
 
 ---
 
