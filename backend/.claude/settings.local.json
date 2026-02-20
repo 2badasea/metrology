@@ -12,7 +12,8 @@
       "Bash(command -v python:*)",
       "Bash(command -v:*)",
       "Bash(dir:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(node -e:*)"
     ]
   }
 }

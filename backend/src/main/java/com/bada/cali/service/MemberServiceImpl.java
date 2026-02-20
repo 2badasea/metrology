@@ -353,7 +353,21 @@ public class MemberServiceImpl {
 		}
 		resCode = 1;
 		resMsg = "저장 성공";
-		
+
+		// 등록/수정 로그 저장
+		String logType = (req.id() == null || req.id() <= 0) ? "i" : "u";
+		String logContent = "[직원 " + saveTypeKr + "] 고유번호 - [" + id + "]";
+		Log saveLog = Log.builder()
+				.logType(logType)
+				.refTable("member")
+				.refTableId(id)
+				.logContent(logContent)
+				.workerName(workerName)
+				.createDatetime(now)
+				.createMemberId(userId)
+				.build();
+		logRepository.save(saveLog);
+
 		return new ResMessage<>(resCode, resMsg, id);
 	}
 	
