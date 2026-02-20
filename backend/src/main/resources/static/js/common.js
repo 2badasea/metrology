@@ -1,4 +1,4 @@
-﻿const custom_style = {
+const custom_style = {
 	border: '#DCE1E6',
 	scrollbar_bg: '#fafafa',
 	cell_normal_bg: '#fff',
@@ -976,7 +976,7 @@ function cloneObject(obj) {
 	var clone = {};
 	for (var key in obj) {
 		if (['rowKey', 'rowSpanMap', 'uniqueKey', 'sortKey', '_attributes', '_disabledPriority', '_relationListItemMap'].indexOf(key) === -1) {
-			if (typeof obj[key] == 'object' && obj[key] != null) {
+			if (typeof obj[key] == 'object' && obj[key] != null && !(obj[key] instanceof Node)) {
 				clone[key] = cloneObject(obj[key]);
 			} else {
 				clone[key] = obj[key];

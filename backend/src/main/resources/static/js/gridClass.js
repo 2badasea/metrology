@@ -377,6 +377,10 @@ class DateEditor {
 // 셀에 체크박스를 "항상" 표시하는 커스텀 렌더러
 class AuthCheckboxRenderer {
   constructor(props) {
+    // 수직 중앙 정렬을 위한 flex wrapper
+    this.wrapper = document.createElement('div');
+    this.wrapper.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;';
+
     this.el = document.createElement('input');
     this.el.type = 'checkbox';
     this.el.className = 'cell-auth-checkbox';
@@ -390,11 +394,12 @@ class AuthCheckboxRenderer {
       props.grid.setValue(props.rowKey, props.columnInfo.name, checked);
     });
 
+    this.wrapper.appendChild(this.el);
     this.render(props);
   }
 
   getElement() {
-    return this.el;
+    return this.wrapper;
   }
 
   render(props) {

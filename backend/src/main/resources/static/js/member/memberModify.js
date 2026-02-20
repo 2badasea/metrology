@@ -176,10 +176,8 @@
 				rowHeaders: [],
 				bodyHeight: 500,
 				minBodyHeight: 500,
-				// pageOptions: {
-				// 	useClient: true, // 43개는 클라이언트에서 그냥 다 들고 가는 게 최적
-				// 	perPage: 100,
-				// },
+				scrollY: true,    // 세로 스크롤 활성화
+				pageOptions: {},  // gGrid 기본값(perPage:20) 덮어쓰기 → 페이지네이션 비활성화
 				data: [],
 			});
 
