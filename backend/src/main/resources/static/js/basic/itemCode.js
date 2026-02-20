@@ -395,7 +395,7 @@ $(function () {
 		})
 		// 분류코드 삭제
 		.on('click', '.deleteItemCode', async function () {
-			const gUserAuth = $('.gLoginAuth').val();
+			const gUserAuth = G_USER.auth;
 			if (gUserAuth !== 'admin') {
 				gToast('권한이 없습니다', 'warning');
 				return false;

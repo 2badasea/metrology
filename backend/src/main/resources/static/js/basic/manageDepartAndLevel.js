@@ -209,7 +209,7 @@ $(function () {
 		// 삭제
 		// NOTE 삭제 시 알림주기 (기존에 해당 직급을 가지고 있는 직원들은 정보가 사라지기 때문에 새롭게 등록해야 한다고)
 		.on('click', '.delete', async function () {
-			const gUserAuth = $('.gLoginAuth').val();
+			const gUserAuth = G_USER.auth;
 			if (gUserAuth !== 'admin') {
 				gToast('권한이 없습니다', 'warning');
 				return false;
