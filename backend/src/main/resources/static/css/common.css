@@ -13,10 +13,17 @@ ol {
 }
 /** 레이아웃 관련 스타일 설정 **/
 
+/* 페이지 전체를 뷰포트 높이로 고정 → body 단위 스크롤 차단 */
+html, body {
+	height: 100%;
+	overflow: hidden;
+}
+
 /* 부모를 flex 컨테이너로 */
 .layout {
 	display: flex;
-	min-height: 100vh; /* 전체 높이 채움 */
+	height: 100vh;    /* min-height → height: 뷰포트에 딱 맞게 고정 */
+	overflow: hidden; /* .layout 바깥으로 콘텐츠 넘침 차단 */
 }
 
 /* ==============================  sidebar ===================================== */
@@ -25,8 +32,10 @@ ol {
 .sidebar {
 	background-color: #212529; /* 어두운 회색 (bootstrap bg-dark 느낌) */
 	color: #f8f9fa;
-	min-height: 100vh;
 	width: 200px;
+	height: 100vh;      /* 뷰포트 전체 높이 고정 */
+	flex-shrink: 0;     /* flex 컨테이너에서 너비 유지 */
+	overflow-y: auto;   /* 메뉴 항목이 많을 경우 사이드바 내부만 스크롤 */
 }
 
 /* 상단 로고 이미지 */
@@ -83,17 +92,18 @@ ol {
 	display: flex;
 	flex-direction: column;
 	flex: 1;
-	min-width: 0; /* 내용 폭이 커도 줄바꿈/스크롤 가능 */
+	min-width: 0;     /* 내용 폭이 커도 줄바꿈/스크롤 가능 */
+	height: 100vh;    /* 뷰포트 전체 높이 고정 */
+	overflow: hidden; /* topbar/content 영역 밖으로 넘침 차단 */
 	background: #f8f9fa;
 }
 
 /* 상단툴바(88px 고정) */
 .topbar {
 	height: 88px;
+	flex-shrink: 0;   /* flex 컨테이너에서 높이 유지 */
 	background: #ffffff;
 	border-bottom: 1px solid #e5e7eb;
-	position: sticky; /* 본문 스크롤 시 상단 고정 */
-	top: 0;
 	z-index: 10;
 }
 
@@ -168,13 +178,14 @@ ol {
 	padding-left: 20px;
 }
 
-/* 본문: 나머지 영역 꽉 채움 */
+/* 본문: 나머지 영역 꽉 채움, 이 영역만 세로 스크롤 */
 .content {
 	flex: 1;
-	min-width: 0; /* 긴 콘텐츠 줄바꿈/스크롤을 위해 */
+	min-width: 0;     /* 긴 콘텐츠 줄바꿈/스크롤을 위해 */
+	min-height: 0;    /* flex 자식이 부모를 초과하지 않도록 (스크롤 활성화 필수) */
+	overflow-y: auto; /* 본문 영역만 세로 스크롤 */
 	background: #f8f9fa;
 	padding: 0.5rem;
-	height: 100%;
 }
 
 /* 반응형: 좁은 화면에서는 사이드바 접거나 축소 */
@@ -185,12 +196,26 @@ ol {
 	}
 }
 @media (max-width: 768px) {
+	html, body {
+		overflow: auto; /* 모바일: 페이지 스크롤 복원 */
+	}
 	.layout {
 		display: block;
+		height: auto;
+		overflow: visible;
 	}
 	.sidebar {
 		width: 100%;
-		min-width: auto;
+		height: auto;       /* 모바일: 사이드바 높이 자동 */
+		overflow-y: visible;
+	}
+	.main-column {
+		height: auto;
+		overflow: visible;
+	}
+	.content {
+		overflow-y: visible;
+		min-height: 0;
 	}
 }
 
