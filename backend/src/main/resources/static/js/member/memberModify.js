@@ -377,7 +377,6 @@
 							throw new Error('비밀번호는 소문자, 대문자, 숫자, 특수문자(!@#$%^)들로 구성된 8~20자리여야 합니다.');
 						}
 					}
-					formData.append('id', id);
 				}
 				// 등록
 				else {
@@ -459,11 +458,13 @@
 			if (saveConfirm.isConfirmed === true) {
 				gLoadingMessage();
 				try {
+					const isCreate = id == null || id <= 0;
+					const fetchUrl = isCreate ? '/api/member/members' : `/api/member/members/${id}`;
 					const feOptions = {
-						method: 'POST',
+						method: isCreate ? 'POST' : 'PATCH',
 						body: formData,
 					};
-					const resSave = await fetch('/api/member/memberSave', feOptions);
+					const resSave = await fetch(fetchUrl, feOptions);
 					if (resSave.ok) {
 						const resData = await resSave.json();
 						if (resData?.code > 0) {

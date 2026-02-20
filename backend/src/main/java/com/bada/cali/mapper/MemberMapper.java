@@ -18,15 +18,15 @@ public interface MemberMapper {
 	Member toMemberFromMemberJoin(MemberDTO.MemberJoinReq memberJoinReq);
 	
 	
-	// 직원등록 record -> entity
-	Member toMemberByCreateReq(MemberDTO.SaveMemberInfo req);
-	
-	
-	// 직원정보 수정용 record -> entity덮어 씌우기
+	// 직원 등록 record -> entity
+	Member toMemberByCreateReq(MemberDTO.CreateMemberReq req);
+
+
+	// 직원 수정용 record -> entity 덮어쓰기
 	@Mapping(target = "loginId", ignore = true)
 	@Mapping(target = "pwd", ignore = true)			// 비밀번호는 별도로 더티체킹
 	@BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-	void updateMemberByReq(MemberDTO.SaveMemberInfo req, @MappingTarget Member member);
+	void updateMemberByReq(MemberDTO.UpdateMemberReq req, @MappingTarget Member member);
 	
 	
 	
