@@ -337,7 +337,7 @@ public class MemberServiceImpl {
 		}
 		
 		List<MemberDTO.MemberAuthData> itemAuthData = req.itemAuthData();
-		if (!itemAuthData.isEmpty()) {
+		if (itemAuthData != null && !itemAuthData.isEmpty()) {
 			// 중분류 코드 일괄 삭제 후, 다시 저장 (List에 담아서 일괄 saveAll처리)
 			int resDeleteItemAuth = memberCodeAuthRepository.deleteMemberCodeAuth(id);
 			// 반복문을 통해 Entity생성
@@ -379,6 +379,9 @@ public class MemberServiceImpl {
 		
 		YnType isVisible = YnType.y;
 		GetMemberInfoPr getMemberInfo = memberRepository.getMemberInfo(memberId, isVisible);
+		if (getMemberInfo == null) {
+			return new ResMessage<>(0, "직원 정보를 찾을 수 없습니다.", null);
+		}
 		Long imgFileInfoId = getMemberInfo.getImgFileId();
 		String memberImgPath = "";
 		if (imgFileInfoId != null && imgFileInfoId > 0) {

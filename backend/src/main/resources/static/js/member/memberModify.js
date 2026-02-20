@@ -478,6 +478,8 @@
 							await gMessage(`직원정보 ${saveTypeKr}`, resData.msg ?? '저장하는 데 실패했습니다', 'warning', 'alert');
 						}
 					} else {
+						const errData = await resSave.json().catch(() => null);
+						await gMessage(`직원정보 ${saveTypeKr}`, errData?.msg ?? '서버 오류가 발생했습니다.', 'warning', 'alert');
 					}
 				} catch (xhr) {
 					customAjaxHandler(xhr);
