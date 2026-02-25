@@ -96,7 +96,7 @@
 
 			{
 				header: '전화번호',
-				name: 'agnetTel',
+				name: 'agentTel',
 				width: '100',
 				className: 'cursor_pointer',
 				align: 'center',
