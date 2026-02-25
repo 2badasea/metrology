@@ -44,8 +44,6 @@
 				width: '80',
 				align: 'center',
 				formatter: function (data) {
-					console.log('데이터 확인');
-					console.log(data);
 					let html = '';
 					if (data.value == 'join') {
 						html = '가입';
