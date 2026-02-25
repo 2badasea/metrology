@@ -308,7 +308,7 @@ public class AgentServiceImpl {
 		// 업체정보 수정에 대한 이력을 남긴다.
 		String logContent = String.format("[업체정보 %s] 고유번호: %d", saveTypeTxt, id);
 		Log insertUpdateLog = Log.builder()
-				.logType("i")
+				.logType(isNew ? "i" : "u")
 				.refTable("agent")
 				.refTableId(id)
 				.workerName(user.getName())
