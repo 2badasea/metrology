@@ -356,7 +356,7 @@ public class AgentServiceImpl {
 		
 		// 업체담당자 삭제 체크
 		List<Long> delManagerIds = saveAgentDataReq.getDelManagerIds();
-		if (!delManagerIds.isEmpty()) {
+		if (delManagerIds != null && !delManagerIds.isEmpty()) {
 			agentManagerRepository.delAgentManagerByIds(delManagerIds, YnType.n, now, user.getId());
 			// 삭제된 업체 담당자 id
 			String managerIds = delManagerIds.stream().map(String::valueOf).collect(Collectors.joining(","));
@@ -377,7 +377,7 @@ public class AgentServiceImpl {
 		// 업체담당자 등록/수정
 		List<AgentManagerDTO.AgentManagerRowData> managers = saveAgentDataReq.getManagers();
 		// 담당자 정보 존재 시, 등록 or 수정
-		if (!managers.isEmpty()) {
+		if (managers != null && !managers.isEmpty()) {
 			// FIX 현재 구조에선, 수정사항이 없는 담당자도 같이 update 대상이 되는 문제가 발생 (프론트에서 구분 필요)
 			log.info("=== 담당자 정보 등록/수정 진입");
 			// 등록/수정 분기처리를 위해 stream API 보단 for문 사용
