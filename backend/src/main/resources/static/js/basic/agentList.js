@@ -154,25 +154,21 @@
 		.on('click', '.addAgentBtn', async function (e) {
 			e.preventDefault();
 
-			try {
-				const resModal = await gModal(
-					'/basic/agentModify',
-					{},
-					{
-						title: '업체 등록',
-						size: 'xxl',
-						show_close_button: true,
-						show_confirm_button: true,
-						confirm_button_text: '저장',
-					}
-				);
-
-				// 모달이 성공적으로 종료되었을 때만 그리드 갱신 (정상적으로 닫히면 true를 리턴)
-				if (resModal) {
-					$modal.grid.reloadData();
+			const resModal = await gModal(
+				'/basic/agentModify',
+				{},
+				{
+					title: '업체 등록',
+					size: 'xxl',
+					show_close_button: true,
+					show_confirm_button: true,
+					confirm_button_text: '저장',
 				}
-			} catch (err) {
-				console.error('gModal 실행 중 에러', err);
+			);
+
+			// 모달이 성공적으로 종료되었을 때만 그리드 갱신 (정상적으로 닫히면 true를 리턴)
+			if (resModal) {
+				$modal.grid.reloadData();
 			}
 		})
 		// 삭제
@@ -226,7 +222,7 @@
 							$modal.grid.reloadData();
 						}
 					} catch (err) {
-						customAjaxHandler(err);
+						gApiErrorHandler(err);
 					} finally {
 						Swal.close();
 					}
@@ -280,27 +276,23 @@
 
 		if (row && e.columnName != '_checked') {
 			// 업체수정 모달 띄우기
-			try {
-				const resModal = await gModal(
-					'/basic/agentModify',
-					{
-						id: row.id,
-					},
-					{
-						size: 'xxl',
-						title: '업체 수정',
-						show_close_button: true,
-						show_confirm_button: true,
-						confirm_button_text: '저장',
-					}
-				);
-
-				// 모달이 성공적으로 종료되었을 때만 그리드 갱신
-				if (resModal) {
-					$modal.grid.reloadData();
+			const resModal = await gModal(
+				'/basic/agentModify',
+				{
+					id: row.id,
+				},
+				{
+					size: 'xxl',
+					title: '업체 수정',
+					show_close_button: true,
+					show_confirm_button: true,
+					confirm_button_text: '저장',
 				}
-			} catch (err) {
-				console.error('gModal 실행 중 에러', err);
+			);
+
+			// 모달이 성공적으로 종료되었을 때만 그리드 갱신
+			if (resModal) {
+				$modal.grid.reloadData();
 			}
 		}
 	});
