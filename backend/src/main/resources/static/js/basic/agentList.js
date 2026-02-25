@@ -228,6 +228,7 @@
 					} catch (err) {
 						customAjaxHandler(err);
 					} finally {
+						Swal.close();
 					}
 				} else {
 					return false;
