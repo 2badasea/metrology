@@ -104,7 +104,7 @@ public class AgentServiceImpl {
 	}
 	
 	// 개별 업체 정보
-	@Transactional
+	@Transactional(readOnly = true)
 	public AgentDTO.AgentRowData getAgentInfo(Long id) {
 		YnType isVisible = YnType.y;    // 삭제되지 않은 것만 표기
 		// entity에서 가져오자마자 DTO로 변환 후 api contorller로 리턴
@@ -191,7 +191,7 @@ public class AgentServiceImpl {
 	}
 	
 	// 업체 그룹관리 그룹명 반환
-	@Transactional
+	@Transactional(readOnly = true)
 	public List<String> getGroupName() {
 		// 그룹명 조회
 		return agentRepository.findAllByIsVisibleAndGroupNameIsNotBlank(YnType.y);
@@ -245,7 +245,7 @@ public class AgentServiceImpl {
 	}
 	
 	// 업체담당자 리스트 반환하기
-	@Transactional
+	@Transactional(readOnly = true)
 	public TuiGridDTO.ResData<AgentManagerDTO.AgentManagerRowData> getAgentManagerList(AgentManagerDTO.GetListReq req) {
 		
 		// 그리드에서 페이지네이션을 사용하지 않는 경우, 아래와 같은 데이터는 모두 필요없음.
