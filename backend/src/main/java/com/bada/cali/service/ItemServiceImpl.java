@@ -156,7 +156,6 @@ public class ItemServiceImpl {
 			
 			// 넘어온 값으로 덮어씌우기
 			itemMapper.updateEntityFromRecord(itemData, originItem);
-			originItem.setUpdateDatetime(now);
 			originItem.setUpdateMemberId(userId);
 		}
 		
@@ -223,7 +222,6 @@ public class ItemServiceImpl {
 					ItemFeeHistory originEntity = itemFeeHistoryRepository.findById(itemFeeHistoryId).orElseThrow(() -> new EntityNotFoundException("수정할 교정수수료 정보가 없습니다."));
 					
 					itemFeeHistoryMapper.updateEntityFromRecord(itemFeeData, originEntity);
-					originEntity.setUpdateDatetime(now);
 					originEntity.setUpdateMemberId(userId);
 				}
 			}

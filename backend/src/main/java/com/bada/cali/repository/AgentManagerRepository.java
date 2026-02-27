@@ -5,14 +5,14 @@ import com.bada.cali.dto.AgentManagerDTO;
 import com.bada.cali.entity.AgentManager;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
-public interface AgentManagerRepository extends CrudRepository<AgentManager, Long> {
+public interface AgentManagerRepository extends JpaRepository<AgentManager, Long> {
 	
 	AgentManager findByAgentIdAndIsVisible(Long agentId, YnType ynType);
 	

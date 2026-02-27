@@ -125,7 +125,7 @@ public interface ItemCodeRepository extends JpaRepository<ItemCode, Long> {
 	@Query("""
 			select count(ic)
 			from ItemCode ic
-			where ic.codeNum like %:codeNum%
+			where ic.codeNum = :codeNum
 			and ic.codeLevel = :codeLevel
 			and ic.isVisible = :isVisible
 			and (:id IS NULL OR ic.id != :id)

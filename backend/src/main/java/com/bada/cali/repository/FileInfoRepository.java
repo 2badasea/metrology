@@ -10,13 +10,21 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
 public interface FileInfoRepository extends JpaRepository<FileInfo, Long> {
 	
-	// 특정 조건에 맞는 파일 개수 리턴
+	// 특정 조건에 맞는 파일 목록 리턴
 	List<FileInfo> findByRefTableNameAndRefTableIdAndIsVisible(
+			String refTableName,
+			Long refTableId,
+			YnType isVisible
+	);
+
+	// 특정 조건에 맞는 파일 개수 리턴 (COUNT 쿼리)
+	long countByRefTableNameAndRefTableIdAndIsVisible(
 			String refTableName,
 			Long refTableId,
 			YnType isVisible
@@ -90,6 +98,24 @@ public interface FileInfoRepository extends JpaRepository<FileInfo, Long> {
 					  @Param("deleteMemberId") Long deleteMemberId
 	);
 	
+	// 여러 refTableId에 해당하는 파일 일괄 소프트삭제
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+        update FileInfo f
+           set f.isVisible = :isVisible,
+               f.deleteDatetime = :deleteDatetime,
+               f.deleteMemberId = :deleteMemberId
+         where f.refTableName = :refTableName
+           and f.refTableId in :refTableIds
+    """)
+	int softDeleteByRefTableIds(
+			@Param("refTableName") String refTableName,
+			@Param("refTableIds") Collection<Long> refTableIds,
+			@Param("isVisible") YnType isVisible,
+			@Param("deleteDatetime") LocalDateTime deleteDatetime,
+			@Param("deleteMemberId") Long deleteMemberId
+	);
+
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query("""
         update FileInfo f

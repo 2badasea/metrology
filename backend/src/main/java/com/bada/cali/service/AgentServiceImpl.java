@@ -104,17 +104,19 @@ public class AgentServiceImpl {
 	}
 	
 	// 개별 업체 정보
-	@Transactional
+	@Transactional(readOnly = true)
 	public AgentDTO.AgentRowData getAgentInfo(Long id) {
 		YnType isVisible = YnType.y;    // 삭제되지 않은 것만 표기
 		// entity에서 가져오자마자 DTO로 변환 후 api contorller로 리턴
 		
 		// 업체정보
-		AgentDTO.AgentRowData agentRowData = agentMapper.toAgentRowDataFromEntity(agentRepository.findByIsVisibleAndId(isVisible, id));
+		Agent agent = agentRepository.findByIsVisibleAndId(isVisible, id)
+				.orElseThrow(() -> new EntityNotFoundException("업체를 찾을 수 없습니다."));
+		AgentDTO.AgentRowData agentRowData = agentMapper.toAgentRowDataFromEntity(agent);
 		
-		// 첨부파일 존재하는지 확인 (refTableName, refTableId)
-		int fileCount = fileServiceImpl.getFileInfos("agent", id).size();
-		agentRowData.setFileCnt((long) fileCount);    // 첨부파일 개수 추가
+		// 첨부파일 개수 확인 (COUNT 쿼리)
+		long fileCount = fileServiceImpl.countFiles("agent", id);
+		agentRowData.setFileCnt(fileCount);    // 첨부파일 개수 추가
 		
 		return agentRowData;
 	}
@@ -162,6 +164,8 @@ public class AgentServiceImpl {
 		agentManagerRepository.delAgentManagerByAgentIds(deleteAgentIds, YnType.n, now, userId);
 		// 3. 사용자 삭제
 		memberRepository.delMemberByAgentIds(deleteAgentIds, YnType.n, now, userId);
+		// 4. 첨부파일 소프트삭제
+		fileServiceImpl.softDeleteFilesByRefTableIds("agent", deleteAgentIds, userId);
 		
 		
 		int deletedCount = deleteAgentIds.size();
@@ -191,7 +195,7 @@ public class AgentServiceImpl {
 	}
 	
 	// 업체 그룹관리 그룹명 반환
-	@Transactional
+	@Transactional(readOnly = true)
 	public List<String> getGroupName() {
 		// 그룹명 조회
 		return agentRepository.findAllByIsVisibleAndGroupNameIsNotBlank(YnType.y);
@@ -245,7 +249,7 @@ public class AgentServiceImpl {
 	}
 	
 	// 업체담당자 리스트 반환하기
-	@Transactional
+	@Transactional(readOnly = true)
 	public TuiGridDTO.ResData<AgentManagerDTO.AgentManagerRowData> getAgentManagerList(AgentManagerDTO.GetListReq req) {
 		
 		// 그리드에서 페이지네이션을 사용하지 않는 경우, 아래와 같은 데이터는 모두 필요없음.
@@ -300,7 +304,6 @@ public class AgentServiceImpl {
 		else {
 			Agent originAgent = agentRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("업체를 찾을 수 없습니다."));
 			Agent updateAgent = agentMapper.toEntityFromUpdateDTO(saveAgentDataReq, originAgent);
-			updateAgent.setUpdateDatetime(now);
 			updateAgent.setUpdateMemberId(user.getId());        // 로그인 사용자
 			agentRepository.save(updateAgent);
 		}
@@ -308,7 +311,7 @@ public class AgentServiceImpl {
 		// 업체정보 수정에 대한 이력을 남긴다.
 		String logContent = String.format("[업체정보 %s] 고유번호: %d", saveTypeTxt, id);
 		Log insertUpdateLog = Log.builder()
-				.logType("i")
+				.logType(isNew ? "i" : "u")
 				.refTable("agent")
 				.refTableId(id)
 				.workerName(user.getName())
@@ -356,7 +359,7 @@ public class AgentServiceImpl {
 		
 		// 업체담당자 삭제 체크
 		List<Long> delManagerIds = saveAgentDataReq.getDelManagerIds();
-		if (!delManagerIds.isEmpty()) {
+		if (delManagerIds != null && !delManagerIds.isEmpty()) {
 			agentManagerRepository.delAgentManagerByIds(delManagerIds, YnType.n, now, user.getId());
 			// 삭제된 업체 담당자 id
 			String managerIds = delManagerIds.stream().map(String::valueOf).collect(Collectors.joining(","));
@@ -377,7 +380,7 @@ public class AgentServiceImpl {
 		// 업체담당자 등록/수정
 		List<AgentManagerDTO.AgentManagerRowData> managers = saveAgentDataReq.getManagers();
 		// 담당자 정보 존재 시, 등록 or 수정
-		if (!managers.isEmpty()) {
+		if (managers != null && !managers.isEmpty()) {
 			// FIX 현재 구조에선, 수정사항이 없는 담당자도 같이 update 대상이 되는 문제가 발생 (프론트에서 구분 필요)
 			log.info("=== 담당자 정보 등록/수정 진입");
 			// 등록/수정 분기처리를 위해 stream API 보단 for문 사용
@@ -400,7 +403,6 @@ public class AgentServiceImpl {
 					// NOTE 별도로 save() 안 해도, @Transactional 이면 dirty checking으로 업데이트 함
 					// mapstruct를 이용하여 값 덮어쓰기
 					agentManagerMapper.updateEntity(row, existingEntity);
-					existingEntity.setUpdateDatetime(now);
 					existingEntity.setUpdateMemberId(user.getId());
 				}
 			}
@@ -421,6 +423,12 @@ public class AgentServiceImpl {
 		return 1;
 	}
 	
+	// 업체담당자 조회 모달용 리스트 반환 (대표여부 y 우선 정렬)
+	@Transactional(readOnly = true)
+	public List<AgentManagerDTO.AgentManagerRowData> getManagerList(Long agentId) {
+		return agentManagerRepository.getManagerListOrderByMainYn(agentId);
+	}
+
 	// 업체명을 통해서 업체 정보 확인 후 리턴
 	@Transactional(readOnly = true)
 	public Map<String, String> chkAgentInfo(String agentName) {

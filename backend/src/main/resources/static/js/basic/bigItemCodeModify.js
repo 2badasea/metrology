@@ -41,7 +41,6 @@ $(function () {
 					header: '분류코드',
 					name: 'codeNum',
 					width: '80',
-					editor: 'text',
 					editor: {
 						type: readOnlyEditorByCondition,
 						conditions: {
@@ -77,7 +76,7 @@ $(function () {
 				},
 			],
 			pageOptions: {
-				perPage: 9999
+				perPage: 9999,
 			},
 			rowHeaders: ['checkbox'],
 			rowHeight: 'auto',
@@ -95,12 +94,12 @@ $(function () {
 					codeNum: '',
 					codeName: '',
 					codeNameEn: '',
-					caliCycleUnit: 'UNSPECIFIED',	// '미정'이 기본값
+					caliCycleUnit: 'UNSPECIFIED', // '미정'이 기본값
 					stdCali: null,
 					preCali: null,
 					parentId: null,
 					codeLevel: 'LARGE',
-					isKolasStandard: 'n',	// 임의로 추가되는 경우, 모두 비표준으로 간주
+					isKolasStandard: 'n', // 임의로 추가되는 경우, 모두 비표준으로 간주
 					tracestatementInfo: null,
 				};
 				$modal.grid.appendRow(emptyRow);
@@ -115,11 +114,12 @@ $(function () {
 
 				// 1. 검증 (하위 중분류가 존재할 경우, 해당 중분류를 사용하고 있는 성적서가 존재한다면 안 된다고 안내)
 				const removeRowKeys = [];
-				const ids = checkedRows.filter(itemCode => {
-					removeRowKeys.push(itemCode.rowKey);
-					return itemCode?.id > 0;
-				}).map((row) => row.id);
-				console.log("🚀 ~ ids:", ids);
+				const ids = checkedRows
+					.filter((itemCode) => {
+						removeRowKeys.push(itemCode.rowKey);
+						return itemCode?.id > 0;
+					})
+					.map((row) => row.id);
 
 				// id를 담은 요소가 없다면 행만 삭제
 				if (ids.length === 0) {
@@ -137,14 +137,14 @@ $(function () {
 						},
 						body: JSON.stringify({
 							ids: ids,
-							codeLevel: 'LARGE'
-						})
-					}
+							codeLevel: 'LARGE',
+						}),
+					};
 					const resValid = await fetch('/api/basic/deleteItemCodeCheck', fetchOptions);
 					if (resValid.ok) {
 						Swal.close();
 						const resJson = await resValid.json();
-						let resMsg = resJson.msg ?? "";
+						let resMsg = resJson.msg ?? '';
 						const resData = resJson.data ?? {};
 						let confirmMsg = '';
 						if (Object.keys(resData).length > 0) {
@@ -162,11 +162,10 @@ $(function () {
 							if (deleteConfrim.isConfirmed === true) {
 								// 코드가 길어지므로, 별도의 삭제 함수 호출
 								$modal.deleteCode(ids);
-
 							} else {
 								return false;
 							}
-						} 
+						}
 						// 참조하는 하위 성적서 존재
 						else {
 							await gMessage('분류코드 삭제', resMsg, 'warning', 'alert');
@@ -176,13 +175,12 @@ $(function () {
 						Swal.close();
 						return false;
 					}
-				} catch(err) {
+				} catch (err) {
 					console.error(err);
 					customAjaxHandler(err);
 				} finally {
 					Swal.close();
 				}
-
 			});
 
 		// 그리드 객체에 대한 이벤트 추가
@@ -211,24 +209,26 @@ $(function () {
 		});
 
 		$modal.grid.on('afterChange', function (e) {
-			console.log('chagne');
-			console.log(e);
 			const rowKey = e.rowKey;
-			if (!Array.isArray($modal.updatedRow)) {
+			if (!Array.isArray($modal.updatedRowKey)) {
 				$modal.updatedRowKey = [];
 			}
 			$modal.updatedRowKey.push(rowKey);
-		})
+		});
 
 		// 삭제진행 콜백함수
 		$modal.deleteCode = async (ids) => {
-			const resDelete = await gAjax('/api/basic/deleteItemCode', JSON.stringify({
-				ids: ids,
-				codeLevel: 'LARGE'
-			}), {
-				type: "DELETE",
-				contentType: 'application/json; charset=utf-8'
-			});
+			const resDelete = await gAjax(
+				'/api/basic/deleteItemCode',
+				JSON.stringify({
+					ids: ids,
+					codeLevel: 'LARGE',
+				}),
+				{
+					type: 'DELETE',
+					contentType: 'application/json; charset=utf-8',
+				},
+			);
 
 			if (resDelete?.code > 0) {
 				await gMessage('분류코드 삭제', '삭제되었습니다', 'success', 'alert');
@@ -237,16 +237,14 @@ $(function () {
 				await gMessage('분류코드 삭제', '삭제에 실패했습니다.', 'error', 'alert');
 				return false;
 			}
-		}
-
-
+		};
 	}; // End of init_modal
 
 	// 저장
 	$modal.confirm_modal = async function (e) {
 		console.log('저장클릭');
 		// getColumnValues(columnName) 활용, getRow(rowKey) 활용
-	
+
 		// 저장 시, 변경이벤트가 일어난 부분만 update 항목에 담을 것. 또한 KOLAS 표준은 업데이트 제외
 		$modal.grid.blur();
 		const rows = $modal.grid.getData();
@@ -274,9 +272,9 @@ $(function () {
 			return false;
 		}
 
-		const codeNums = $modal.grid.getColumnValues('codeNum');	// 분류코드 열에 있는 값을 모두 담는다.
+		const codeNums = $modal.grid.getColumnValues('codeNum'); // 분류코드 열에 있는 값을 모두 담는다.
 		const setCodeNums = new Set(codeNums);
-		const uniqueCodeNums = [...setCodeNums];	// spread 연산자로 배열형태로 변경
+		const uniqueCodeNums = [...setCodeNums]; // spread 연산자로 배열형태로 변경
 
 		if (codeNums.length !== uniqueCodeNums.length) {
 			gToast('중복된 분류코드가 존재합니다.', 'warning');
@@ -285,19 +283,19 @@ $(function () {
 
 		// 업데이트 대상 행 유효성 검증 filter 활용해보기 -> true를 리턴한 것만 담긴다.
 		let saveFlag = true;
-		let flagMsg = "";
+		let flagMsg = '';
 		const regNum = /^[0-9]+$/;
-		saveRows = saveRows.filter(row => {
+		saveRows = saveRows.filter((row) => {
 			if (!checkInput(row.codeNum) || !regNum.test(row.codeNum) || row.codeNum.length > 2) {
-				flagMsg = "분류코드는 숫자(1~2자리)로만 구성되어야 합니다.";
+				flagMsg = '분류코드는 숫자(1~2자리)로만 구성되어야 합니다.';
 				saveFlag = false;
 			}
 			if (!checkInput(row.codeName.trim())) {
-				flagMsg = "분류코드명을 입력해주세요.";
+				flagMsg = '분류코드명을 입력해주세요.';
 				saveFlag = false;
 			}
 			return saveFlag;
-		})
+		});
 
 		if (!saveFlag) {
 			gToast(flagMsg, 'warning');
@@ -311,29 +309,42 @@ $(function () {
 
 			const saveConfirm = await gMessage('분류코드 저장', '저장하시겠습니까?', 'question', 'confirm');
 			if (saveConfirm.isConfirmed === true) {
-				const fetchOptions = {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json; charset=utf-8'
-					},
-					body: JSON.stringify(saveRows)
-				}
-				const resSave = await fetch('/api/basic/saveItemCode', fetchOptions);
-				console.log("🚀 ~ resSave:", resSave);
-				if (resSave.ok) {
-					const resData = await resSave.json();
-					console.log("🚀 ~ resData:", resData);
-					if (resData?.code > 0) {
-						await gMessage('분류코드 저장', resData.msg ?? '저장에 성공했습니다.', 'success', 'alert');
-						location.reload();
-					} else {
-						await gMessage('분류코드 저장', '분류코드 저장에 실패했습니다.', 'error', 'alert');
+				const createRows = saveRows.filter(r => !r.id);
+				const updateRows = saveRows.filter(r => !!r.id);
+
+				if (createRows.length > 0) {
+					const resCreate = await fetch('/api/basic/itemCodes', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json; charset=utf-8' },
+						body: JSON.stringify(createRows),
+					});
+					if (!resCreate.ok) throw resCreate;
+					const createData = await resCreate.json();
+					if (createData?.code <= 0) {
+						await gMessage('분류코드 저장', createData.msg ?? '등록에 실패했습니다.', 'error', 'alert');
+						return false;
 					}
 				}
+
+				if (updateRows.length > 0) {
+					const resUpdate = await fetch('/api/basic/itemCodes', {
+						method: 'PATCH',
+						headers: { 'Content-Type': 'application/json; charset=utf-8' },
+						body: JSON.stringify(updateRows),
+					});
+					if (!resUpdate.ok) throw resUpdate;
+					const updateData = await resUpdate.json();
+					if (updateData?.code <= 0) {
+						await gMessage('분류코드 저장', updateData.msg ?? '수정에 실패했습니다.', 'error', 'alert');
+						return false;
+					}
+				}
+
+				await gMessage('분류코드 저장', '저장에 성공했습니다.', 'success', 'alert');
+				location.reload()
 			} else {
 				return false;
 			}
-			
 		} catch (err) {
 			customAjaxHandler(err);
 		} finally {

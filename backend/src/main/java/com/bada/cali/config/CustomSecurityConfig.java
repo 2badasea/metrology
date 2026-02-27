@@ -108,7 +108,9 @@ public class CustomSecurityConfig {
 	// → 정적 리소스는 ignoring, URL 경로 접근 제어는 permitAll로 역할을 분리
 	@Bean
 	public WebSecurityCustomizer webSecurityCustomizer() {
-		return (web) -> web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
+		return (web) -> web.ignoring()
+				.requestMatchers(PathRequest.toStaticResources().atCommonLocations())
+				.requestMatchers("/vendor/**");
 	}
 
 	// 허용되지 않은 URL 접근 시에 대한 예외처리

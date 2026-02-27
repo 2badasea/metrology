@@ -29,6 +29,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -224,6 +225,12 @@ public class FileServiceImpl {
 	public int deleteFile(Long fileId, CustomUserDetails user) {
 		return fileInfoRepository.deleteFile(fileId, YnType.n, LocalDateTime.now(), user.getId());
 	}
+
+	// 특정 테이블의 여러 id에 해당하는 파일 일괄 소프트삭제 (업체/성적서 등 삭제 연계용)
+	@Transactional
+	public void softDeleteFilesByRefTableIds(String refTableName, Collection<Long> refTableIds, Long userId) {
+		fileInfoRepository.softDeleteByRefTableIds(refTableName, refTableIds, YnType.n, LocalDateTime.now(), userId);
+	}
 	
 	
 	// "파일명.확장자" 에서 확장자를 추출 (없으면 빈 문자열)
@@ -255,6 +262,12 @@ public class FileServiceImpl {
 	// join을 고려하지 않은 단순 file_info 정보만 반환
 	public List<FileInfo> getFileInfos(String refTableName, Long refTableId) {
 		return fileInfoRepository.findByRefTableNameAndRefTableIdAndIsVisible(refTableName, refTableId, YnType.y);
+	}
+
+	// 파일 개수만 필요한 경우 COUNT 쿼리 사용
+	@Transactional(readOnly = true)
+	public long countFiles(String refTableName, Long refTableId) {
+		return fileInfoRepository.countByRefTableNameAndRefTableIdAndIsVisible(refTableName, refTableId, YnType.y);
 	}
 	
 	public List<FileInfoDTO.FileListRes> getFileInfosWithJoin(String refTableName, Long refTableId) {
@@ -295,10 +308,7 @@ public class FileServiceImpl {
 		String bucket = storageProps.getBucketName();
 		String rootDir = storageProps.getRootDir();
 		String filePath = String.format("%s/%s/%s/%s%d.%s", endPoint, bucket,rootDir, dir, fileInfoId, extension);
-		
-		log.info("확인");
-		log.info(filePath);
-		
+
 		return filePath;
 	}
 	

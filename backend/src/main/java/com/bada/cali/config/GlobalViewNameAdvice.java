@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,8 +26,8 @@ import java.util.*;
 @RequiredArgsConstructor
 @Log4j2
 public class GlobalViewNameAdvice {
-	// menu 리파지토리 주입
 	private final MenuRepository menuRepository;
+	private final ResourceLoader resourceLoader;
 	
 	// viewName과 renderMode 속성값 기본값으로 추가
 	@ModelAttribute
@@ -50,6 +52,10 @@ public class GlobalViewNameAdvice {
 		}
 		// model에 viewName 속성값 담기
 		model.addAttribute("viewName", uri);
+
+		// CSS 파일 존재 여부 확인 (없으면 <link> 태그 자체를 렌더링하지 않음)
+		Resource cssResource = resourceLoader.getResource("classpath:static/css/" + uri + ".css");
+		model.addAttribute("hasCss", cssResource.exists());
 		
 		// renderMode 세팅
 		String renderMode = request.getParameter("renderMode");

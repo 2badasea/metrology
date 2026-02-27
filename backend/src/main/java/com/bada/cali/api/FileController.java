@@ -8,7 +8,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,7 +20,7 @@ public class FileController {
 	
 	private final FileServiceImpl fileService;
 	
-	@PostMapping("/fileDelete/{fileId}")
+	@DeleteMapping("/fileDelete/{fileId}")
 	public ResponseEntity<ResMessage<?>> fileDelete(@PathVariable Long fileId, @AuthenticationPrincipal CustomUserDetails user) {
 		int resCode = fileService.deleteFile(fileId, user);
 		return ResponseEntity.ok(new ResMessage<>(resCode, null, null));

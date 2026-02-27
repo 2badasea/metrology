@@ -44,8 +44,6 @@
 				width: '80',
 				align: 'center',
 				formatter: function (data) {
-					console.log('데이터 확인');
-					console.log(data);
 					let html = '';
 					if (data.value == 'join') {
 						html = '가입';
@@ -96,7 +94,7 @@
 
 			{
 				header: '전화번호',
-				name: 'agnetTel',
+				name: 'agentTel',
 				width: '100',
 				className: 'cursor_pointer',
 				align: 'center',
@@ -156,25 +154,21 @@
 		.on('click', '.addAgentBtn', async function (e) {
 			e.preventDefault();
 
-			try {
-				const resModal = await gModal(
-					'/basic/agentModify',
-					{},
-					{
-						title: '업체 등록',
-						size: 'xxl',
-						show_close_button: true,
-						show_confirm_button: true,
-						confirm_button_text: '저장',
-					}
-				);
+			const resModal = await gModal(
+				'/basic/agentModify',
+				{},
+				{
+					title: '업체 등록',
+					size: 'xxl',
+					show_close_button: true,
+					show_confirm_button: true,
+					confirm_button_text: '저장',
+				},
+			);
 
-				// 모달이 성공적으로 종료되었을 때만 그리드 갱신 (정상적으로 닫히면 true를 리턴)
-				if (resModal) {
-					$modal.grid.reloadData();
-				}
-			} catch (err) {
-				console.error('gModal 실행 중 에러', err);
+			// 모달이 성공적으로 종료되었을 때만 그리드 갱신 (정상적으로 닫히면 true를 리턴)
+			if (resModal) {
+				$modal.grid.reloadData();
 			}
 		})
 		// 삭제
@@ -198,7 +192,13 @@
 				});
 
 				// 2. 삭제유무 confirm 확인
-				if (confirm('정말 삭제하시겠습니까?\n업체정보, 담당자, 로그인 계정이 삭제됩니다')) {
+				const deleteConfirm = await gMessage(
+					'업체 삭제',
+					'정말 삭제하시겠습니까?\n업체정보, 담당자, 로그인 계정이 삭제됩니다',
+					'warning',
+					'confirm',
+				);
+				if (deleteConfirm.isConfirmed === true) {
 					gLoadingMessage('삭제 처리 중입니다...');
 
 					try {
@@ -208,31 +208,22 @@
 							ids: delAgentIds,
 						};
 
-						const resDelete = await gAjax(
-							'/api/basic/deleteAgent',
-							JSON.stringify(sendData),
-
-							{
-								type: 'DELETE',
-								contentType: 'application/json; charset=utf-8',
-							}
-						);
+						const resDelete = await gAjax('/api/basic/deleteAgent', JSON.stringify(sendData), {
+							type: 'DELETE',
+							contentType: 'application/json; charset=utf-8',
+						});
 						if (resDelete?.code === 1) {
 							const delNames = resDelete.data || [];
-							Swal.fire({
-								icon: 'success',
-								title: '삭제 완료',
-								text: `삭제된 업체: ${delNames.join(', ')}`,
-							});
+							Swal.close();
+							await gMessage('삭제 완료', `삭제된 업체: ${delNames.join(', ')}`, 'success', 'alert');
 							// 그리드 갱신
 							$modal.grid.reloadData();
 						}
 					} catch (err) {
-						customAjaxHandler(err);
+						gApiErrorHandler(err);
 					} finally {
+						Swal.close();
 					}
-				} else {
-					return false;
 				}
 			}
 
@@ -265,7 +256,7 @@
 					show_close_button: true,
 					show_confirm_button: true,
 					confirm_button_text: '저장',
-				}
+				},
 			);
 
 			// 모달이 정상적으로 종료된 경우, 그리드 갱신 후 최신화
@@ -281,27 +272,23 @@
 
 		if (row && e.columnName != '_checked') {
 			// 업체수정 모달 띄우기
-			try {
-				const resModal = await gModal(
-					'/basic/agentModify',
-					{
-						id: row.id,
-					},
-					{
-						size: 'xxl',
-						title: '업체 수정',
-						show_close_button: true,
-						show_confirm_button: true,
-						confirm_button_text: '저장',
-					}
-				);
+			const resModal = await gModal(
+				'/basic/agentModify',
+				{
+					id: row.id,
+				},
+				{
+					size: 'xxl',
+					title: '업체 수정',
+					show_close_button: true,
+					show_confirm_button: true,
+					confirm_button_text: '저장',
+				},
+			);
 
-				// 모달이 성공적으로 종료되었을 때만 그리드 갱신
-				if (resModal) {
-					$modal.grid.reloadData();
-				}
-			} catch (err) {
-				console.error('gModal 실행 중 에러', err);
+			// 모달이 성공적으로 종료되었을 때만 그리드 갱신
+			if (resModal) {
+				$modal.grid.reloadData();
 			}
 		}
 	});

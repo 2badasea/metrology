@@ -544,7 +544,6 @@ public class ReportServiceImpl {
 		
 		// mapstruct를 통해 넘어온 값들을 그대로 영속성 컨텍스트 내 조회된 entity에 덮어씌운다.
 		reportMapper.updateEntityFromDto(req, updateReport);
-		updateReport.setUpdateDatetime(now);
 		updateReport.setUpdateMemberId(userId);
 		
 		Log updateLog = Log.builder()
@@ -587,7 +586,6 @@ public class ReportServiceImpl {
 				if (childReportId != null && childReportId > 0) {
 					Report updateChildReport = reportRepository.findById(childReportId).orElseThrow(() -> new EntityNotFoundException("자식성적서가 존재하지 않습니다."));
 					reportMapper.updateChildEntityFromDto(childReport, updateChildReport);
-					updateChildReport.setUpdateDatetime(now);
 					updateChildReport.setUpdateMemberId(userId);
 					
 				}

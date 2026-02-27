@@ -147,7 +147,6 @@ public class EquipmentServiceImpl {
 			
 			// record -> entity 덮어씌우기
 			equipmentMapper.updateEntityFromRecord(req, originEntity);
-			originEntity.setUpdateDatetime(now);
 			originEntity.setUpdateMemberId(userId);
 		}
 		

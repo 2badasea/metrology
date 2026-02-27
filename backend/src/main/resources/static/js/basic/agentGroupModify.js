@@ -19,6 +19,7 @@ $(function () {
 			'/api/basic/getGroupName',
 			{},
 			{
+				type: 'get',
 				success: function (resData) {
 					// 데이터가 있는 경우 세팅
 					if (resData?.code === 1 && resData.data) {
