@@ -36,7 +36,7 @@ $(function () {
 				gLoadingMessage(); // 로딩창
 
 				try {
-					const resDelete = await gAjax('/api/file/fileDelete/' + fileId);
+					const resDelete = await gAjax('/api/file/fileDelete/' + fileId, {}, { type: 'delete' });
 					Swal.close();	// 통신이 끝나면 로딩창을 닫는다.
 					if (resDelete?.code > 0) {
 						await gMessage(`파일 삭제`,`삭제되었습니다.`, 'success', 'alert');

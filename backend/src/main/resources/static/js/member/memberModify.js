@@ -521,7 +521,7 @@
 				}
 				gLoadingMessage();
 				try {
-					const resDelete = await gAjax('/api/file/fileDelete/' + imgFileId);
+					const resDelete = await gAjax('/api/file/fileDelete/' + imgFileId, {}, { type: 'delete' });
 					Swal.close();
 					if (resDelete?.code > 0) {
 						await gMessage('이미지 삭제', '삭제되었습니다.', 'success', 'alert');

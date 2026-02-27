@@ -16,8 +16,15 @@ import java.util.List;
 @Repository
 public interface FileInfoRepository extends JpaRepository<FileInfo, Long> {
 	
-	// 특정 조건에 맞는 파일 개수 리턴
+	// 특정 조건에 맞는 파일 목록 리턴
 	List<FileInfo> findByRefTableNameAndRefTableIdAndIsVisible(
+			String refTableName,
+			Long refTableId,
+			YnType isVisible
+	);
+
+	// 특정 조건에 맞는 파일 개수 리턴 (COUNT 쿼리)
+	long countByRefTableNameAndRefTableIdAndIsVisible(
 			String refTableName,
 			Long refTableId,
 			YnType isVisible

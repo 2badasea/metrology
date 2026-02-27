@@ -114,9 +114,9 @@ public class AgentServiceImpl {
 				.orElseThrow(() -> new EntityNotFoundException("업체를 찾을 수 없습니다."));
 		AgentDTO.AgentRowData agentRowData = agentMapper.toAgentRowDataFromEntity(agent);
 		
-		// 첨부파일 존재하는지 확인 (refTableName, refTableId)
-		int fileCount = fileServiceImpl.getFileInfos("agent", id).size();
-		agentRowData.setFileCnt((long) fileCount);    // 첨부파일 개수 추가
+		// 첨부파일 개수 확인 (COUNT 쿼리)
+		long fileCount = fileServiceImpl.countFiles("agent", id);
+		agentRowData.setFileCnt(fileCount);    // 첨부파일 개수 추가
 		
 		return agentRowData;
 	}

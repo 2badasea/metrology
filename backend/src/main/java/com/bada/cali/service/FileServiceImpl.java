@@ -263,6 +263,12 @@ public class FileServiceImpl {
 	public List<FileInfo> getFileInfos(String refTableName, Long refTableId) {
 		return fileInfoRepository.findByRefTableNameAndRefTableIdAndIsVisible(refTableName, refTableId, YnType.y);
 	}
+
+	// 파일 개수만 필요한 경우 COUNT 쿼리 사용
+	@Transactional(readOnly = true)
+	public long countFiles(String refTableName, Long refTableId) {
+		return fileInfoRepository.countByRefTableNameAndRefTableIdAndIsVisible(refTableName, refTableId, YnType.y);
+	}
 	
 	public List<FileInfoDTO.FileListRes> getFileInfosWithJoin(String refTableName, Long refTableId) {
 		return fileInfoRepository.getFileInfosWithJoin(refTableName, refTableId, YnType.y);
