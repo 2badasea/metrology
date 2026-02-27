@@ -359,13 +359,13 @@ $(function () {
 				if (confirm.isConfirmed === true) {
 					gLoadingMessage();
 					const fetchOptions = {
-						method: 'POST',
+						method: itemCodeInfo.id ? 'PATCH' : 'POST',
 						headers: {
 							'Content-Type': 'application/json; charset=utf-8',
 						},
 						body: JSON.stringify(sendData),
 					};
-					const resSave = await fetch('/api/basic/saveItemCode', fetchOptions);
+					const resSave = await fetch('/api/basic/itemCodes', fetchOptions);
 					Swal.close();
 					if (resSave.ok) {
 						const resData = await resSave.json();

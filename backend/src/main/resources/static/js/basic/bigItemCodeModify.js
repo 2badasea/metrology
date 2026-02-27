@@ -309,23 +309,39 @@ $(function () {
 
 			const saveConfirm = await gMessage('분류코드 저장', '저장하시겠습니까?', 'question', 'confirm');
 			if (saveConfirm.isConfirmed === true) {
-				const fetchOptions = {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json; charset=utf-8',
-					},
-					body: JSON.stringify(saveRows),
-				};
-				const resSave = await fetch('/api/basic/saveItemCode', fetchOptions);
-				if (resSave.ok) {
-					const resData = await resSave.json();
-					if (resData?.code > 0) {
-						await gMessage('분류코드 저장', resData.msg ?? '저장에 성공했습니다.', 'success', 'alert');
-						location.reload();
-					} else {
-						await gMessage('분류코드 저장', '분류코드 저장에 실패했습니다.', 'error', 'alert');
+				const createRows = saveRows.filter(r => !r.id);
+				const updateRows = saveRows.filter(r => !!r.id);
+
+				if (createRows.length > 0) {
+					const resCreate = await fetch('/api/basic/itemCodes', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json; charset=utf-8' },
+						body: JSON.stringify(createRows),
+					});
+					if (!resCreate.ok) throw resCreate;
+					const createData = await resCreate.json();
+					if (createData?.code <= 0) {
+						await gMessage('분류코드 저장', createData.msg ?? '등록에 실패했습니다.', 'error', 'alert');
+						return false;
 					}
 				}
+
+				if (updateRows.length > 0) {
+					const resUpdate = await fetch('/api/basic/itemCodes', {
+						method: 'PATCH',
+						headers: { 'Content-Type': 'application/json; charset=utf-8' },
+						body: JSON.stringify(updateRows),
+					});
+					if (!resUpdate.ok) throw resUpdate;
+					const updateData = await resUpdate.json();
+					if (updateData?.code <= 0) {
+						await gMessage('분류코드 저장', updateData.msg ?? '수정에 실패했습니다.', 'error', 'alert');
+						return false;
+					}
+				}
+
+				await gMessage('분류코드 저장', '저장에 성공했습니다.', 'success', 'alert');
+				location.reload()
 			} else {
 				return false;
 			}

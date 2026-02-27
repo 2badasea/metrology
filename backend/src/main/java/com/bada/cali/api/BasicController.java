@@ -214,10 +214,27 @@ public class BasicController {
 		return ResponseEntity.ok(body);
 	}
 	
-	// 분류코드 저장
-	@Operation(summary = "분류코드 저장", description = "분류코드 일괄 등록/수정. id가 없으면 등록, 있으면 수정. 수정 시 해당 id가 존재하지 않으면 404")
+	// 분류코드 등록
+	@Operation(summary = "분류코드 등록", description = "분류코드 일괄 등록. 분류코드 중복 시 code=-1 반환")
 	@ApiResponses({
-			@ApiResponse(responseCode = "200", description = "저장 성공"),
+			@ApiResponse(responseCode = "201", description = "등록 성공"),
+			@ApiResponse(responseCode = "400", description = "요청 형식 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class))),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
+	@PostMapping("/itemCodes")
+	public ResponseEntity<ResMessage<Object>> createItemCodes(
+			@RequestBody List<ItemCodeDTO.ItemCodeData> req,
+			@AuthenticationPrincipal CustomUserDetails user) {
+		ResMessage<Object> resMessage = itemCodeService.createItemCodes(req, user);
+		return ResponseEntity.status(201).body(resMessage);
+	}
+
+	// 분류코드 수정
+	@Operation(summary = "분류코드 수정", description = "분류코드 일괄 수정. 분류코드 중복 시 code=-1 반환. 해당 id가 존재하지 않으면 404")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "수정 성공"),
 			@ApiResponse(responseCode = "400", description = "요청 형식 오류",
 					content = @Content(schema = @Schema(implementation = ResMessage.class))),
 			@ApiResponse(responseCode = "404", description = "수정 대상 분류코드 없음",
@@ -225,12 +242,11 @@ public class BasicController {
 			@ApiResponse(responseCode = "500", description = "서버 오류",
 					content = @Content(schema = @Schema(implementation = ResMessage.class)))
 	})
-	@PostMapping(value = "/saveItemCode")
-	public ResponseEntity<ResMessage<Object>> saveItemCode(
+	@PatchMapping("/itemCodes")
+	public ResponseEntity<ResMessage<Object>> updateItemCodes(
 			@RequestBody List<ItemCodeDTO.ItemCodeData> req,
 			@AuthenticationPrincipal CustomUserDetails user) {
-		ResMessage<Object> resMessage = itemCodeService.saveItemCode(req, user);
-		
+		ResMessage<Object> resMessage = itemCodeService.updateItemCodes(req, user);
 		return ResponseEntity.ok(resMessage);
 	}
 	

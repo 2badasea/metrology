@@ -73,68 +73,77 @@ public class ItemCodeServiceImpl {
 				.build();
 	}
 	
-	// 분류코드 수정/저장 (대분류, 중분류, 소분류 저장 모두 다루기
+	// 분류코드 등록
 	@Transactional
-	public ResMessage<Object> saveItemCode(List<ItemCodeDTO.ItemCodeData> list, CustomUserDetails user) {
-		int resCode = 0;
-		String resMsg = "";
-		
+	public ResMessage<Object> createItemCodes(List<ItemCodeDTO.ItemCodeData> list, CustomUserDetails user) {
 		LocalDateTime now = LocalDateTime.now();
-		String wokerName = user.getName();
+		String workerName = user.getName();
 		Long userId = user.getId();
-		
-		// 순회
+
 		for (ItemCodeDTO.ItemCodeData itemCode : list) {
-			
+			String codeNum = itemCode.codeNum();
+			CodeLevel codeLevel = itemCode.codeLevel();
+
+			Long chkDuplicate = itemCodeRepository.getCountDuplicateCodeNum(codeNum, codeLevel, YnType.y, null);
+			if (chkDuplicate > 0) {
+				return new ResMessage<>(-1, String.format("중복된 분류코드가 존재합니다.<br>분류코드: %s", codeNum), null);
+			}
+
+			ItemCode saveEntity = itemCodeMapper.toEntity(itemCode);
+			saveEntity.setCreateDatetime(now);
+			saveEntity.setCreateMemberId(userId);
+			ItemCode savedEntity = itemCodeRepository.save(saveEntity);
+
+			String logContent = String.format("[품목코드 등록] 품목코드: %s, 품목코드명: %s  - 고유번호 %d", codeNum, itemCode.codeName(), savedEntity.getId());
+			logRepository.save(Log.builder()
+					.workerName(workerName)
+					.refTable("item_code")
+					.refTableId(savedEntity.getId())
+					.createDatetime(now)
+					.createMemberId(userId)
+					.logType("i")
+					.logContent(logContent)
+					.build());
+		}
+
+		return new ResMessage<>(1, "저장되었습니다.", null);
+	}
+
+	// 분류코드 수정
+	@Transactional
+	public ResMessage<Object> updateItemCodes(List<ItemCodeDTO.ItemCodeData> list, CustomUserDetails user) {
+		LocalDateTime now = LocalDateTime.now();
+		String workerName = user.getName();
+		Long userId = user.getId();
+
+		for (ItemCodeDTO.ItemCodeData itemCode : list) {
 			Long id = itemCode.id();
 			String codeNum = itemCode.codeNum();
 			CodeLevel codeLevel = itemCode.codeLevel();
-			// 분류코드 기준으로 중복검사 진행
-			Long chkDuplicateCodeNum = itemCodeRepository.getCountDuplicateCodeNum(codeNum, codeLevel, YnType.y, id);
-			if (chkDuplicateCodeNum > 0) {
-				resCode = -1;
-				resMsg = String.format("중복된 분류코드가 존재합니다.<br>분류코드: %s", codeNum);
-				return new ResMessage<>(resCode, resMsg, null);
+
+			Long chkDuplicate = itemCodeRepository.getCountDuplicateCodeNum(codeNum, codeLevel, YnType.y, id);
+			if (chkDuplicate > 0) {
+				return new ResMessage<>(-1, String.format("중복된 분류코드가 존재합니다.<br>분류코드: %s", codeNum), null);
 			}
-			
-			String codeName = itemCode.codeName();
-			String saveTypeKr = (id == null) ? "등록" : "수정";
-			// 신규 등록
-			if (id == null) {
-				// record -> entity 변환 후 update
-				ItemCode saveEntity = itemCodeMapper.toEntity(itemCode);
-				saveEntity.setCreateDatetime(now);
-				saveEntity.setCreateMemberId(userId);
-				
-				ItemCode savedEntity = itemCodeRepository.save(saveEntity);
-				id = savedEntity.getId();
-			}
+
 			// 영속성 컨텍스트 -> dirty checking으로 업데이트
-			else {
-				// 조회 후, record -> entity로 mapping target후 update_member_id set() 처리
-				ItemCode updateEntity = itemCodeRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("수정할 품목코드 정보를 찾을 수 없습니다."));
-				itemCodeMapper.toEntityForUpdate(itemCode, updateEntity);
-				updateEntity.setUpdateMemberId(userId);
-			}
-			
-			// 로그를 남긴다.
-			String logContent = String.format("[품목코드 %s] 품목코드: %s, 품목코드명: %s  - 고유번호 %d", saveTypeKr, codeNum, codeName, id);
-			Log saveLog = Log.builder()
-					.workerName(wokerName)
+			ItemCode updateEntity = itemCodeRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("수정할 품목코드 정보를 찾을 수 없습니다."));
+			itemCodeMapper.toEntityForUpdate(itemCode, updateEntity);
+			updateEntity.setUpdateMemberId(userId);
+
+			String logContent = String.format("[품목코드 수정] 품목코드: %s, 품목코드명: %s  - 고유번호 %d", codeNum, itemCode.codeName(), id);
+			logRepository.save(Log.builder()
+					.workerName(workerName)
 					.refTable("item_code")
 					.refTableId(id)
 					.createDatetime(now)
 					.createMemberId(userId)
-					.logType(itemCode.id() == null ? "i" : "u")
+					.logType("u")
 					.logContent(logContent)
-					.build();
-			
-			logRepository.save(saveLog);
+					.build());
 		}
-		
-		resCode = 1;
-		resMsg = "저장되었습니다.";
-		return new ResMessage<>(resCode, resMsg, null);
+
+		return new ResMessage<>(1, "저장되었습니다.", null);
 	}
 	
 	// 삭제대상 분류코드에 대한 검증을 한다.
