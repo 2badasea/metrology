@@ -103,7 +103,7 @@ public class BasicController {
 			@ApiResponse(responseCode = "500", description = "서버 오류",
 					content = @Content(schema = @Schema(implementation = ResMessage.class)))
 	})
-	@PostMapping(value = "/getGroupName")
+	@GetMapping(value = "/getGroupName")
 	public ResponseEntity<ResMessage<List<String>>> getGroupName() {
 		List<String> resGroupNames = agentService.getGroupName();
 		
