@@ -174,7 +174,7 @@ $(function () {
 
 		// 대분류 세팅 (최초 페이지 렌더링 이후 진행)
 		$modal.setLargeItemCodeSet = (data) => {
-			const largeSelect = $('.largeCodeSeelct', $modal);
+			const largeSelect = $('.largeCodeSelect', $modal);
 			if (data.length > 0) {
 				data.forEach((itemCode) => {
 					const option = new Option(`${itemCode.codeNum} (${itemCode.codeName})`, itemCode.id);
@@ -239,7 +239,7 @@ $(function () {
 			);
 		})
 		// 대분류코드 변경에 따른 중분류 그리드 리로드
-		.on('change', '.largeCodeSeelct', function () {
+		.on('change', '.largeCodeSelect', function () {
 			const value = $(this).val();
 			$('.searchKeyword', $modal).val('');
 			$modal.resetMiddleGrid(value); // 중분류 그리드 초기화
@@ -293,13 +293,13 @@ $(function () {
 			// 중/소 분류별 확인사항
 			if (type == 'MIDDLE') {
 				// 선택된 대분류가 존재하는지
-				const largeCodeId = $('.largeCodeSeelct', $modal).val();
+				const largeCodeId = $('.largeCodeSelect', $modal).val();
 				if (!largeCodeId) {
 					gToast('대분류를 선택해주세요', 'warning');
 					return false;
 				}
 				itemCodeInfo.parentId = largeCodeId;
-				const largeCodeNum = $('.largeCodeSeelct', $modal).find('option:selected').data('codeNum');
+				const largeCodeNum = $('.largeCodeSelect', $modal).find('option:selected').data('codeNum');
 				// 분류코드는 정상적으로 3자리를 입력했고, 그게 대분류코드 prefix와 일치하는지?
 				if (
 					!checkInput(itemCodeInfo.codeNum) ||
@@ -475,7 +475,7 @@ $(function () {
 
 			let parentId;
 			if (codeLevel === 'MIDDLE') {
-				const largeCodeId = $('.largeCodeSeelct', $modal).val();
+				const largeCodeId = $('.largeCodeSelect', $modal).val();
 				if (!largeCodeId) {
 					gToast('대분류를 선택해주세요', 'warning');
 					return false;
