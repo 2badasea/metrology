@@ -110,7 +110,9 @@ public class AgentServiceImpl {
 		// entity에서 가져오자마자 DTO로 변환 후 api contorller로 리턴
 		
 		// 업체정보
-		AgentDTO.AgentRowData agentRowData = agentMapper.toAgentRowDataFromEntity(agentRepository.findByIsVisibleAndId(isVisible, id));
+		Agent agent = agentRepository.findByIsVisibleAndId(isVisible, id)
+				.orElseThrow(() -> new EntityNotFoundException("업체를 찾을 수 없습니다."));
+		AgentDTO.AgentRowData agentRowData = agentMapper.toAgentRowDataFromEntity(agent);
 		
 		// 첨부파일 존재하는지 확인 (refTableName, refTableId)
 		int fileCount = fileServiceImpl.getFileInfos("agent", id).size();

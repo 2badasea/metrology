@@ -63,6 +63,8 @@ public class BasicController {
 	@Operation(summary = "업체 단건 조회", description = "업체 고유 id로 업체 상세 정보 및 첨부파일 수 조회. 삭제된 업체(is_visible=n)는 조회되지 않음")
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "404", description = "업체 정보 없음",
+					content = @Content(schema = @Schema(implementation = ResMessage.class))),
 			@ApiResponse(responseCode = "500", description = "서버 오류",
 					content = @Content(schema = @Schema(implementation = ResMessage.class)))
 	})
