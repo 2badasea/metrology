@@ -14,7 +14,8 @@
       "Bash(dir:*)",
       "Bash(node:*)",
       "Bash(node -e:*)",
-      "Bash(py:*)"
+      "Bash(py:*)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

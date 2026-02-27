@@ -181,7 +181,17 @@ npm run lint                     # ESLint
     - Controller 메서드: `@Operation`(요약/설명) + `@ApiResponses`(응답코드)
     - DTO 필드: `@Schema`
     - 파라미터: `@Parameter`(필요 시)
-- `GlobalApiExceptionHandler`에서 처리하는 표준 에러 응답 코드(400/403/404/500)는 반드시 Swagger `@ApiResponses`에 포함합니다.
+- **`@ApiResponses` 작성 전 반드시 아래 두 가지를 직접 확인합니다.**
+    1. `GlobalApiExceptionHandler` — 예외 → 상태코드 변환 패턴
+    2. 해당 엔드포인트의 서비스 내부 로직 — 실제로 던질 수 있는 예외 종류
+- **이 프로젝트의 `@ApiResponses` 명시 기준** (`GlobalApiExceptionHandler` 분석 결과)
+    - `500`: 모든 엔드포인트에 항상 포함 (최종 방패 `Exception.class` → 500)
+    - `400`: `@Valid` 파라미터가 있거나 `@RequestBody`를 받는 엔드포인트에만 포함
+    - `404`: 서비스에서 `EntityNotFoundException`을 throw하는 경우에만 포함
+    - `403`: 서비스에서 `ForbiddenAdminModifyException`을 throw하는 경우에만 포함
+    - `401`: 명시 안 함 (미인증 접근 시 Security 필터가 로그인 페이지로 리다이렉트 처리, JSON 응답 아님)
+    - ※ `IllegalArgumentException`은 전용 핸들러 없어 500으로 처리됨 (400으로 착각 주의)
+    - ※ DELETE의 ADMIN 권한 체크는 Security 필터 레벨에서 처리되며 `ResMessage` 형식이 아니므로 `@ApiResponses` 대상 아님
 - Swagger UI 접근 정책(운영 노출 여부)은 **임의로 변경하지 않습니다**(사전 승인).
 - description 부분을 작성할 때는 서술형/문어체가 보통 단답/명료하게 작성할 것
   - ex) "Spring Security 필터가 요청을 가로채어 처리하므로 이 핸들러는 실행되지 않습니다." => "Spring Security 필터가 요청을 가로채어 처리하므로 이 핸들러는 실행되지 않음"
