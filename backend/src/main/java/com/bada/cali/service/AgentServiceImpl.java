@@ -164,6 +164,8 @@ public class AgentServiceImpl {
 		agentManagerRepository.delAgentManagerByAgentIds(deleteAgentIds, YnType.n, now, userId);
 		// 3. 사용자 삭제
 		memberRepository.delMemberByAgentIds(deleteAgentIds, YnType.n, now, userId);
+		// 4. 첨부파일 소프트삭제
+		fileServiceImpl.softDeleteFilesByRefTableIds("agent", deleteAgentIds, userId);
 		
 		
 		int deletedCount = deleteAgentIds.size();

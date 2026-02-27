@@ -29,6 +29,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -223,6 +224,12 @@ public class FileServiceImpl {
 	@Transactional
 	public int deleteFile(Long fileId, CustomUserDetails user) {
 		return fileInfoRepository.deleteFile(fileId, YnType.n, LocalDateTime.now(), user.getId());
+	}
+
+	// 특정 테이블의 여러 id에 해당하는 파일 일괄 소프트삭제 (업체/성적서 등 삭제 연계용)
+	@Transactional
+	public void softDeleteFilesByRefTableIds(String refTableName, Collection<Long> refTableIds, Long userId) {
+		fileInfoRepository.softDeleteByRefTableIds(refTableName, refTableIds, YnType.n, LocalDateTime.now(), userId);
 	}
 	
 	
