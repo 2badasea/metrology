@@ -56,7 +56,7 @@
 	<!-- 개별 페이지에 해당하는 script와 css 파일 연동 -->
 	<!-- onerror 이벤트를 통해 해당 경로의 리소스가 없는 경우 404에러를 방지하기 위해 해당 태그 자체를 삭제처리 -->
 	<th:block th:if="${viewName != null}">
-		<link rel="stylesheet" th:href="@{'/css/' + ${viewName} + '.css'}"/>
+		<link th:if="${hasCss}" rel="stylesheet" th:href="@{'/css/' + ${viewName} + '.css'}"/>
 		<script th:src="@{'/js/' + ${viewName} + '.js'}"></script>
 	</th:block>
 </th:block>
