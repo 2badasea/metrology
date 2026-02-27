@@ -302,10 +302,7 @@ public class FileServiceImpl {
 		String bucket = storageProps.getBucketName();
 		String rootDir = storageProps.getRootDir();
 		String filePath = String.format("%s/%s/%s/%s%d.%s", endPoint, bucket,rootDir, dir, fileInfoId, extension);
-		
-		log.info("확인");
-		log.info(filePath);
-		
+
 		return filePath;
 	}
 	

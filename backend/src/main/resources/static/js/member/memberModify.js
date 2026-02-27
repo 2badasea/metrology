@@ -55,8 +55,7 @@
 					}
 				}
 			} catch (xhr) {
-				console.error(xhr);
-				customAjaxHandler(xhr);
+				gApiErrorHandler(xhr);
 			} finally {
 			}
 		}
@@ -483,7 +482,7 @@
 						await gMessage(`직원정보 ${saveTypeKr}`, errData?.msg ?? '서버 오류가 발생했습니다.', 'warning', 'alert');
 					}
 				} catch (xhr) {
-					customAjaxHandler(xhr);
+					gApiErrorHandler(xhr);
 				} finally {
 					Swal.close();
 					$btn.prop('disabled', false);
@@ -513,36 +512,38 @@
 		})
 		// 이미지 삭제 클릭
 		.on('click', '.deleteUserImg', async function (e) {
-			// 이미지 파일이 존재하는 경우, db에서 삭제를 시킨다.
 			const imgFileId = $('input[name=imgFileId]', $modal).val();
 			if (imgFileId > 0) {
+				// DB에 저장된 이미지 → confirm 후 API 삭제
 				const deleteCheck = await gMessage('이미지 삭제', '기존 업로드 이미지를 삭제하시겠습니까?', 'question', 'confirm');
-				if (deleteCheck.isConfirmed === true) {
-					gLoadingMessage();
-					try {
-						const resDelete = await gAjax('/api/file/fileDelete/' + imgFileId);
-						Swal.close(); // 통신이 끝나면 로딩창을 닫는다.
-						if (resDelete?.code > 0) {
-							await gMessage(`이미지 삭제`, `삭제되었습니다.`, 'success', 'alert');
-							$('input[name=imgFileId]', $modal).val('');
-						} else {
-							await gMessage(`이미지 삭제`, `삭제처리에 실패했습니다.`, 'warning', 'alert');
-						}
-					} catch (xhr) {
-						customAjaxHandler(xhr);
-					} finally {
-						Swal.close();
-					}
+				if (!deleteCheck.isConfirmed) {
+					return false;
 				}
-			} else {
-				return false;
+				gLoadingMessage();
+				try {
+					const resDelete = await gAjax('/api/file/fileDelete/' + imgFileId);
+					Swal.close();
+					if (resDelete?.code > 0) {
+						await gMessage('이미지 삭제', '삭제되었습니다.', 'success', 'alert');
+						$('input[name=imgFileId]', $modal).val('');
+					} else {
+						await gMessage('이미지 삭제', '삭제처리에 실패했습니다.', 'warning', 'alert');
+						return false;
+					}
+				} catch (xhr) {
+					gApiErrorHandler(xhr);
+					return false;
+				} finally {
+					Swal.close();
+				}
 			}
+			// imgFileId가 없는 경우: 로컬 미리보기만 초기화 (API 호출 없음)
 
-			// 미리보기 객체가 있다면, 지우고 기본 이미지 경로로 교체한다.
+			// 미리보기 객체가 있다면 해제하고 기본 이미지로 교체
 			if (previewUrl) {
 				URL.revokeObjectURL(previewUrl);
+				previewUrl = null;
 			}
-			// input file 초기화
 			$('input[name=memberImage]', $modal).val('');
 			$modal.find('.memberImgEle').attr('src', '/images/basic_user.png').css('display', 'block');
 		})
