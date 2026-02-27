@@ -421,6 +421,12 @@ public class AgentServiceImpl {
 		return 1;
 	}
 	
+	// 업체담당자 조회 모달용 리스트 반환 (대표여부 y 우선 정렬)
+	@Transactional(readOnly = true)
+	public List<AgentManagerDTO.AgentManagerRowData> getManagerList(Long agentId) {
+		return agentManagerRepository.getManagerListOrderByMainYn(agentId);
+	}
+
 	// 업체명을 통해서 업체 정보 확인 후 리턴
 	@Transactional(readOnly = true)
 	public Map<String, String> chkAgentInfo(String agentName) {

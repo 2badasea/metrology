@@ -1,7 +1,7 @@
 package com.bada.cali.controller;
 
 import com.bada.cali.dto.AgentManagerDTO;
-import com.bada.cali.repository.AgentManagerRepository;
+import com.bada.cali.service.AgentServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Controller;
@@ -17,7 +17,7 @@ import java.util.List;
 @Log4j2
 @AllArgsConstructor
 public class AgentController {
-	private final AgentManagerRepository agentManagerRepository;
+	private final AgentServiceImpl agentService;
 	
 	// 업체 조회 [모달]
 	@PostMapping(value = "/searchAgentModify")
@@ -33,10 +33,7 @@ public class AgentController {
 	// 업체 담당자 조회 [모달]
 	@PostMapping(value = "/searchAgentManager")
 	public String searchAgentManager(Model model, @RequestParam Long agentId) {
-		
-		// FIX 컨트롤러에서 바로 DB 조회하지 않도록 변경할 것 (서비스 계층을 통해서 처리)
-		// @Query 애너테이션을 이용하여 DTO반환을 하기 위해서는 select절에서 생성자를 통해 객체 반환
-		List<AgentManagerDTO.AgentManagerRowData> managerList = agentManagerRepository.getManagerListOrderByMainYn(agentId);
+		List<AgentManagerDTO.AgentManagerRowData> managerList = agentService.getManagerList(agentId);
 		model.addAttribute("managerList", managerList);
 		
 		return "agent/searchAgentManager";
