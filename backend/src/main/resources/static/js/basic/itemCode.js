@@ -518,7 +518,7 @@ $(function () {
 				codeLevel: type,
 			}),
 			{
-				type: 'POST',
+				type: 'DELETE',
 				contentType: 'application/json; charset=utf-8',
 			}
 		);
