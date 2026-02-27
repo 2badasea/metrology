@@ -125,7 +125,7 @@ public class ItemCodeServiceImpl {
 					.refTableId(id)
 					.createDatetime(now)
 					.createMemberId(userId)
-					.logType("i")
+					.logType(itemCode.id() == null ? "i" : "u")
 					.logContent(logContent)
 					.build();
 			
