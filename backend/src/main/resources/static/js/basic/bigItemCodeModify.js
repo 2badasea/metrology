@@ -41,7 +41,6 @@ $(function () {
 					header: '분류코드',
 					name: 'codeNum',
 					width: '80',
-					editor: 'text',
 					editor: {
 						type: readOnlyEditorByCondition,
 						conditions: {
