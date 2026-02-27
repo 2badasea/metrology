@@ -111,10 +111,9 @@ public class ItemCodeServiceImpl {
 			}
 			// 영속성 컨텍스트 -> dirty checking으로 업데이트
 			else {
-				// 조회 후, record -> entity로 mapping target후, update_datetime, member_id set()처리
+				// 조회 후, record -> entity로 mapping target후 update_member_id set() 처리
 				ItemCode updateEntity = itemCodeRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("수정할 품목코드 정보를 찾을 수 없습니다."));
 				itemCodeMapper.toEntityForUpdate(itemCode, updateEntity);
-				updateEntity.setUpdateDatetime(now);
 				updateEntity.setUpdateMemberId(userId);
 			}
 			

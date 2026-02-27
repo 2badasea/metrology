@@ -304,7 +304,6 @@ public class AgentServiceImpl {
 		else {
 			Agent originAgent = agentRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("업체를 찾을 수 없습니다."));
 			Agent updateAgent = agentMapper.toEntityFromUpdateDTO(saveAgentDataReq, originAgent);
-			updateAgent.setUpdateDatetime(now);
 			updateAgent.setUpdateMemberId(user.getId());        // 로그인 사용자
 			agentRepository.save(updateAgent);
 		}
@@ -404,7 +403,6 @@ public class AgentServiceImpl {
 					// NOTE 별도로 save() 안 해도, @Transactional 이면 dirty checking으로 업데이트 함
 					// mapstruct를 이용하여 값 덮어쓰기
 					agentManagerMapper.updateEntity(row, existingEntity);
-					existingEntity.setUpdateDatetime(now);
 					existingEntity.setUpdateMemberId(user.getId());
 				}
 			}

@@ -256,3 +256,45 @@ UpdateMemberReq req = new UpdateMemberReq("홍길동", null, null, ...);
 - 특정 필드만 `IGNORE` 전략에서 제외하고 싶다면 → 해당 필드에 별도 `@Mapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)` 추가
 
 ---
+
+## 16. `updatable=false` + MySQL `ON UPDATE CURRENT_TIMESTAMP` 패턴 [중급]
+
+**배경**: `Agent`, `AgentManager` 등 모든 엔티티의 `update_datetime` 컬럼에 `@Column(updatable=false)`가 붙어 있는데, 서비스에서 `setUpdateDatetime(now)`를 호출하고 있어 "의도된 코드인지, 버그인지" 판단이 필요했다.
+
+**분석 결과**:
+
+- DB(`schema.sql`)에서 해당 컬럼이 `ON UPDATE CURRENT_TIMESTAMP`로 선언되어 있어 MySQL이 UPDATE 시 자동 갱신
+- `updatable=false`는 JPA가 UPDATE 쿼리의 SET 절에 이 컬럼을 포함하지 않도록 의도적으로 설정한 것
+- 서비스에서의 `setUpdateDatetime(now)` 호출은 영속성 컨텍스트의 필드 값을 바꾸지만 JPA는 `updatable=false` 때문에 SQL에 포함하지 않음 → **dead code**
+- 실제 DB에는 MySQL 자동 갱신으로 반영되므로 동작에는 문제 없음
+
+**제거 대상 서비스 목록** (프로젝트 전체):
+- `AgentServiceImpl`, `ReportServiceImpl`, `MemberServiceImpl`
+- `ItemServiceImpl`, `ItemCodeServiceImpl`, `EquipmentServiceImpl`, `CaliOrderServiceImpl`
+
+```java
+// Before (dead code - JPA가 UPDATE 절에 포함하지 않음)
+entity.setUpdateDatetime(now);
+entity.setUpdateMemberId(userId);
+
+// After (DB가 자동 갱신하므로 setUpdateDatetime 호출 불필요)
+entity.setUpdateMemberId(userId);
+```
+
+**핵심 메커니즘**:
+```sql
+-- schema.sql
+update_datetime DATETIME NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP
+```
+```java
+// Entity
+@Column(name = "update_datetime", insertable = false, updatable = false)
+private LocalDateTime updateDatetime;
+```
+
+#### 유지보수 포인트
+- 새 엔티티에 `update_datetime` 컬럼을 추가할 때 → `updatable=false` + schema.sql `ON UPDATE CURRENT_TIMESTAMP` 쌍으로 선언
+- `setUpdateDatetime()`을 다시 서비스에 추가해도 동작은 하지만 dead code → 추가하지 않을 것
+- MySQL이 아닌 다른 DB로 전환 시 → `ON UPDATE CURRENT_TIMESTAMP` 지원 여부 확인 필요. 없으면 `updatable=false` 제거하고 서비스에서 직접 세팅해야 함
+
+---

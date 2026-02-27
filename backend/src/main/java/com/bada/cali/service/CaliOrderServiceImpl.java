@@ -150,7 +150,6 @@ public class CaliOrderServiceImpl {
 			saveEntity = caliOrderRepository.findById(caliOrderId).orElseThrow(() -> new EntityNotFoundException("해당 접수 건이 존재하지 않습니다."));
 			// ! mapstruct mapper를 통해 영속성 엔티티 확보 & 넘어온 접수정보 기반으로 entity에 씌우기
 			caliOrderMapper.updateEntityFromDto(orderData, saveEntity);
-			saveEntity.setUpdateDatetime(now);
 			saveEntity.setUpdateMemberId(userId);
 		} else {
 			log.info("2222..그럼여기?");

@@ -338,7 +338,6 @@ public class MemberServiceImpl {
 
 		memberMapper.updateMemberByReq(req, originMember);
 		originMember.setUpdateMemberId(userId);
-		originMember.setUpdateDatetime(now);
 
 		// 비밀번호가 넘어온 경우 업데이트
 		String reqPwd = req.pwd();
