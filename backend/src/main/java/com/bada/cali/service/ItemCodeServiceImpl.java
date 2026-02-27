@@ -249,6 +249,7 @@ public class ItemCodeServiceImpl {
 	}
 	
 	// 분류코드 데이터 가져오기
+	@Transactional(readOnly = true)
 	public ResMessage<List<ItemCodeList>> getItemCodeSet(CodeLevel codeLevel) {
 		int resCode = 1;
 		String resMsg = "";
