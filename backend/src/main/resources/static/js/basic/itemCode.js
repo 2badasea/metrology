@@ -149,7 +149,7 @@ $(function () {
 		// 소분류 그리드 포커싱 row 체크
 		$modal.smallSelectedRowKey = null;
 		$modal.smallGrid.on('focusChange', function (ev) {
-			if ($modal.middleSelectedRowKey != null && $modal.smallSelectedRowKey >= 0) {
+			if ($modal.smallSelectedRowKey != null && $modal.smallSelectedRowKey >= 0) {
 				$modal.smallGrid.removeRowClassName($modal.smallSelectedRowKey, 'gridFocused');
 			}
 			$modal.smallSelectedRowKey = ev.rowKey;
