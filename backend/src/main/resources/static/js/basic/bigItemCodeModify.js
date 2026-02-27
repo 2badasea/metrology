@@ -211,10 +211,8 @@ $(function () {
 		});
 
 		$modal.grid.on('afterChange', function (e) {
-			console.log('chagne');
-			console.log(e);
 			const rowKey = e.rowKey;
-			if (!Array.isArray($modal.updatedRow)) {
+			if (!Array.isArray($modal.updatedRowKey)) {
 				$modal.updatedRowKey = [];
 			}
 			$modal.updatedRowKey.push(rowKey);
