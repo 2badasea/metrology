@@ -457,8 +457,10 @@ $(function () {
 						return false;
 					}
 				} else {
+					throw resCheck;
 				}
 			} catch (err) {
+				gApiErrorHandler(err);
 			} finally {
 				Swal.close();
 				return false;
