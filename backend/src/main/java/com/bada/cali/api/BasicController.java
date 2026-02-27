@@ -13,6 +13,7 @@ import com.bada.cali.service.AgentServiceImpl;
 import com.bada.cali.service.BasicServiceImpl;
 import com.bada.cali.service.ItemCodeServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -154,23 +155,42 @@ public class BasicController {
 		return ResponseEntity.ok(body);
 	}
 	
-	// 업체정보 등록/수정
-	@Operation(summary = "업체 등록/수정", description = "업체 정보 등록 또는 수정. id가 없으면 등록, 있으면 수정. 수정 시 업체 또는 담당자 id가 존재하지 않으면 404")
+	// 업체 등록
+	@Operation(summary = "업체 등록", description = "신규 업체 정보 등록. 신청업체(agentFlag=1)이고 사업자번호가 있으면 업체 계정(member)도 자동 생성")
 	@ApiResponses({
-			@ApiResponse(responseCode = "200", description = "처리 성공"),
+			@ApiResponse(responseCode = "201", description = "등록 성공"),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
+	@PostMapping(value = "/agents")
+	public ResponseEntity<ResMessage<Object>> createAgent(
+			@RequestPart("saveAgentDataReq") AgentDTO.SaveAgentDataReq saveAgentDataReq,
+			@RequestPart(value = "files", required = false) List<MultipartFile> files,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		int res = agentService.saveAgent(saveAgentDataReq, files, user);
+		return ResponseEntity.status(201).body(new ResMessage<>(res, null, null));
+	}
+
+	// 업체 수정
+	@Operation(summary = "업체 수정", description = "기존 업체 정보 수정. 업체 또는 담당자 id가 존재하지 않으면 404")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "수정 성공"),
 			@ApiResponse(responseCode = "404", description = "업체 또는 담당자 정보 없음",
 					content = @Content(schema = @Schema(implementation = ResMessage.class))),
 			@ApiResponse(responseCode = "500", description = "서버 오류",
 					content = @Content(schema = @Schema(implementation = ResMessage.class)))
 	})
-	@PostMapping(value = "/saveAgent")
-	public ResponseEntity<ResMessage<Object>> saveAgent(
+	@PatchMapping(value = "/agents/{id}")
+	public ResponseEntity<ResMessage<Object>> updateAgent(
+			@Parameter(description = "업체 고유 id", required = true, example = "1")
+			@PathVariable Long id,
 			@RequestPart("saveAgentDataReq") AgentDTO.SaveAgentDataReq saveAgentDataReq,
 			@RequestPart(value = "files", required = false) List<MultipartFile> files,
 			@AuthenticationPrincipal CustomUserDetails user
 	) {
-		int resSaveAgent = agentService.saveAgent(saveAgentDataReq, files, user);
-		return ResponseEntity.ok(new ResMessage<>(resSaveAgent, null, null));
+		int res = agentService.saveAgent(saveAgentDataReq, files, user);
+		return ResponseEntity.ok(new ResMessage<>(res, null, null));
 	}
 	
 	// 분류코드 정보 가져오기 (토스트리스트)

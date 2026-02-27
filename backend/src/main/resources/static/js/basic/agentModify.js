@@ -453,7 +453,9 @@ $(function () {
 			gLoadingMessage(); // 로딩창
 
 			try {
-				const res = await gAjax('/api/basic/saveAgent', sendFormData);
+				const url = agentId > 0 ? `/api/basic/agents/${agentId}` : '/api/basic/agents';
+				const method = agentId > 0 ? { type: 'patch' } : {};
+				const res = await gAjax(url, sendFormData, method);
 				if (res?.code == 1) {
 					await gMessage(`업체정보 ${saveTypeTxt}`, `업체정보가 ${saveTypeTxt} 되었습니다.`, 'success');
 					$modal_root.modal('hide');
