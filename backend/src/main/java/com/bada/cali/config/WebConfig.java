@@ -1,7 +1,9 @@
 package com.bada.cali.config;
 
+import com.bada.cali.security.MenuAccessInterceptor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -12,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -20,7 +23,10 @@ import java.util.List;
 import java.util.Map;
 
 @Configuration
+@RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
+
+	private final MenuAccessInterceptor menuAccessInterceptor;
 
 	/**
 	 * Tomcat은 기본적으로 POST만 multipart/form-data를 파싱함.
@@ -91,6 +97,24 @@ public class WebConfig implements WebMvcConfigurer {
 
 		@Override
 		public HttpHeaders getMultipartHeaders(String paramOrFileName) { return delegate.getMultipartHeaders(paramOrFileName); }
+	}
+
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(menuAccessInterceptor)
+				.addPathPatterns("/**")
+				.excludePathPatterns(
+						"/api/**",
+						"/swagger-ui/**",
+						"/v3/api-docs/**",
+						"/member/login",
+						"/member/memberJoin",
+						"/guide/**",
+						"/error/**",
+						"/css/**",
+						"/js/**",
+						"/vendor/**"
+				);
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package com.bada.cali.config;
 
 import com.bada.cali.exceptions.ForbiddenAdminModifyException;
+import com.bada.cali.exceptions.MenuAccessDeniedException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -47,5 +48,16 @@ public class GlobalViewExceptionHandler {
 		model.addAttribute("path", request.getRequestURI());
 		return "error/403";
 	}
-	
+
+	@ExceptionHandler(MenuAccessDeniedException.class)
+	public String handleMenuAccessDenied(
+			MenuAccessDeniedException ex,
+			Model model,
+			HttpServletRequest request
+	) {
+		model.addAttribute("errMsg", ex.getMessage());
+		model.addAttribute("path", request.getRequestURI());
+		return "error/403";
+	}
+
 }

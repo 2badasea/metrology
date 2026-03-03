@@ -27,10 +27,12 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 		log.debug("Login success hook called");
 
-		String loginId = authentication.getName();
+		// loadUserByUsername에서 이미 조회·검증된 CustomUserDetails를 Principal에서 직접 사용
+		// — loginId로 DB를 재조회하는 중복 쿼리 제거
+		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 		String clientIp = Utils.getClientIp(request);
 
-		ResMessage<Object> resMessage = memberService.processLoginSuccess(loginId, clientIp);
+		ResMessage<Object> resMessage = memberService.processLoginSuccess(userDetails, clientIp);
 
 		response.setStatus(200);
 		response.setContentType("application/json;charset=utf-8");

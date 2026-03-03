@@ -1,7 +1,6 @@
 package com.bada.cali.service;
 
 import com.bada.cali.common.ResMessage;
-import com.bada.cali.common.enums.AuthType;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.MemberDTO;
 import com.bada.cali.dto.TuiGridDTO;
@@ -51,49 +50,50 @@ public class MemberServiceImpl {
 	
 	/**
 	 * 로그인 성공 처리 (로그인 카운트 초기화, 마지막 로그인 일시 갱신, 비밀번호 만료 경고, 이력 저장)
+	 * loadUserByUsername에서 이미 조회·검증된 CustomUserDetails를 직접 사용 — DB 재조회 없음
 	 *
-	 * @param loginId  로그인 아이디
-	 * @param clientIp 클라이언트 IP
+	 * @param userDetails 로그인 성공한 사용자 (SecurityContext의 Principal)
+	 * @param clientIp    클라이언트 IP
 	 * @return 응답 코드(1: 일반, 2: 관리자)와 환영 메시지
 	 */
 	@Transactional
-	public ResMessage<Object> processLoginSuccess(String loginId, String clientIp) {
-		Member loginMember = memberRepository.findByLoginId(loginId, YnType.y)
-				.orElseThrow(() -> new IllegalStateException("Successful authentication but user not found"));
+	public ResMessage<Object> processLoginSuccess(CustomUserDetails userDetails, String clientIp) {
+		Long userId = userDetails.getId();
+		String userName = userDetails.getName();
 
 		LocalDateTime now = LocalDateTime.now();
-		String resMsg = loginMember.getName() + "님 로그인을 환영합니다.";
+		String resMsg = userName + "님 로그인을 환영합니다.";
 		int resCode = 1;
 
-		// 로그인 성공 시 실패 카운트 초기화
-		if (loginMember.getLoginCount() > 0) {
-			memberRepository.updateMemberLoginCount(loginMember.getId(), 0);
-		}
+		// 로그인 성공 시 실패 카운트 초기화 (이미 0이어도 안전한 업데이트)
+		memberRepository.updateMemberLoginCount(userId, 0);
 
 		// 마지막 로그인 일시 업데이트
-		memberRepository.updateLastLogin(loginMember.getId());
+		memberRepository.updateLastLogin(userId);
 
 		// 마지막 비밀번호 변경일시 체크(3개월)
-		LocalDateTime lastPwdUpdate = loginMember.getLastPwdUpdated();
+		LocalDateTime lastPwdUpdate = userDetails.getLastPwdUpdated();
 		if (lastPwdUpdate != null && now.isAfter(lastPwdUpdate.plusMonths(3))) {
 			resMsg += "<br>비밀번호를 마지막으로 변경한 지<br>3개월이 지났습니다.<br>변경을 권장드립니다.";
 		}
 
 		// 관리자 계정 구분
-		if (loginMember.getAuth() == AuthType.admin) {
+		boolean isAdmin = userDetails.getAuthorities().stream()
+				.anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+		if (isAdmin) {
 			resCode = 2;
 		}
 
 		// 로그인 성공 이력 저장
 		Log successLog = Log.builder()
 				.logIp(clientIp)
-				.workerName(loginMember.getName())
-				.logContent("[로그인 성공] - " + loginMember.getName() + " 님이 로그인 하셨습니다.")
+				.workerName(userName)
+				.logContent("[로그인 성공] - " + userName + " 님이 로그인 하셨습니다.")
 				.logType("l")
 				.refTable("member")
-				.refTableId(loginMember.getId())
+				.refTableId(userId)
 				.createDatetime(now)
-				.createMemberId(loginMember.getId())
+				.createMemberId(userId)
 				.build();
 		logRepository.save(successLog);
 
