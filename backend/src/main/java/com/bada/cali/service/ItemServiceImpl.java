@@ -217,7 +217,8 @@ public class ItemServiceImpl {
 							.refTableId(savedEntity.getId())
 							.logContent(String.format("[품목 수수료 추가] 품목 고유번호: %d, - 고유번호: %d", itemId, savedEntity.getId()))
 							.build();
-					
+					logRepository.save(saveFeeLog);
+
 				} else {
 					ItemFeeHistory originEntity = itemFeeHistoryRepository.findById(itemFeeHistoryId).orElseThrow(() -> new EntityNotFoundException("수정할 교정수수료 정보가 없습니다."));
 					
