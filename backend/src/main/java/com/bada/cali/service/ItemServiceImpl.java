@@ -97,7 +97,7 @@ public class ItemServiceImpl {
 		int resCode = 0;
 		String resMsg = "";
 		
-		Item item = itemRepository.findById(id).orElseThrow(() -> new RuntimeException("품목정보가 존재하지 않습니다."));
+		Item item = itemRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("품목정보가 존재하지 않습니다."));
 		resCode = 1;
 		// mapstruct를 통해 entity -> record(dto)로 변환
 		ItemDTO.ItemData itemData = itemMapper.toRecordFromEntity(item);
