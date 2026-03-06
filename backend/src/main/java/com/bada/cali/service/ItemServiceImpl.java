@@ -281,7 +281,7 @@ public class ItemServiceImpl {
 		logRepository.save(saveLog);
 		
 		// 교정수수료 이력이 존재할 경우, 같이 복사한다.
-		List<ItemFeeHistoryList> itemFeeHistoryListProjection = itemRepository.getItemFeeHistory(itemId);
+		List<ItemFeeHistoryList> itemFeeHistoryListProjection = itemRepository.getItemFeeHistory(id);
 		
 		if (!itemFeeHistoryListProjection.isEmpty()) {
 			for (ItemFeeHistoryList itemFee : itemFeeHistoryListProjection) {
