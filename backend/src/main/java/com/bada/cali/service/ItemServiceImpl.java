@@ -64,15 +64,15 @@ public class ItemServiceImpl {
 		
 		log.info("넘어오는 값 확인");
 		String name = req.getName();
-		if (name.isBlank()) {
+		if (name == null || name.isBlank()) {
 			name = null;
 		}
 		String makeAgent = req.getMakeAgent();
-		if (makeAgent.isBlank()) {
+		if (makeAgent == null || makeAgent.isBlank()) {
 			makeAgent = null;
 		}
 		String format = req.getFormat();
-		if (format.isBlank()) {
+		if (format == null || format.isBlank()) {
 			format = null;
 		}
 		
@@ -328,6 +328,7 @@ public class ItemServiceImpl {
 				Log deleteLog = Log.builder()
 						.logType("d")
 						.refTable("item")
+						.refTableId(delItemIds.get(0))
 						.logContent(logContent)
 						.createDatetime(now)
 						.createMemberId(userId)

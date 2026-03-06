@@ -149,13 +149,6 @@ $(function () {
 				},
 			},
 			{
-				header: '비고',
-				name: 'remark',
-				width: '100',
-				className: 'cursor_pointer',
-				align: 'center',
-			},
-			{
 				header: '당사가능여부',
 				name: 'isInhousePossible',
 				width: '100',
@@ -218,6 +211,7 @@ $(function () {
 							},
 						};
 						const resCopy = await fetch(`/api/item/copyItem?id=${row.id}`, options);
+						if (!resCopy.ok) throw resCopy;
 						if (resCopy.ok) {
 							const resData = await resCopy.json();
 							if (resData?.code > 0) {
