@@ -2,6 +2,7 @@ package com.bada.cali.repository;
 
 import com.bada.cali.entity.MemberPermissionRead;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -16,5 +17,10 @@ public interface MemberPermissionReadRepository extends JpaRepository<MemberPerm
 			"from MemberPermissionRead mpr " +
 			"where mpr.member.id = :memberId")
 	List<Long> findMenuIdsByMemberId(@Param("memberId") Long memberId);
-	
+
+	// 특정 멤버의 모든 메뉴 권한 삭제 (저장 시 replace 방식에 사용)
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("DELETE FROM MemberPermissionRead mpr WHERE mpr.member.id = :memberId")
+	void deleteAllByMemberId(@Param("memberId") Long memberId);
+
 }

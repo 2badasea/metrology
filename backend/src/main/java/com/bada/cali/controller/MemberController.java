@@ -47,6 +47,12 @@ public class MemberController {
 		return "member/memberManage";
 	}
 	
+	// 직원 메뉴권한 [모달]
+	@RequestMapping(value = "/menuPermission", method = {RequestMethod.POST, RequestMethod.GET})
+	public String menuPermission() {
+		return "member/menuPermission";
+	}
+
 	// 직원 등록/수정 페이지
 	@GetMapping(value = "/memberModify")
 	public String memberModify(Model model, @RequestParam(required = false) Long id, @AuthenticationPrincipal CustomUserDetails user) {
