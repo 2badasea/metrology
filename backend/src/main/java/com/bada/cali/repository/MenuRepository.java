@@ -14,4 +14,7 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
 	// isVisible = 'y' 이면서, 로그인한 유저가 접근 가능한 메뉴만 depth, sort_order 순으로 조회
 	List<Menu> findByIsVisibleAndIdInOrderByDepthAscSortOrderAsc(YnType isVisible,
 																 Collection<Long> ids);
+
+	// isVisible = 'y' 인 전체 메뉴를 depth, sort_order 순으로 조회 (캐시용 — MenuQueryService에서 사용)
+	List<Menu> findByIsVisibleOrderByDepthAscSortOrderAsc(YnType isVisible);
 }

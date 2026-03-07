@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.stream.Collectors;
 
@@ -53,7 +54,15 @@ public class GlobalApiExceptionHandler {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResMessage<>(-1, ex.getMessage(), null));
 	}
 
-	// 5) 최종 방패 → 500
+	// 5) 파일 크기 초과 → 413
+	@ExceptionHandler(MaxUploadSizeExceededException.class)
+	public ResponseEntity<ResMessage<Object>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+		log.warn("[파일 크기 초과] {}", ex.getMessage());
+		return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+				.body(new ResMessage<>(-1, "파일 크기가 허용 범위를 초과했습니다.", null));
+	}
+
+	// 6) 최종 방패 → 500
 	// TODO 추후 각 예외에 맞는 커스텀 메시지를 구현하기 위해 커스텀 예외클래스에 대한 패키지를 별도로 만들어서 관리할 것
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ResMessage<Object>> handleApiException(Exception exception) {

@@ -54,6 +54,8 @@ npm run lint                     # ESLint
 - 특정 페이지 또는 기능에 대한 **검토/점검**을 지시받으면, 해당 기능과 관련된 **프론트엔드 및 백엔드 로직 전체**를 직접 읽고 점검합니다.
   - **프론트엔드**: Thymeleaf HTML 템플릿, JS 파일, CSS 파일
   - **백엔드**: Entity, DTO, SSR Controller, REST API Controller, Service, Repository, Security(인증/인가 핸들러 포함)
+  - **런타임 설정**: `application.properties` — multipart 크기 제한, DB 설정 등 런타임 동작에 영향을 주는 설정값 반드시 확인
+  - **예외처리 커버리지**: `GlobalApiExceptionHandler` — 해당 기능에서 발생 가능한 예외가 모두 핸들링되는지 확인. 컨트롤러 실행 이전(예: multipart 파싱 단계)에 던져지는 예외는 `@RestControllerAdvice`가 잡지 못할 수 있으므로 특히 주의
 - 탐색 에이전트 요약만 참고하는 것은 점검으로 인정하지 않습니다. **파일을 직접 읽은 것만** 점검한 것으로 간주합니다.
 - 점검 후 수정 사항은 "즉시 수정 항목"과 "제안 사항(승인 필요)"으로 구분하여 보고합니다.
 

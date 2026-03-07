@@ -38,7 +38,7 @@ $(function () {
 					const itemInfo = resGetItemInfo.data;
 					$('form[name=itemModifyForm]', $modal).find('input[name], select[name]').setupValues(itemInfo);
 					$(`input[name=isInhousePossible][value=${itemInfo.isInhousePossible}]`, $modal).trigger('click'); // 당사가능여부 세팅
-					$modal.setSmallCode(itemInfo.middleItemCodeId, itemInfo.smallItemCodeId, 500); // 중소분류 세팅
+					$modal.setSmallCode(itemInfo.middleItemCodeId, itemInfo.smallItemCodeId); // 중소분류 세팅
 				}
 			} catch (err) {
 				customAjaxHandler(err);
@@ -149,28 +149,29 @@ $(function () {
 			);
 		})
 		// 수수료 이력 삭제
-		.on('click', '.delFeeHistory', function () {
+		.on('click', '.delFeeHistory', async function () {
 			const checkedRows = $modal.grid.getCheckedRows();
 			if (checkedRows.length === 0) {
 				gToast('삭제할 이력을 선택해주세요.');
 				return false;
-			} else {
-				const removeRowKeyAry = [];
-				// 삭제할 아이디는 배열에 담는다(저장 시 반영)
-				checkedRows.forEach((row, index) => {
-					if (row.id != undefined && row.id > 0) {
-						delHistoryIds.push(row.id);
-					}
-					removeRowKeyAry.push(row.rowKey);
-				});
-				if (delHistoryIds.length > 0) {
-					gToast('삭제된 이력은 저장 시 반영됩니다.', 'info');
+			}
+			const confirmResult = await gMessage('수수료 이력 삭제', '선택한 이력을 삭제하시겠습니까?', 'question', 'confirm');
+			if (!confirmResult.isConfirmed) return false;
+			const removeRowKeyAry = [];
+			// 삭제할 아이디는 배열에 담는다(저장 시 반영)
+			checkedRows.forEach((row, index) => {
+				if (row.id != undefined && row.id > 0) {
+					delHistoryIds.push(row.id);
 				}
-				$modal.grid.removeRows(removeRowKeyAry);
+				removeRowKeyAry.push(row.rowKey);
+			});
+			if (delHistoryIds.length > 0) {
+				gToast('삭제된 이력은 저장 시 반영됩니다.', 'info');
+			}
+			$modal.grid.removeRows(removeRowKeyAry);
 
-				if ($modal.grid.getRowCount() === 0) {
-					$modal.grid.appendRow({ baseFee: 0 }, { at: 0 });
-				}
+			if ($modal.grid.getRowCount() === 0) {
+				$modal.grid.appendRow({ baseFee: 0 }, { at: 0 });
 			}
 		});
 
@@ -272,7 +273,7 @@ $(function () {
 		const mapIterator = baseDateMap.keys(); // Map Iterator(반복자) 를 반환
 		const baseDateAry = [...mapIterator]; // 배열화
 		baseDateAry.sort(); // 오름차순 정렬
-		const recentFee = baseDateMap.get(baseDateAry.at(-1)); // 가장 최신 긍액
+		const recentFee = baseDateMap.get(baseDateAry[baseDateAry.length - 1]); // 가장 최신 금액
 
 		formData.fee = recentFee; // 금액정보 담기
 

@@ -212,6 +212,9 @@ public class MemberDTO {
 	// 	Long imgFileId;
 	// }
 	
+	// 직원 삭제 요청 DTO
+	public record DeleteMemberReq(List<Long> ids) {}
+
 	// 조합( record + class)
 	public record GetMemberInfoSet(
 			GetMemberInfoPr basicMemberInfo,

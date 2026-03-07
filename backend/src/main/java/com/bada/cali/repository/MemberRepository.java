@@ -107,6 +107,22 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 			PageRequest pageRequest
 	);
 	
+	// 직원 소프트삭제 (id 목록 기준, 이미 삭제된 건 제외)
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+			update Member m
+			   set m.isVisible      = :isVisible,
+			       m.deleteDatetime = :deleteDatetime,
+			       m.deleteMemberId = :deleteMemberId
+			 where m.id in :ids
+			   and m.isVisible = 'y'
+			""")
+	int softDeleteByIds(@Param("ids") List<Long> ids,
+						@Param("isVisible") YnType isVisible,
+						@Param("deleteDatetime") LocalDateTime deleteDatetime,
+						@Param("deleteMemberId") Long deleteMemberId);
+
+	// FileInfo가 복수 존재할 경우 NonUniqueResultException 방어 → List 반환 후 서비스에서 첫 번째 사용
 	@Query("""
 			   select
 			     m.loginId AS loginId,
@@ -127,16 +143,17 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 			     m.workType AS workType,
 			     m.remark AS remark,
 			     f.id AS imgFileId,
-				 f.extension as extension,
-				 f.dir as dir
+			     f.extension as extension,
+			     f.dir as dir
 			    FROM Member m
 			    LEFT JOIN FileInfo f
 			      ON f.refTableName = 'member'
-			     and f.refTableId = :id
+			     AND f.refTableId = :id
 			     AND f.isVisible = :isVisible
 			    WHERE m.id = :id
+			    ORDER BY f.id DESC
 			""")
-	GetMemberInfoPr getMemberInfo(
+	List<GetMemberInfoPr> getMemberInfo(
 			@Param("id") Long id,
 			@Param("isVisible") YnType isVisible
 	);

@@ -1,7 +1,11 @@
 package com.bada.cali.config;
 
+import com.bada.cali.security.MenuAccessInterceptor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -12,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -20,7 +25,20 @@ import java.util.List;
 import java.util.Map;
 
 @Configuration
+@RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
+
+	private final MenuAccessInterceptor menuAccessInterceptor;
+
+	/**
+	 * Tomcat 10.1.x 보안 강화로 maxParts(멀티파트 파트 수 제한) 기본값이 매우 낮게 설정되어
+	 * 폼 필드 + 파일이 섞인 요청에서 FileCountLimitExceededException이 발생할 수 있음.
+	 * Context 레벨에서 제한을 해제한다.
+	 */
+	@Bean
+	public WebServerFactoryCustomizer<TomcatServletWebServerFactory> tomcatMultipartCustomizer() {
+		return factory -> factory.addConnectorCustomizers(connector -> connector.setMaxPartCount(-1));
+	}
 
 	/**
 	 * Tomcat은 기본적으로 POST만 multipart/form-data를 파싱함.
@@ -91,6 +109,24 @@ public class WebConfig implements WebMvcConfigurer {
 
 		@Override
 		public HttpHeaders getMultipartHeaders(String paramOrFileName) { return delegate.getMultipartHeaders(paramOrFileName); }
+	}
+
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(menuAccessInterceptor)
+				.addPathPatterns("/**")
+				.excludePathPatterns(
+						"/api/**",
+						"/swagger-ui/**",
+						"/v3/api-docs/**",
+						"/member/login",
+						"/member/memberJoin",
+						"/guide/**",
+						"/error/**",
+						"/css/**",
+						"/js/**",
+						"/vendor/**"
+				);
 	}
 
 	@Override

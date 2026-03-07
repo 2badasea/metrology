@@ -4,11 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="98b44280-0d68-43b3-b271-b4d8efe16792" name="Changes" comment="" />
+    <list default="true" id="98b44280-0d68-43b3-b271-b4d8efe16792" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/resources/static/css/member/login.css" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/resources/static/css/member/login.css" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="769" />
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
@@ -31,6 +38,78 @@
     &quot;assignee&quot;: &quot;2badasea&quot;
   }
 }</component>
+  <component name="GitToolBoxStore">
+    <option name="branchesCleanupHistory">
+      <BranchesCleanupHistory>
+        <option name="history">
+          <list>
+            <BranchCleanupEntry>
+              <option name="deletions">
+                <list>
+                  <BranchDeletion>
+                    <option name="hash" value="a98fb824550c9f1da213d7464944f9e7d01f5305" />
+                    <option name="name" value="claude" />
+                  </BranchDeletion>
+                  <BranchDeletion>
+                    <option name="hash" value="6c4a92d88925ee14a9153e8dde3c5e494edb5953" />
+                    <option name="name" value="feature/basic" />
+                  </BranchDeletion>
+                  <BranchDeletion>
+                    <option name="hash" value="2d5dec072193f9c9b6b8f91dc9eb5122bad21a7d" />
+                    <option name="name" value="feature/item_code" />
+                  </BranchDeletion>
+                  <BranchDeletion>
+                    <option name="hash" value="70167757e7898dc93d83e91916d983599658f616" />
+                    <option name="name" value="feature/cali_order" />
+                  </BranchDeletion>
+                  <BranchDeletion>
+                    <option name="hash" value="8afd9a65121de188ef2c0fcb1736a5dc9615c8b3" />
+                    <option name="name" value="feature/equipment" />
+                  </BranchDeletion>
+                  <BranchDeletion>
+                    <option name="hash" value="0cad579dc27cbdb254e0f5e29d6b5166288889aa" />
+                    <option name="name" value="feature/item" />
+                  </BranchDeletion>
+                  <BranchDeletion>
+                    <option name="hash" value="06e44f893ef0f62597991407341dd9ac04c894de" />
+                    <option name="name" value="feature/order_details" />
+                  </BranchDeletion>
+                </list>
+              </option>
+              <option name="timestamp" value="1772536695317" />
+            </BranchCleanupEntry>
+          </list>
+        </option>
+      </BranchesCleanupHistory>
+    </option>
+    <option name="recentBranches">
+      <RecentBranches>
+        <option name="branchesForRepo">
+          <list>
+            <RecentBranchesForRepo>
+              <option name="branches">
+                <list>
+                  <RecentBranch>
+                    <option name="branchName" value="bada" />
+                    <option name="lastUsedInstant" value="1772534498" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="main" />
+                    <option name="lastUsedInstant" value="1772534473" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="claude" />
+                    <option name="lastUsedInstant" value="1772534463" />
+                  </RecentBranch>
+                </list>
+              </option>
+              <option name="repositoryRootUrl" value="file://$PROJECT_DIR$" />
+            </RecentBranchesForRepo>
+          </list>
+        </option>
+      </RecentBranches>
+    </option>
+  </component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/2badasea/cali.git&quot;,
@@ -41,6 +120,10 @@
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
 }</component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 2
 }</component>
@@ -56,11 +139,15 @@
     "RequestMappingsPanelOrder1": "1",
     "RequestMappingsPanelWidth0": "75",
     "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "Spring Boot.CaliApplication.executor": "Run",
-    "git-widget-placeholder": "feature/item",
+    "git-widget-placeholder": "bada",
     "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/BadaDev/cali",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -92,8 +179,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.25410.129" />
-        <option value="bundled-js-predefined-d6986cc7102b-6a121458b545-JavaScript-IU-251.25410.129" />
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.31033.145" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.31033.145" />
       </set>
     </attachedChunks>
   </component>
@@ -107,6 +194,7 @@
       <workItem from="1762995356314" duration="12215000" />
       <workItem from="1767520831152" duration="110000" />
       <workItem from="1767744051593" duration="94000" />
+      <workItem from="1772534361306" duration="2015000" />
     </task>
     <servers />
   </component>

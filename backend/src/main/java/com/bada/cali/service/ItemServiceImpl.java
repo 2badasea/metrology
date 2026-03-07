@@ -64,15 +64,15 @@ public class ItemServiceImpl {
 		
 		log.info("넘어오는 값 확인");
 		String name = req.getName();
-		if (name.isBlank()) {
+		if (name == null || name.isBlank()) {
 			name = null;
 		}
 		String makeAgent = req.getMakeAgent();
-		if (makeAgent.isBlank()) {
+		if (makeAgent == null || makeAgent.isBlank()) {
 			makeAgent = null;
 		}
 		String format = req.getFormat();
-		if (format.isBlank()) {
+		if (format == null || format.isBlank()) {
 			format = null;
 		}
 		
@@ -97,7 +97,7 @@ public class ItemServiceImpl {
 		int resCode = 0;
 		String resMsg = "";
 		
-		Item item = itemRepository.findById(id).orElseThrow(() -> new RuntimeException("품목정보가 존재하지 않습니다."));
+		Item item = itemRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("품목정보가 존재하지 않습니다."));
 		resCode = 1;
 		// mapstruct를 통해 entity -> record(dto)로 변환
 		ItemDTO.ItemData itemData = itemMapper.toRecordFromEntity(item);
@@ -217,7 +217,8 @@ public class ItemServiceImpl {
 							.refTableId(savedEntity.getId())
 							.logContent(String.format("[품목 수수료 추가] 품목 고유번호: %d, - 고유번호: %d", itemId, savedEntity.getId()))
 							.build();
-					
+					logRepository.save(saveFeeLog);
+
 				} else {
 					ItemFeeHistory originEntity = itemFeeHistoryRepository.findById(itemFeeHistoryId).orElseThrow(() -> new EntityNotFoundException("수정할 교정수수료 정보가 없습니다."));
 					
@@ -281,7 +282,7 @@ public class ItemServiceImpl {
 		logRepository.save(saveLog);
 		
 		// 교정수수료 이력이 존재할 경우, 같이 복사한다.
-		List<ItemFeeHistoryList> itemFeeHistoryListProjection = itemRepository.getItemFeeHistory(itemId);
+		List<ItemFeeHistoryList> itemFeeHistoryListProjection = itemRepository.getItemFeeHistory(id);
 		
 		if (!itemFeeHistoryListProjection.isEmpty()) {
 			for (ItemFeeHistoryList itemFee : itemFeeHistoryListProjection) {
@@ -327,6 +328,7 @@ public class ItemServiceImpl {
 				Log deleteLog = Log.builder()
 						.logType("d")
 						.refTable("item")
+						.refTableId(delItemIds.get(0))
 						.logContent(logContent)
 						.createDatetime(now)
 						.createMemberId(userId)

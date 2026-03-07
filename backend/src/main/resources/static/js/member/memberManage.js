@@ -129,6 +129,44 @@
 			e.preventDefault();
 			$modal.grid.getPagination().movePageTo(1);
 		})
+		// 삭제
+		.on('click', '.deleteMember', async function (e) {
+			e.preventDefault();
+			const checkedRows = $modal.grid.getCheckedRows();
+			if (!checkedRows || checkedRows.length === 0) {
+				gToast('삭제할 직원을 선택해주세요.', 'warning');
+				return false;
+			}
+			const ids = checkedRows.map((row) => row.id);
+			const deleteConfirm = await gMessage('직원 삭제', `선택한 직원 ${ids.length}명을 삭제하시겠습니까?`, 'question', 'confirm');
+			if (!deleteConfirm.isConfirmed) return false;
+
+			gLoadingMessage();
+			try {
+				const res = await fetch('/api/member/members', {
+					method: 'DELETE',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ ids }),
+				});
+				Swal.close();
+				if (res.ok) {
+					const resData = await res.json();
+					if (resData?.code > 0) {
+						await gMessage('직원 삭제', '삭제되었습니다.', 'success', 'alert');
+						$modal.grid.getPagination().movePageTo(1);
+					} else {
+						await gMessage('직원 삭제', resData?.msg ?? '삭제에 실패했습니다.', 'warning', 'alert');
+					}
+				} else {
+					const errData = await res.json().catch(() => null);
+					await gMessage('직원 삭제', errData?.msg ?? '서버 오류가 발생했습니다.', 'warning', 'alert');
+				}
+			} catch (xhr) {
+				gApiErrorHandler(xhr);
+			} finally {
+				Swal.close();
+			}
+		})
 		// 등록
 		.on('click', '.addMember', async function (e) {
 			e.preventDefault();

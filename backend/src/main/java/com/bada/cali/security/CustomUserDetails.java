@@ -4,39 +4,51 @@ import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serial;
+import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
 
 // UserDetails를 커스텀(principal)
 // CustomUserDetailService class에서 loadUserByUsername에서 리턴하는 객체의 형태를 커스텀하기 위함
+// Serializable: HTTP 세션에 저장되는 객체는 직렬화 필요 (세션 persist, 서버 재시작, 클러스터링 대비)
 @Getter
-public class CustomUserDetails implements UserDetails {
+public class CustomUserDetails implements UserDetails, Serializable {
+
+	@Serial
+	private static final long serialVersionUID = 1L;
+
 	private final Long id;
 	private final String username;	// 로그인id
 	private final String password;
 	private final String name;
 	private final Collection<? extends GrantedAuthority> authorities;
 	private final Set<Long> readableMenuIds;        // 사용자별 접근이 가능한 메뉴id
-	
-	public CustomUserDetails(Long id, String username, String password, String name, Collection<? extends GrantedAuthority> authorities, Set<Long> readableMenuIds) {
+	private final LocalDateTime lastPwdUpdated;     // 마지막 비밀번호 변경일시 (로그인 성공 처리에서 만료 경고용)
+
+	public CustomUserDetails(Long id, String username, String password, String name,
+							 Collection<? extends GrantedAuthority> authorities,
+							 Set<Long> readableMenuIds, LocalDateTime lastPwdUpdated) {
 		this.id = id;
 		this.username = username;
 		this.password = password;
 		this.name = name;
 		this.authorities = authorities;
 		this.readableMenuIds = readableMenuIds;
+		this.lastPwdUpdated = lastPwdUpdated;
 	}
-	
+
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return authorities;
 	}
-	
+
 	@Override
 	public String getPassword() {
 		return password;
 	}
-	
+
 	@Override
 	public String getUsername() {
 		return username;
@@ -46,6 +58,6 @@ public class CustomUserDetails implements UserDetails {
 //	@Override public boolean isAccountNonLocked() { return true; }
 //	@Override public boolean isCredentialsNonExpired() { return true; }
 //	@Override public boolean isEnabled() { return true; }
-	
-	
+
+
 }

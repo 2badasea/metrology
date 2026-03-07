@@ -84,7 +84,7 @@ public class BasicController {
 	// 품목관리
 	@GetMapping(value = "/item")
 	public String item(Model model) {
-		model.addAttribute("title", "분류코드관리");
+		model.addAttribute("title", "품목관리");
 		return "basic/item";
 	}
 	

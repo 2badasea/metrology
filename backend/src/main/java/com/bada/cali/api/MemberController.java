@@ -147,6 +147,21 @@ public class MemberController {
 		return ResponseEntity.ok(resMessage);
 	}
 
+	@Operation(summary = "직원 삭제", description = "선택한 직원 목록을 소프트삭제(is_visible=n). 관리자 계정은 삭제 불가. ADMIN 권한 필요.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "삭제 성공"),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
+	@DeleteMapping("/members")
+	public ResponseEntity<ResMessage<Void>> memberDelete(
+			@RequestBody MemberDTO.DeleteMemberReq req,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		ResMessage<Void> resMessage = memberService.memberDelete(req.ids(), user);
+		return ResponseEntity.ok(resMessage);
+	}
+
 	@Operation(summary = "직원 상세 조회", description = "직원 고유 id로 상세 정보(기본 정보 + 서명 이미지 + 권한)를 조회합니다.")
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "조회 성공"),
