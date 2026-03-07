@@ -415,30 +415,26 @@ public class MemberServiceImpl {
 	// 회원정보를 가져온다 (직원등록/수정 페이지)
 	@Transactional(readOnly = true)
 	public ResMessage<MemberDTO.GetMemberInfoSet> getMemberInfo(Long memberId) {
-		int resCode = 0;
-		String resMsg = "";
-		
 		YnType isVisible = YnType.y;
-		GetMemberInfoPr getMemberInfo = memberRepository.getMemberInfo(memberId, isVisible);
-		if (getMemberInfo == null) {
-			return new ResMessage<>(0, "직원 정보를 찾을 수 없습니다.", null);
+		List<GetMemberInfoPr> memberInfoList = memberRepository.getMemberInfo(memberId, isVisible);
+		if (memberInfoList.isEmpty()) {
+			throw new EntityNotFoundException("직원 정보를 찾을 수 없습니다.");
 		}
+		GetMemberInfoPr getMemberInfo = memberInfoList.get(0);
+
 		Long imgFileInfoId = getMemberInfo.getImgFileId();
 		String memberImgPath = "";
 		if (imgFileInfoId != null && imgFileInfoId > 0) {
 			String dir = getMemberInfo.getDir();
 			String extension = getMemberInfo.getExtension();
-			memberImgPath = fileServiceImpl.getFilePath(
-					dir, imgFileInfoId, extension
-			);
+			memberImgPath = fileServiceImpl.getFilePath(dir, imgFileInfoId, extension);
 		}
-		
+
 		// 중분류 권한 가져오기
 		List<MemberCodeAuthPr> itemAuthData = memberCodeAuthRepository.getMemberCodeAuth(memberId);
-		
+
 		MemberDTO.GetMemberInfoSet data = new MemberDTO.GetMemberInfoSet(getMemberInfo, memberImgPath, itemAuthData);
-		resCode = 1;
-		return new ResMessage<>(resCode, resMsg, data);
+		return new ResMessage<>(1, "", data);
 	}
 	
 }
