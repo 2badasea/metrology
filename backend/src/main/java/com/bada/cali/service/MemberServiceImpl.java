@@ -378,6 +378,40 @@ public class MemberServiceImpl {
 		return new ResMessage<>(1, "저장 성공", id);
 	}
 	
+	// 직원 삭제 (소프트삭제)
+	@Transactional
+	public ResMessage<Void> memberDelete(List<Long> ids, CustomUserDetails user) {
+		if (ids == null || ids.isEmpty()) {
+			return new ResMessage<>(-1, "삭제할 직원을 선택해주세요.", null);
+		}
+
+		Long userId = user.getId();
+		LocalDateTime now = LocalDateTime.now();
+
+		// admin 계정(id=1) 또는 auth='admin' 계정 삭제 시도 방어
+		boolean hasAdminTarget = memberRepository.findAllByIdInAndIsVisible(ids, YnType.y)
+				.stream()
+				.anyMatch(m -> m.getId() == 1L || "admin".equalsIgnoreCase(m.getAuth().name()));
+		if (hasAdminTarget) {
+			return new ResMessage<>(-1, "관리자 계정은 삭제할 수 없습니다.", null);
+		}
+
+		int deletedCount = memberRepository.softDeleteByIds(ids, YnType.n, now, userId);
+
+		// 삭제 로그
+		logRepository.save(Log.builder()
+				.logType("d")
+				.refTable("member")
+				.refTableId(ids.get(0))
+				.logContent("[직원 삭제] 고유번호 - " + ids)
+				.workerName(user.getName())
+				.createDatetime(now)
+				.createMemberId(userId)
+				.build());
+
+		return new ResMessage<>(1, deletedCount + "명 삭제되었습니다.", null);
+	}
+
 	// 회원정보를 가져온다 (직원등록/수정 페이지)
 	@Transactional(readOnly = true)
 	public ResMessage<MemberDTO.GetMemberInfoSet> getMemberInfo(Long memberId) {

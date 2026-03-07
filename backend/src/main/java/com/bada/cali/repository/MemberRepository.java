@@ -107,6 +107,21 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 			PageRequest pageRequest
 	);
 	
+	// 직원 소프트삭제 (id 목록 기준, 이미 삭제된 건 제외)
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+			update Member m
+			   set m.isVisible      = :isVisible,
+			       m.deleteDatetime = :deleteDatetime,
+			       m.deleteMemberId = :deleteMemberId
+			 where m.id in :ids
+			   and m.isVisible = 'y'
+			""")
+	int softDeleteByIds(@Param("ids") List<Long> ids,
+						@Param("isVisible") YnType isVisible,
+						@Param("deleteDatetime") LocalDateTime deleteDatetime,
+						@Param("deleteMemberId") Long deleteMemberId);
+
 	@Query("""
 			   select
 			     m.loginId AS loginId,
