@@ -363,15 +363,15 @@
 
 				// 수정
 				if (id > 0) {
-					// 수정일 경우, 비밀번호는 값이 있을 때만 체크한다.
-					if (pwdConfirm) {
+					// 수정일 경우, 비밀번호는 pwd/pwdConfirm 중 하나라도 입력된 경우에만 체크한다.
+					if (pwd || pwdConfirm) {
 						// 비밀번호
 						if (pwd !== pwdConfirm) {
 							isFormValid = false;
 							throw new Error('비밀번호 확인값과 일치하지 않습니다');
 						}
 						// 비밀번호 정규식 체크
-						if (!checkPwd(pwdConfirm)) {
+						if (!checkPwd(pwd)) {
 							isFormValid = false;
 							throw new Error('비밀번호는 소문자, 대문자, 숫자, 특수문자(!@#$%^)들로 구성된 8~20자리여야 합니다.');
 						}
