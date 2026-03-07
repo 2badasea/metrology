@@ -15,7 +15,8 @@
       "Bash(node:*)",
       "Bash(node -e:*)",
       "Bash(py:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(\"/c/Users/gnjqt/.jdks/corretto-17.0.16/bin/javap\":*)"
     ]
   }
 }
