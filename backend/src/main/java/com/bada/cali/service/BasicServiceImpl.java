@@ -6,6 +6,7 @@ import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.BasicDTO;
 import com.bada.cali.dto.TuiGridDTO;
 import com.bada.cali.entity.Department;
+import com.bada.cali.entity.Log;
 import com.bada.cali.entity.MemberLevel;
 import com.bada.cali.mapper.BasicMapper;
 import com.bada.cali.repository.DepartmentRepository;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -69,13 +71,16 @@ public class BasicServiceImpl {
 		int resCode = 0;
 		String resMsg = "";
 		Long userId = user.getId();
+		String workerName = user.getUsername();
 		LocalDateTime now = LocalDateTime.now();
-		
+
 		String targetEntity = req.type();    // 'department' | 'memberLevel'
-		
+		String refTable = "department".equals(targetEntity) ? "department" : "member_level";
+		String entityKr = "department".equals(targetEntity) ? "부서" : "직급";
+
 		// 삭제대상이 존재하는 경우, 먼저 삭제
 		List<Long> deleteIds = req.deleteIds();
-		if (!deleteIds.isEmpty()) {
+		if (deleteIds != null && !deleteIds.isEmpty()) {
 			// 리파지토리에서 한번에 삭제
 			YnType isVisible = YnType.n;
 			if ("department".equals(targetEntity)) {
@@ -83,13 +88,24 @@ public class BasicServiceImpl {
 			} else {
 				memberLevelRepository.deleteIds(isVisible, userId, now, deleteIds);
 			}
-			
+
+			String idList = deleteIds.stream().map(String::valueOf).collect(Collectors.joining(", "));
+			Log deleteLog = Log.builder()
+					.logType("d")
+					.refTable(refTable)
+					.refTableId(deleteIds.get(0))
+					.createDatetime(now)
+					.createMemberId(userId)
+					.workerName(workerName)
+					.logContent(String.format("[%s 삭제] 고유번호 - [%s]", entityKr, idList))
+					.build();
+			logRepository.save(deleteLog);
 		}
-		
+
 		// 반복문 -> id 존재 여부
 		List<BasicDTO.BasicInfo> saveData = req.saveData();
 		if (!saveData.isEmpty()) {
-			
+
 			// 부서관리인 경우
 			if ("department".equals(targetEntity)) {
 				for (BasicDTO.BasicInfo data : saveData) {
@@ -99,13 +115,33 @@ public class BasicServiceImpl {
 					if (id == null) {
 						Department department = basicMapper.toDepartmentEntityFromRecord(data);
 						department.createInfo(userId);
-						Department savedEntity = departmentRepository.save(department);
+						Department savedDept = departmentRepository.save(department);
+						Log createLog = Log.builder()
+								.logType("i")
+								.refTable(refTable)
+								.refTableId(savedDept.getId())
+								.createDatetime(now)
+								.createMemberId(userId)
+								.workerName(workerName)
+								.logContent(String.format("[부서 등록] 부서명: %s - 고유번호: %d", data.name(), savedDept.getId()))
+								.build();
+						logRepository.save(createLog);
 					}
 					// 수정
 					else {
 						// mapper 이용하기
 						Department department = departmentRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("부서 정보가 존재하지 않습니다."));
 						department.updateInfo(data.name(), data.seq(), userId);
+						Log updateLog = Log.builder()
+								.logType("u")
+								.refTable(refTable)
+								.refTableId(id)
+								.createDatetime(now)
+								.createMemberId(userId)
+								.workerName(workerName)
+								.logContent(String.format("[부서 수정] 부서명: %s - 고유번호: %d", data.name(), id))
+								.build();
+						logRepository.save(updateLog);
 					}
 				}
 			}
@@ -118,12 +154,32 @@ public class BasicServiceImpl {
 					if (id == null) {
 						MemberLevel memberLevel = basicMapper.toMemberLevelEntityFromRecord(data);
 						memberLevel.createInfo(userId);
-						MemberLevel savedEntity = memberLevelRepository.save(memberLevel);
+						MemberLevel savedLevel = memberLevelRepository.save(memberLevel);
+						Log createLog = Log.builder()
+								.logType("i")
+								.refTable(refTable)
+								.refTableId(savedLevel.getId())
+								.createDatetime(now)
+								.createMemberId(userId)
+								.workerName(workerName)
+								.logContent(String.format("[직급 등록] 직급명: %s - 고유번호: %d", data.name(), savedLevel.getId()))
+								.build();
+						logRepository.save(createLog);
 					}
 					// 수정
 					else {
 						MemberLevel memberLevel = memberLevelRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("직급 정보가 존재하지 않습니다."));
 						memberLevel.updateInfo(data.name(), data.seq(), userId);
+						Log updateLog = Log.builder()
+								.logType("u")
+								.refTable(refTable)
+								.refTableId(id)
+								.createDatetime(now)
+								.createMemberId(userId)
+								.workerName(workerName)
+								.logContent(String.format("[직급 수정] 직급명: %s - 고유번호: %d", data.name(), id))
+								.build();
+						logRepository.save(updateLog);
 					}
 				}
 			}
