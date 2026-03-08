@@ -113,10 +113,14 @@
 				perPage: 20,
 			},
 			rowHeaders: ['checkbox'],
+			rowHeight: 'auto',
 			minBodyHeight: 663,
 			bodyHeight: 663,
 			data: $modal.data_source,
 		});
+
+		// 서버 데이터 수신 후 레이아웃 재계산 (헤더-바디 열 정렬 보정)
+		$modal.grid.on('response', () => $modal.grid.refreshLayout());
 
 		// 그리드 이벤트 정의
 		$modal.grid.on('click', async function (e) {

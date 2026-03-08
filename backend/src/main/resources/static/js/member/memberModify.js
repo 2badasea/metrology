@@ -145,33 +145,36 @@
 
 		// Grid 생성
 		$modal.initGrid = (isUseMiddleCodeData = []) => {
+			// setColumns() 호출 시 재사용할 수 있도록 컬럼 정의를 저장
+			$modal.authGridColumns = [
+				{
+					header: '중분류코드',
+					name: 'middleItemCode',
+					width: 150,
+					align: 'center',
+				},
+				{
+					header: '중분류명',
+					name: 'middleItemCodeName',
+					align: 'left',
+				},
+				authColumn('실무자', 'isWorker', $modal.headerWorker, 140),
+				authColumn('기술책임자(부)', 'isTechSub', $modal.headerTechSub, 160),
+				authColumn('기술책임자(정)', 'isTechMain', $modal.headerTechMain, 160),
+				{
+					header: 'authBitmask',
+					name: 'authBitmask',
+					hidden: true,
+				},
+				{
+					header: 'middleItemCodeId',
+					name: 'middleItemCodeId',
+					hidden: true,
+				},
+			];
+
 			$modal.itemAuthGrid = gGrid('.itemAuthGrid', {
-				columns: [
-					{
-						header: '중분류코드',
-						name: 'middleItemCode',
-						width: 150,
-						align: 'center',
-					},
-					{
-						header: '중분류명',
-						name: 'middleItemCodeName',
-						align: 'left',
-					},
-					authColumn('실무자', 'isWorker', $modal.headerWorker, 140),
-					authColumn('기술책임자(부)', 'isTechSub', $modal.headerTechSub, 160),
-					authColumn('기술책임자(정)', 'isTechMain', $modal.headerTechMain, 160),
-					{
-						header: 'authBitmask',
-						name: 'authBitmask',
-						hidden: true,
-					},
-					{
-						header: 'middleItemCodeId',
-						name: 'middleItemCodeId',
-						hidden: true,
-					},
-				],
+				columns: $modal.authGridColumns,
 				rowHeaders: [],
 				bodyHeight: 500,
 				minBodyHeight: 500,
@@ -308,6 +311,17 @@
 			$modal.syncHeaderCheckboxState($modal.itemAuthGrid, 'isTechSub', $modal.headerTechSub);
 			$modal.syncHeaderCheckboxState($modal.itemAuthGrid, 'isTechMain', $modal.headerTechMain);
 		};
+
+		// setColumns()로 헤더를 강제 재렌더링하여 customHeader 체크박스가 즉시 표시되도록 함
+		// setColumns() 호출 시 데이터가 초기화될 수 있으므로, 현재 데이터를 백업 후 복원
+		setTimeout(() => {
+			const savedData = $modal.itemAuthGrid.getData();
+			$modal.itemAuthGrid.setColumns($modal.authGridColumns);
+			if (savedData && savedData.length > 0) {
+				$modal.itemAuthGrid.resetData(savedData);
+			}
+			$modal.syncAllAuthHeaders();
+		}, 100);
 	}; // End init_modal
 
 	// 부서관리, 직급관리 정보를 가져와서 세팅한다.
