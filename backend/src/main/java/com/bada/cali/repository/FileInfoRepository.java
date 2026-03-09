@@ -116,6 +116,25 @@ public interface FileInfoRepository extends JpaRepository<FileInfo, Long> {
 			@Param("deleteMemberId") Long deleteMemberId
 	);
 
+	// 파일 목록 조회 (createDatetime 내림차순)
+	@Query("select new com.bada.cali.dto.FileInfoDTO$FileListRes(" +
+			"  f.id, " +
+			"  f.originName, " +
+			"  m.name, " +
+			"  f.createDatetime" +
+			") " +
+			"from FileInfo f " +
+			"join f.createMember m " +
+			"where f.refTableName = :refTableName " +
+			"and f.refTableId = :refTableId " +
+			"and f.isVisible = :isVisible " +
+			"order by f.createDatetime desc")
+	List<FileInfoDTO.FileListRes> getFileInfosWithJoinOrderByDateDesc(
+			@Param("refTableName") String refTableName,
+			@Param("refTableId") Long refTableId,
+			@Param("isVisible") YnType isVisible
+	);
+
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query("""
         update FileInfo f

@@ -17,7 +17,7 @@
 
 ## 2. DB 스키마
 
-> schema.sql 기준으로 작성. DDL 형태로 작성하면 오독 방지에 좋음.
+> /docs/db/ 아래 최신 기준으로 작성. DDL 형태로 작성하면 오독 방지에 좋음.
 
 ```sql
 CREATE TABLE sample (

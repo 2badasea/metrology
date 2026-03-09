@@ -5,8 +5,10 @@ import com.bada.cali.security.CustomUserDetails;
 import com.bada.cali.service.FileServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +22,11 @@ public class FileController {
 	
 	private final FileServiceImpl fileService;
 	
+	@GetMapping("/fileDownload/{fileId}")
+	public ResponseEntity<Resource> fileDownload(@PathVariable Long fileId) {
+		return fileService.downloadFile(fileId);
+	}
+
 	@DeleteMapping("/fileDelete/{fileId}")
 	public ResponseEntity<ResMessage<?>> fileDelete(@PathVariable Long fileId, @AuthenticationPrincipal CustomUserDetails user) {
 		int resCode = fileService.deleteFile(fileId, user);
