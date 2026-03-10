@@ -1,6 +1,6 @@
 -- =============================================================================
 -- CALI DB 전체 스키마 (Single Source of Truth)
--- 최신 버전: v_260309
+-- 최신 버전: v_260310
 -- 업데이트 규칙:
 --   - 테이블 추가/변경 시 이 파일을 직접 최신 상태로 유지한다.
 --   - 변경 내역은 docs/db/versions/ 에 델타(변경분만) 파일로 별도 기록한다.
@@ -486,3 +486,28 @@ CREATE TABLE IF NOT EXISTS `standard_equipment_ref` (
   KEY `idx_std_eq_ref_lookup` (`ref_table`,`ref_table_id`,`seq`) USING BTREE,
   KEY `idx_std_eq_ref_equipment_id` (`equipment_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='사용중인 표준장비(참조 매핑)';
+
+CREATE TABLE IF NOT EXISTS `env` (
+  `id` tinyint NOT NULL COMMENT '고정 row 키 (항상 1, 단일 row 운영)',
+  `name` varchar(100) DEFAULT NULL COMMENT '회사명',
+  `name_en` varchar(100) DEFAULT NULL COMMENT '회사명(영문)',
+  `ceo` varchar(50) DEFAULT NULL COMMENT '대표자',
+  `tel` varchar(30) DEFAULT NULL COMMENT '전화번호',
+  `fax` varchar(30) DEFAULT NULL COMMENT 'FAX',
+  `hp` varchar(30) DEFAULT NULL COMMENT '휴대폰 연락처',
+  `addr` varchar(200) DEFAULT NULL COMMENT '주소',
+  `addr_en` varchar(200) DEFAULT NULL COMMENT '주소(영문)',
+  `email` varchar(100) DEFAULT NULL COMMENT '이메일',
+  `report_issue_addr` varchar(300) DEFAULT NULL COMMENT '성적서발행처 주소',
+  `report_issue_addr_en` varchar(300) DEFAULT NULL COMMENT '성적서발행처 주소(영문)',
+  `site_addr` varchar(300) DEFAULT NULL COMMENT '소재지 주소',
+  `site_addr_en` varchar(300) DEFAULT NULL COMMENT '소재지 주소(영문)',
+  `agent_num` varchar(20) DEFAULT NULL COMMENT '사업자등록번호',
+  `back_account` varchar(200) DEFAULT NULL COMMENT '거래은행(계좌번호)',
+  `kolas` varchar(500) DEFAULT NULL COMMENT 'KOLAS 인증 이미지 경로 (오브젝트 스토리지 key)',
+  `ilac` varchar(500) DEFAULT NULL COMMENT '아일락 이미지 경로 (오브젝트 스토리지 key)',
+  `company` varchar(500) DEFAULT NULL COMMENT '사내 로고 이미지 경로 (오브젝트 스토리지 key)',
+  `update_member_id` bigint DEFAULT NULL COMMENT '수정자 (member.id)',
+  `update_datetime` datetime DEFAULT NULL COMMENT '수정일시',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='회사 기본정보 (단일 row, id=1 고정)';

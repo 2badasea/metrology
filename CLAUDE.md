@@ -153,6 +153,8 @@ npm run lint                     # ESLint
     - `docs/db/versions/v_YYMMDD.sql` — **델타(변경분만)**. 해당 버전에서 추가/변경된 DDL만 포함. 히스토리 추적 용도.
 - 스키마 변경 작업 시 두 곳 모두 업데이트합니다: `schema.sql` 최신화 + `versions/` 에 델타 파일 추가.
 - DDL 변경은 **사전 승인 없이는 금지**. 필요하면 “제안”까지만 합니다.
+- **작업 완료 전 반드시 확인**: 해당 작업에서 테이블/컬럼 추가·변경이 발생했다면,
+  DoD의 “DB schema” 항목에 따라 두 파일을 최신화한 뒤 작업 완료로 간주합니다.
 
 ---
 
@@ -437,5 +439,9 @@ npm run lint                     # ESLint
 - **How to verify**
     - (backend) 빌드/실행/간단 점검
     - (frontend) 실행/화면 점검
+- **DB schema**: 이번 작업에서 테이블/컬럼 추가·변경이 있었다면 아래 두 파일 최신화 여부 확인
+    - `docs/db/schema.sql` — 전체 스키마 반영
+    - `docs/db/versions/v_YYMMDD.sql` — 델타(변경분만) 파일 추가
+    - 변경 없으면 "없음"으로 명시
 - **Notes/Risks**: (주의점/추가 확인 필요 사항)
 
