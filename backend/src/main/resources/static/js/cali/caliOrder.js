@@ -387,7 +387,7 @@ $(function () {
 				if (cnt > 0) {
 					try {
 						// fetch로 요청하여 서버 오류를 클라이언트에서 감지할 수 있도록 한다
-						const res = await fetch('/api/caliOrder/downloadOrderForm');
+						const res = await fetch(`/api/caliOrder/downloadOrderForm?id=${row.id}`);
 
 						// HTTP 에러를 catch로 보내기 위해 ok 여부 확인
 						if (!res.ok) throw res;
