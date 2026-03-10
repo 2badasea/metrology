@@ -84,6 +84,9 @@ dependencies {
     // Swagger (springdoc-openapi)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
 
+    // Apache POI (엑셀 파일 처리 - 교정신청서 다운로드)
+    implementation 'org.apache.poi:poi-ooxml:5.3.0'
+
     // 테스트 의존성
     testImplementation 'org.springframework.boot:spring-boot-starter-test'   // JUnit, Mockito 등 포함
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'             // 테스트 런타임 실행기

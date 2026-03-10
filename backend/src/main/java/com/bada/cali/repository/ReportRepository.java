@@ -260,6 +260,25 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 	List<Report> findByMiddleItemCodeIdInAndIsVisible(List<Long> attr0, YnType isVisible);
 
 	/**
+	 * 교정신청서 다운로드용 성적서 목록 조회
+	 * - 재발행 제외(parentId, parentScaleId IS NULL)
+	 * - 삭제 제외(isVisible = 'y')
+	 * - reportNum 오름차순 정렬
+	 *
+	 * @param caliOrderId 접수 ID
+	 * @return 성적서 목록
+	 */
+	@Query("""
+			SELECT r FROM Report r
+			WHERE r.caliOrderId = :caliOrderId
+			  AND r.isVisible = 'y'
+			  AND r.parentId IS NULL
+			  AND r.parentScaleId IS NULL
+			ORDER BY r.reportNum ASC
+			""")
+	List<Report> findReportsForOrderDownload(@Param("caliOrderId") Long caliOrderId);
+
+	/**
 	 * 접수 ID 목록을 받아 각 접수별 성적서 개수를 집계한다.
 	 * - 삭제된 성적서(is_visible != 'y') 제외
 	 * - 자식성적서(parent_id, parent_scale_id가 있는 것) 제외 → 최상위 성적서만 카운트
