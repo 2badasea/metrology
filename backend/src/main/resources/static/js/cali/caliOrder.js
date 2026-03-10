@@ -65,7 +65,7 @@ $(function () {
 				header: '접수번호',
 				name: 'orderNum',
 				className: 'cursor_pointer',
-				width: '140',
+				width: '120',
 				align: 'center',
 			},
 			{
@@ -88,24 +88,6 @@ $(function () {
 				className: 'cursor_pointer',
 				align: 'center',
 			},
-			// {
-			// 	header: '출장일시',
-			// 	name: 'btripDate',
-			// 	className: 'cursor_pointer',
-			// 	width: '100',
-			// 	align: 'center',
-			// 	formatter: function (data) {
-			// 		console.log("🚀 ~ data:", data)
-			// 		let row = data.row;
-			// 		console.log("🚀 ~ row:", row)
-			// 		let html = '';
-			// 		if (row.btripStartDate && row.btripEndDate) {
-			// 			html = `${row.btripStartDate} / ${row.btripEndDate}`;
-			// 		}
-			// 		// 출장시작일 ~ 종료일 형태로 작게 보여줄 것
-			// 		return html;
-			// 	},
-			// },
 			{
 				header: '요청사항',
 				name: 'grid_btn_remark',
@@ -190,6 +172,25 @@ $(function () {
 			// 				`;
 			// 	},
 			// },
+			{
+				header: '교정신청서',
+				name: 'grid_btn_orderForm',
+				className: 'cursor_pointer',
+				width: '80',
+				align: 'center',
+				formatter: function (data) {
+					const row = data.row;
+					const cnt = row.reportTotalCnt ?? 0;
+
+					if (cnt > 0) {
+						// 성적서가 존재하는 경우에만 엑셀 아이콘 표시
+						return `<button type='button' class='btn btn-link w-100 h-100 rounded-0 p-0' title='교정신청서 다운로드'><i class="bi bi-file-earmark-excel text-success fs-5"></i></button>`;
+					} else {
+						// 성적서가 없으면 '-' 만 표시
+						return '-';
+					}
+				},
+			},
 			// {
 			// 	header: '완료통보서',
 			// 	className: 'cursor_pointer',
@@ -379,6 +380,33 @@ $(function () {
 			if (e.columnName == 'grid_btn_orderDetails') {
 				// TODO 나중에 window.open 방식을 get이 아닌 from으로 변경할 수 있도록 할 것
 				window.open(`/cali/orderDetails?caliOrderId=${row.id}&custAgent=${row.custAgent}&reportAgent=${row.reportAgent}`, '_blank');
+			}
+			// 교정신청서 다운로드
+			else if (e.columnName == 'grid_btn_orderForm') {
+				const cnt = row.reportTotalCnt ?? 0;
+				if (cnt > 0) {
+					try {
+						// fetch로 요청하여 서버 오류를 클라이언트에서 감지할 수 있도록 한다
+						const res = await fetch('/api/caliOrder/downloadOrderForm');
+
+						// HTTP 에러를 catch로 보내기 위해 ok 여부 확인
+						if (!res.ok) throw res;
+
+						// 정상 응답이면 blob으로 변환하여 브라우저 다운로드 유도
+						const blob = await res.blob();
+						const url = URL.createObjectURL(blob);
+						const link = document.createElement('a');
+						link.href = url;
+						link.download = '교정신청서.xlsx';
+						document.body.appendChild(link);
+						link.click();
+						document.body.removeChild(link);
+						// 생성한 Object URL 즉시 해제 (메모리 누수 방지)
+						URL.revokeObjectURL(url);
+					} catch (err) {
+						gApiErrorHandler(err);
+					}
+				}
 			}
 			// 요청사항 확인
 			else if (e.columnName == 'grid_btn_remark') {

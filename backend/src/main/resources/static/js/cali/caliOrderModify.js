@@ -21,6 +21,37 @@ $(function () {
 
 		let gridBodyHeight = Math.floor($modal.find('.caliOrderModifyForm').height() - 145);
 
+		// 접수자 select 구성 함수 - 호출 전에 먼저 정의되어야 함
+		$modal.loadOrderManagerSelect = async () => {
+			try {
+				const res = await fetch('/api/basic/getInternalMembers');
+				if (!res.ok) throw res;
+				const resData = await res.json();
+				const members = resData?.data ?? [];
+
+				const $select = $('select[name=orderManagerId]', $modal);
+				// 기본 옵션 초기화 후 직원 목록으로 채운다
+				$select.empty().append($('<option>', { value: 0, text: '선택하세요.' }));
+				members.forEach(m => {
+					$select.append($('<option>', { value: m.id, text: m.name }));
+				});
+			} catch (err) {
+				gApiErrorHandler(err);
+			}
+		};
+
+		// 사내 직원 목록을 가져와서 접수자 select를 구성한다.
+		await $modal.loadOrderManagerSelect();
+
+		// 등록 모드: 로그인 유저를 접수자로 자동 선택
+		// option에 존재하는 경우에만 설정 (목록에 없는 계정이면 기본값 유지)
+		if (!($modal.param?.id > 0)) {
+			const $select = $('select[name=orderManagerId]', $modal);
+			if ($select.find(`option[value="${G_USER.id}"]`).length) {
+				$select.val(G_USER.id);
+			}
+		}
+
 		if ($modal.param?.id > 0) {
 			// 옵셔널체이닝으로 체크
 			caliOrderId = Number($modal.param.id);
@@ -53,81 +84,117 @@ $(function () {
 				// TODO 신청업체 & 성적서업체 정보는 기본적으로 readonly 처리
 				$('input[name=custAgent]', $modal).prop('readonly', true);
 				$('input[name=reportAgent]', $modal).prop('readonly', true);
+
+				// 수정 모드: setupValues()로 orderManagerId가 세팅된 후 확인
+				// 저장된 값이 없거나 0이면 로그인 유저로 자동 선택
+				const $select = $('select[name=orderManagerId]', $modal);
+				const savedManagerId = Number($select.val() ?? 0);
+				if (!savedManagerId || savedManagerId === 0) {
+					// option에 존재하는 경우에만 설정 (목록에 없는 계정이면 기본값 유지)
+					if ($select.find(`option[value="${G_USER.id}"]`).length) {
+						$select.val(G_USER.id);
+					}
+				}
 			} catch (err) {
 				customAjaxHandler(err);
 			} finally {
 			}
 
-			// 수정인 경우, 담당자 리스트 정보 세팅
-			// $modal.dataSource = {
-			// 	api: {
-			// 		readData: {
-			// 			url: '/api/basic/getAgentManagerList',
-			// 			serializer: (grid_param) => {
-			// 				grid_param.agentId = agentId;
-			// 				grid_param.isVisible = 'y';
-			// 				return $.param(grid_param);
-			// 			},
-			// 			method: 'GET',
-			// 		},
-			// 	},
-			// };
+			// 성적서 리스트 데이터 소스 (서버사이드 페이지네이션)
+			$modal.data_source = {
+				api: {
+					readData: {
+						url: '/api/report/getOrderDetailsList',
+						serializer: (grid_param) => {
+							// caliOrderId를 파라미터로 전달해 해당 접수의 성적서만 조회한다.
+							grid_param.caliOrderId = caliOrderId;
+							return $.param(grid_param);
+						},
+						method: 'GET',
+					},
+				},
+			};
 
-			// 업체 담당자 그리드
+			// 성적서 리스트 그리드
 			$modal.grid = gGrid('.reportList', {
 				columns: [
 					{
 						header: '구분',
 						name: 'reportType',
 						className: 'cursor_pointer',
-						width: '',
+						width: 60,
 						align: 'center',
+						formatter: function (data) {
+							return data.value === 'SELF' ? '자체' : '대행';
+						},
 					},
 					{
 						header: '성적서번호',
 						name: 'reportNum',
 						className: 'cursor_pointer',
-						width: '',
+						width: 130,
 						align: 'center',
 					},
 					{
 						header: '기기명',
 						name: 'itemName',
 						className: 'cursor_pointer',
-						width: '',
 						align: 'center',
 					},
 					{
 						header: '기기번호',
 						name: 'itemNum',
 						className: 'cursor_pointer',
-						width: '',
+						width: 150,
 						align: 'center',
 					},
 					{
 						header: '형식',
 						name: 'itemFormat',
 						className: 'cursor_pointer',
-						width: '',
+						width: 150,
 						align: 'center',
 					},
 				],
 				minBodyHeight: gridBodyHeight,
 				bodyHeight: gridBodyHeight,
-				editingEvent: 'click', // 원클릭으로 수정할 수 있도록 변경. 기본값은 'dblclick'
-				// data: $modal.dataSource,
-				data: [
-					{
-						'reportType': 'self',
-						'reportNum': 'BD25-0001-001',
-						'itemName': '테스트 기기',
-						'itemNum': '2025122101',
-						'itemFormat': '25 ~ 45(kg)',
-					},
-				],
+				data: $modal.data_source,
+				emptyMessage: '등록된 성적서가 없습니다.',
 				pageOptions: {
-					perPage: 15,
+					useClient: false, // 서버사이드 페이지네이션
+					perPage: 25,
 				},
+				rowHeight: 'auto',
+			});
+
+			// 성적서 행 클릭 시 수정 모달 호출
+			$modal.grid.on('click', async function (e) {
+				const row = $modal.grid.getRow(e.rowKey);
+				if (!row || e.columnName === '_checked') return;
+
+				const { id, reportNum, reportType, approvalDateTime, reportStatus, approvalStatus } = row;
+
+				// 자체 성적서만 수정 모달 제공 (대행은 미제공)
+				if (reportType === 'SELF') {
+					const isModifiable = approvalDateTime || reportStatus === 'SUCCESS' || approvalStatus !== 'IDLE' ? false : true;
+					const resModal = await gModal(
+						'/cali/reportModify',
+						{ id },
+						{
+							title: `성적서 수정 [성적서번호 - ${reportNum}]`,
+							size: 'xxxl',
+							show_close_button: true,
+							show_confirm_button: isModifiable,
+							confirm_button_text: '저장',
+						}
+					);
+					// 모달이 정상적으로 닫히면 그리드를 갱신한다.
+					if (resModal) {
+						$modal.grid.reloadData();
+					}
+				} else {
+					gToast('대행성적서 수정은 아직 제공되지 않습니다.', 'warning');
+				}
 			});
 		}
 

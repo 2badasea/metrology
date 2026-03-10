@@ -38,3 +38,6 @@ out/
 
 ### 환경설정 ###
 src/main/resources/application**
+
+### 로그 ###
+logs/

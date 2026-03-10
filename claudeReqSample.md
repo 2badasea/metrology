@@ -1,407 +1,210 @@
-# [기능명] 작업 요청서
+# [회사정보] 작업 요청서
 
-> 이 파일은 Claude Code에 새 페이지/기능 작업을 지시할 때 사용하는 템플릿입니다.
-> 필요 없는 섹션은 삭제하거나 "해당 없음"으로 표시하세요.
- > Claude Code에 전달하는 것을 전제로 작성되었습니다.
-
----
-
-## 0. 용어 정의
-
-| 용어 | 설명 |
-|------|------|
-| 샘플 | 교정 대상 기기. 중분류·소분류·기기명으로 분류됨 |
-| 중분류 / 소분류 | `item_code` 테이블 참조 (code_level = MIDDLE / SMALL) |
-| 파일 | 샘플에 첨부되는 Excel 파일(.xls/.xlsx/.xlsm). `file_info` 테이블에 연결 |
+## 1. 작업 배경
+교정을 진행하는 과정에서 업체 정보를 활용하는 경우가 있습니다.  
+회사정보를 수정할 때, 고객이 직접 수정할 수 있도록 하여 **소스코드 내 하드코딩을 방지**하는 것이 목적입니다.
 
 ---
 
-## 1. DB 스키마
-
-### 1-1. 신규 테이블: `sample`
-
-```sql
-CREATE TABLE `sample` (
-  `id`                  bigint       NOT NULL AUTO_INCREMENT,
-  `name`                varchar(200) NOT NULL          COMMENT '기기명',
-  `middle_item_code_id` bigint       DEFAULT NULL      COMMENT 'item_code.id (code_level=MIDDLE)',
-  `small_item_code_id`  bigint       DEFAULT NULL      COMMENT 'item_code.id (code_level=SMALL)',
-  `is_visible`          enum('y','n') NOT NULL DEFAULT 'y' COMMENT 'y=노출(삭제안됨), n=소프트삭제',
-  `create_datetime`     datetime     NOT NULL DEFAULT (now()),
-  `create_member_id`    bigint       NOT NULL,
-  `update_datetime`     datetime     DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `update_member_id`    bigint       DEFAULT NULL,
-  `delete_datetime`     datetime     DEFAULT NULL,
-  `delete_member_id`    bigint       DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `is_visible` (`is_visible`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='샘플(기기)관리';
-```
-
-### 1-2. 파일 연결 방식
-
-기존 `file_info` 테이블 재사용. 별도 컬럼 추가 없음.
-
-```
-file_info.ref_table_name = 'sample'
-file_info.ref_table_id   = sample.id
-```
-
-### 1-3. 버전 파일
-
-- `docs/db/versions/v_YYMMDD.sql` 에 위 DDL만 (delta) 작성
-- `docs/db/schema.sql` (전체 스키마) 에도 추가
+## 2. 작업 원칙
+- 본 요청서를 먼저 확인한 뒤, **확인받아야 할 사항이 있다면 반드시 피드백을 요청할 것**
+- **작업 단위를 분리하여 단계적으로 진행할 것**
+- 우선은 **조회 로직과 화면구성까지만 구현**할 것
+- 저장 버튼을 눌렀을 때는 실제 저장이 아니라 **`구현 준비중입니다` 토스트(gToast)** 를 띄우도록 할 것
 
 ---
 
-## 2. 백엔드 구현
+## 3. 작업 범위
 
-> 패키지: `com.bada.cali`
+### 3-1. DB 스키마: `env` (회사정보)
+다음 조건으로 `create table` 문을 작성해 주세요.
 
-### 2-1. Entity — `Sample.java`
+#### 공통 조건
+- 테이블명: `env`
+- **기본키는 필요 없음**
+- **등록자 / 등록일시 / 삭제자 / 삭제일시 관련 컬럼은 필요 없음**
+- 아래 필드명 기준으로 **적절한 데이터타입 / 길이 / 코멘트**를 포함해서 작성할 것
 
-- `@Entity`, `@Table(name = "sample")`
-- 필드: `id`, `name`, `middleItemCodeId(Long)`, `smallItemCodeId(Long)`, `isVisible(YnType)`
-- Audit 필드: `createDatetime`, `createMemberId`, `updateDatetime`, `updateMemberId`, `deleteDatetime`, `deleteMemberId`
-- `isVisible` 기본값: `YnType.Y`
-- `@ManyToOne` 연관관계 **사용하지 않음** (id만 보유)
+#### 컬럼 목록
+| 한글명 | 필드명 |
+|---|---|
+| 회사명 | `name` |
+| 회사명(영문) | `name_en` |
+| 대표자(CEO) | `ceo` |
+| 전화번호 | `tel` |
+| FAX | `fax` |
+| 휴대폰연락처 | `hp` |
+| 주소 | `addr` |
+| 주소(영문) | `addr_en` |
+| 이메일 | `email` |
+| 성적서발행처주소 | `report_issue_addr` |
+| 성적서발행처주소(영문) | `report_issue_addr_en` |
+| 소재지주소 | `site_addr` |
+| 소재지주소(영문) | `site_addr_en` |
+| 사업자등록번호 | `agent_num` |
+| 거래은행(계좌번호) | `back_account` |
+| KOLAS 이미지 | `kolas` |
+| 아일락 이미지 | `ilac` |
+| 사내 로고 | `company` |
+| 수정자 | `update_member_id` |
+| 수정일시 | `update_datetime` |
 
-### 2-2. Projection — `SampleListRow.java` (`repository/projection/`)
-
-목록 그리드에 필요한 필드만 조회.
-
-```java
-public interface SampleListRow {
-    Long getId();
-    String getName();
-    Long getMiddleItemCodeId();
-    String getMiddleCodeNum();   // item_code.code_num (중분류)
-    String getMiddleCodeName();  // item_code.code_name (중분류)
-    Long getSmallItemCodeId();
-    String getSmallCodeNum();    // item_code.code_num (소분류)
-    String getSmallCodeName();   // item_code.code_name (소분류)
-}
-```
-
-### 2-3. DTO — `SampleDTO.java`
-
-Inner class 구성:
-
-```
-SampleDTO
-├── GetListReq     : page, pageSize, middleItemCodeId, smallItemCodeId, keyword (기기명 검색)
-├── SampleSaveReq  : middleItemCodeId(Long), smallItemCodeId(Long), name(String) — @NotNull, @NotBlank 필수
-├── DeleteReq      : ids(List<Long>)
-└── DuplicateCheckRes : exists(boolean), existingId(Long, nullable)
-```
-
-### 2-4. DTO — `FileInfoDTO.FileListRes`
-
-파일 목록에 필요한 필드 (기존 파일이면 확인 후 재사용, 없으면 신규 추가):
-
-```
-id(Long), originName(String), writerName(String), createDatetime(LocalDateTime)
-```
-
-### 2-5. Repository — `SampleRepository.java`
-
-필요 메서드:
-
-```
-① Page<SampleListRow> findSampleList(middleItemCodeId, smallItemCodeId, keyword, Pageable)
-   → nativeQuery, is_visible='y' 조건, item_code 2회 LEFT JOIN
-② Optional<Sample> findByIdAndIsVisible(Long id, YnType isVisible)
-③ boolean existsByMiddleItemCodeIdAndSmallItemCodeIdAndNameAndIsVisible(...)
-④ Optional<Sample> findByMiddleItemCodeIdAndSmallItemCodeIdAndNameAndIsVisible(...)  ← 중복 체크 후 기존 ID 반환용
-⑤ @Modifying void softDeleteByIds(List<Long> ids, LocalDateTime deleteDatetime, Long deleteMemberId)
-```
-
-`FileInfoRepository`에 아래 메서드 추가 (없으면):
-
-```
-List<FileInfoDTO.FileListRes> getFileInfosWithJoinOrderByDateDesc(
-    String refTableName, Long refTableId, YnType isVisible)
-→ JPQL, FileInfo JOIN Member, createDatetime DESC 정렬
-```
-
-### 2-6. Service — `SampleServiceImpl.java`
-
-| 메서드 | 트랜잭션 | 설명 |
-|--------|---------|------|
-| `getSampleList(GetListReq)` | readOnly | 목록 페이징 → TuiGridDTO.Res 반환 |
-| `getSampleFiles(Long sampleId)` | readOnly | 파일 목록 최신순, sampleId 존재 검증 |
-| `checkDuplicate(middleId, smallId, name)` | readOnly | 동일 조합 존재 여부 + existingId 반환 |
-| `createSample(SampleSaveReq, MultipartFile, user)` | - | 등록 + 파일 저장(선택) + log(i) |
-| `updateSample(Long id, SampleSaveReq, MultipartFile, user)` | - | 수정 + 파일 추가(선택) + log(u) |
-| `deleteSamples(DeleteReq, user)` | - | 소프트삭제(sample + 연관 file_info) + log(d) |
-| `deleteSampleFile(Long fileId, user)` | - | 파일 소프트삭제 + log(d) |
-
-파일 저장 경로: `sample/{sampleId}/`
-파일 타입 제한: `.xls / .xlsx / .xlsm`
-로그 contents 예시: `고유번호 - [1, 5, 12]`
-
-### 2-7. REST Controller — `api/SampleController.java`
-
-`@RequestMapping("/api/sample")`
-
-| Method | URI | 설명 | 응답코드 |
-|--------|-----|------|---------|
-| GET | `/list` | 목록 조회 (TuiGrid dataSource) | 200 |
-| GET | `/{sampleId}/files` | 파일 목록 | 200, 404 |
-| GET | `/checkDuplicate?middleItemCodeId=&smallItemCodeId=&name=` | 중복 확인 | 200 |
-| POST | `/` (multipart) | 등록 | 201 |
-| PATCH | `/{sampleId}` (multipart) | 수정 | 200, 404 |
-| DELETE | `/` (request body) | 일괄 삭제 (ADMIN) | 200 |
-| DELETE | `/files/{fileId}` | 파일 삭제 (ADMIN) | 200, 404 |
-
-> DELETE는 `SecurityConfig`에서 ADMIN 전용으로 이미 제한됨. 별도 권한 체크 불필요.
-
-Swagger `@Tag`, `@Operation`, `@ApiResponses` 필수 (`CLAUDE.md B3` 참고).
+#### 참고
+- 내가 테스트 전에, 클로드가 생성한 `create table` 문을 먼저 실행할 예정입니다.
+- 따라서 **이후 백엔드 entity 설계와 충돌 없도록** 무난하고 확장 가능한 타입으로 설계해 주세요.
 
 ---
 
-## 3. 프론트엔드 구현
+### 3-2. 사전 확인 필요사항
+다음 사항을 먼저 점검해 주세요.
 
-### 3-1. Thymeleaf 페이지
+1. **관리자 페이지는 React 기반 프로젝트이며**, 루트 디렉토리 아래 `frontend` 디렉토리에 관련 소스가 존재합니다.
+2. 현재 `menu` 테이블에서 **관리자(작업중) 메뉴의 `url` 값이**  
+   `http://211.188.55.249/admin/dashboard` 로 지정되어 있습니다.
+3. 즉, 현재는 **배포된 환경으로만 접속되고 있는 상태**이며,  
+   **로컬에서 React 개발환경으로 접속되는 구성이 아직 안 되어 있는 것으로 보입니다.**
+4. 따라서 **로컬 환경에서 어드민 페이지로 진입 가능하도록 작업이 필요합니다.**
 
-- 파일: `templates/basic/sampleManage.html`
-- SSR Controller(`controller/BasicController.java`)에 라우팅 추가:
-  `GET /basic/sampleManage` → `"basic/sampleManage"`
-
-### 3-2. JS 파일
-
-- 파일: `static/js/basic/sampleManage.js`
-- 상단 `console.log('++ basic/sampleManage.js');` 유지
-
----
-
-## 4. 화면 레이아웃
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ 전체 row (m-0 p-1)                                           │
-│ ┌───────────────────────┐  ┌───────────────────────────────┐ │
-│ │ 좌측 카드 (col-lg-6)   │  │ 우측 카드 (col-lg-6)          │ │
-│ │                       │  │                               │ │
-│ │ [삭제]         [검색바] │  │              [신규] [저장]    │ │
-│ │ ┌─────────────────┐   │  │ ┌─────────────────────────┐  │ │
-│ │ │ 샘플 목록 그리드  │   │  │ │  등록/수정 폼 (table)    │  │ │
-│ │ │ (서버사이드 페이징)│   │  │ │  중분류 셀렉트           │  │ │
-│ │ │                 │   │  │ │  소분류 셀렉트           │  │ │
-│ │ └─────────────────┘   │  │ │  기기명 input           │  │ │
-│ │                       │  │ │  파일 업로드 input       │  │ │
-│ │                       │  │ └─────────────────────────┘  │ │
-│ │                       │  │                               │ │
-│ │                       │  │ [파일명 검색 input] [조회]     │ │
-│ │                       │  │ ┌─────────────────────────┐  │ │
-│ │                       │  │ │ 파일 목록 그리드 (클라이언트)│  │ │
-│ └───────────────────────┘  └───────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
-```
+> 위 항목은 실제 회사정보 화면 작업 전, 먼저 확인 및 정리해 주세요.
 
 ---
 
-## 5. 좌측: 샘플 목록 그리드
+## 4. 화면 및 프론트 작업 요구사항
 
-### 5-1. 검색 영역 (카드 상단)
+### 4-1. 사이드바 / 메뉴
+- 어드민페이지의 사이드바는 **`menu` 테이블을 조회할 필요 없음**
+- 현재는 **더미데이터만 존재**
+- 사이드메뉴에 **`회사정보`** 메뉴를 생성할 것
+- 해당 메뉴 진입 시, `env`(회사정보)의 데이터가 모두 표시되어야 함
 
-| 위치 | 컨트롤 | 설명 |
-|------|--------|------|
-| 좌 | `[삭제]` 버튼 (btn-danger) | 체크된 행 삭제 |
-| 우 | 중분류 셀렉트 (100px) | `item_code` (MIDDLE) 전체 목록, 첫 옵션: `value="" 중분류전체` |
-| 우 | 소분류 셀렉트 (100px) | 중분류 선택 시 연동 갱신, 첫 옵션: `value="" 소분류전체` |
-| 우 | 키워드 input (200px) | 기기명 검색 (`name="keyword"`) |
-| 우 | `[검색]` 버튼 (submit) | 그리드 reload |
+### 4-2. 레이아웃
+- 사이드바 메뉴는 **교정관리와 같이 폭이 고정된 형태**
+- **컨텐츠 영역만 내용 길이에 따라 세로 스크롤이 생기도록 구성**
 
-### 5-2. 그리드 컬럼
+### 4-3. 회사정보 화면 구성
+- `env` 데이터 전체에 대한 **입력 폼 UI**가 필요함
+- 일반 입력 항목들은 **하나의 `<form>`** 으로 묶어서 등록/수정 형태로 구성할 것
+- 단, 이미지 항목은 일반 입력폼과 분리하여 취급할 것
 
-| header | name | width | align | 비고 |
-|--------|------|-------|-------|------|
-| (체크박스) | — | 40 | center | `type:'checkbox'` |
-| 번호 | id | 60 | center | |
-| 중분류 | middleCodeName | 100 | center | |
-| 소분류 | smallCodeName | 100 | center | |
-| 기기명 | name | — | left | `resizable:true` |
+### 4-4. 이미지 영역 구성
+이미지 관련 항목:
+- `kolas`
+- `ilac`
+- `company`
 
-- 서버사이드 페이징: `dataSource` 방식, 기본 10행/페이지
-- 행 클릭: 우측 폼에 데이터 로드 + 파일 그리드 로드
-- **같은 행 재클릭 시**: 선택 해제 + 우측 폼 초기화 (토글 동작)
-- 선택된 행: CSS 클래스 `gridFocused` 추가
+위 3개 항목은 **교정관리의 직원수정 페이지와 같은 방식**으로 구성할 것.
 
----
+#### 이미지 UI 요구사항
+각 이미지 영역은 아래 구조를 따를 것:
+- 이미지 박스
+- 그 아래 버튼 2개
+  - `이미지선택`
+  - `삭제`
 
-## 6. 우측: 등록/수정 폼
+즉, 위와 같은 세트가 총 3개 존재해야 합니다.
 
-### 6-1. 폼 필드
-
-| 구분 | 필드명 | 필수 | 설명 |
-|------|--------|------|------|
-| 중분류 | middleItemCodeId | 필수 | `value="0"` = 미선택 |
-| 소분류 | smallItemCodeId | 필수 | 중분류 선택 후 연동 갱신 |
-| 기기명 | name | 필수 | placeholder: "기기명을 입력해주세요" |
-| 파일 업로드 | (file input) | 선택 | `.xls/.xlsx/.xlsm` 단일 파일 |
-
-> `multiple` 속성 **사용하지 않음** (단일 파일만)
-
-### 6-2. [신규] 버튼
-
-- 우측 폼 전체 초기화
-- 좌측 그리드 행 선택 해제 (gridFocused 제거)
-- 파일 그리드 비우기, 파일 키워드 초기화
-
-### 6-3. [저장] 버튼 — 저장 로직 흐름
-
-```
-[저장] 클릭
-  ↓
-입력값 검증 (gErrorHandler 사용)
-  - 중분류 미선택 → "중분류를 선택해주세요"
-  - 소분류 미선택 → "소분류를 선택해주세요"
-  - 기기명 빈값  → "기기명을 입력해주세요"
-  ↓
-최종 저장 confirm (gMessage)
-  ↓ 확인
-  ├─ [수정 모드] selectedSampleId 존재
-  │     → PATCH /api/sample/{id}  (multipart: data + file?)
-  │     → 성공 시 좌측 그리드 reload + 해당 행 다시 선택
-  │
-  └─ [등록 모드] selectedSampleId 없음
-        → GET /api/sample/checkDuplicate?middleItemCodeId=&smallItemCodeId=&name=
-          ↓
-          ├─ 중복 없음 → POST /api/sample
-          │               → 성공 시 좌측 그리드 reload + 신규 행 선택
-          │
-          └─ 중복 있음 + 파일 있음
-                → "동일 기기명이 존재합니다. 해당 기기에 파일을 추가하겠습니까?" confirm
-                  ↓ 확인
-                  → PATCH /api/sample/{existingId} (파일만 추가)
-                  → 성공 시 그리드 reload + existingId 행 선택
-          └─ 중복 있음 + 파일 없음
-                → gErrorHandler("이미 등록된 샘플입니다.")
-```
-
-> API 호출 방식: `fetch` + `FormData`
-> `data` 파트: `new Blob([JSON.stringify(req)], {type: 'application/json'})`
-> `file` 파트: 파일 input 값 (없으면 append 생략)
+#### 이미지 저장 방식
+- **개별 이미지 3개는 각각 별도의 저장 버튼이 존재해야 함**
+- 그 외 일반 입력폼은 **하나의 form 단위로 등록/수정**
 
 ---
 
-## 7. 우측: 파일 목록 그리드
+## 5. 백엔드 작업 참고사항
 
-### 7-1. 특성
+### 5-1. Entity
+- 위 `env(회사정보)` 스키마를 기준으로 **Entity 클래스 생성**
+- 단, 내가 먼저 클로드가 작성한 `create table` 문을 실행한 뒤 테스트할 예정이므로,  
+  **DDL과 entity 구조가 자연스럽게 맞물리도록 작성할 것**
 
-- **클라이언트사이드** 렌더링 (`resetData` 방식)
-- `allFiles` 배열에 전체 목록 캐시 → 키워드 필터는 이 배열에서 수행
-- 샘플 행 클릭 시: `GET /api/sample/{sampleId}/files` 호출 → `allFiles` 저장 → 그리드 렌더링
+### 5-2. API 경로
+- 컨트롤러 경로는 **`api/admin/??` 형태를 활용**
+- 프로젝트 기존 규칙에 맞게 네이밍과 경로를 정리해 주세요.
 
-### 7-2. 컬럼
+### 5-3. 공통 함수 / 방식
+- 기본 구현 방식은 **기존 클로드 작업 규칙을 참고**
+- 가능하면 공통 함수들을 활용할 것
+  - `gAjax`
+  - fetch API
+  - `errorHandler`
+  - 기타 공통 유틸
 
-| header | name | width | align | 비고 |
-|--------|------|-------|-------|------|
-| 파일명 | originName | — | left | 클릭 시 다운로드: `window.location.href = /api/file/fileDownload/{id}` |
-| 업로드 일시 | createDatetime | 140 | center | formatter: 날짜 배열/문자열 양쪽 대응 |
-| 등록자 | writerName | 80 | center | |
-| 삭제 | — | 60 | center | `[삭제]` 버튼, ADMIN만 표시 |
+### 5-4. 확인 필요사항
+- `common.js` 에 정의된 공통 함수들이  
+  **React 기반 어드민 페이지에서도 정상 동작 가능한지 확실하지 않음**
+- 따라서 이 부분은 먼저 확인 후,
+  - 사용 가능하면 재사용
+  - 사용이 어렵다면 React 환경에 맞는 방식으로 대체
+- 해당 판단 근거를 함께 알려줄 것
 
-> `createDatetime` Jackson 기본 직렬화는 배열 형태(`[2026,3,9,14,30,0]`)일 수 있음.
-> formatter에서 배열/ISO문자열 양쪽 처리 필요.
-
-### 7-3. 파일 키워드 검색
-
-- `input.fileKeyword` + `[조회]` 버튼
-- `allFiles`를 `originName.includes(keyword)` 로 필터 후 `resetData` 호출
-- 서버 호출 없음 (클라이언트 필터)
-
-### 7-4. 파일 삭제 흐름
-
-```
-[삭제] 클릭
-  ↓
-"삭제하시겠습니까?" confirm (gMessage)
-  ↓ 확인
-DELETE /api/file/files/{fileId}
-  ↓ 성공
-allFiles에서 해당 id 제거 → resetData (서버 재호출 없음)
-```
+### 5-5. 구현 범위 제한
+- 이번 작업에서는 **조회 로직까지만 구현**
+- 저장/수정 API는 아직 구체화하지 않음
+- 화면에서 저장 버튼 클릭 시에는 실제 저장 대신  
+  **`구현 준비중입니다` 토스트 메시지(gToast)** 만 출력할 것
 
 ---
 
-## 8. 중분류/소분류 셀렉트 연동 규칙
+## 6. 작업 순서 제안
+아래와 같이 **작업 단위를 나누어** 진행해 주세요.
 
-### 8-1. 데이터 소스
+### 1단계. 사전 점검
+- 로컬 환경에서 어드민 React 페이지 진입 가능 여부 확인
+- 현재 관리자 메뉴 진입 방식 점검
+- 공통 함수(`common.js`) 재사용 가능 여부 확인
 
-- `GET /api/basic/itemCodeSet` → `{ middleList: [...], smallList: [...] }`
-- 페이지 로드 시 1회 호출, 결과를 `middleItemCodeSet`, `smallItemCodeSet` 변수에 캐시
+### 2단계. DB 설계
+- `env` 테이블 `create table` 문 작성
+- 컬럼 타입 / 길이 / 코멘트 포함 정리
 
-### 8-2. 연동 방식
+### 3단계. 백엔드 조회 기반 준비
+- `env` entity 생성
+- 조회용 컨트롤러 / 서비스 / repository(또는 그에 준하는 구조) 준비
 
-```
-middleItemCodeSet: [{ id, codeNum, codeName }, ...]
-smallItemCodeSet:  { [middleId]: [{ id, codeNum, codeName }, ...], ... }
-```
+### 4단계. 프론트 화면 구성
+- 사이드바에 `회사정보` 메뉴 추가
+- 회사정보 화면 UI 작성
+- 일반 입력폼 + 이미지 3세트 UI 구성
+- 저장 버튼 클릭 시 임시 토스트 처리
 
-- 중분류 변경 시: 해당 `middleId` 키에 해당하는 소분류 목록으로 소분류 셀렉트 갱신
-- 좌측 검색 폼과 우측 입력 폼의 셀렉트를 **동시에** 동일 데이터로 초기화
-
-### 8-3. 소분류 미선택 처리
-
-- 중분류 변경 시 소분류는 첫 옵션(`value="0" 선택하세요` 또는 `value="" 소분류전체`)으로 reset
-- 중분류 미선택 시 소분류 셀렉트 비활성화 또는 전체 소분류 표시
-
----
-
-## 9. 보안 / 권한
-
-| 기능 | 제한 |
-|------|------|
-| 목록 조회, 파일 조회 | 로그인 사용자 전체 |
-| 등록, 수정 | 로그인 사용자 전체 |
-| 샘플 삭제 | ADMIN만 (`SecurityConfig` DELETE /api/** 제한) |
-| 파일 삭제 | ADMIN만 (동일) |
-
-> 파일 삭제 버튼: ADMIN이 아닌 경우 `[삭제]` 버튼 렌더링 안 함 (또는 클릭 시 toast 경고).
-> Thymeleaf에서 `sec:authorize` 또는 JS에서 서버 응답 403 처리 중 선택.
+### 5단계. 조회 연동
+- `env` 데이터 조회 후 화면 바인딩
+- 최초 데이터가 없을 경우의 처리 방식도 함께 고려
 
 ---
 
-## 10. 에러 처리 기준
+## 7. 클로드가 먼저 피드백해야 할 사항
+작업을 시작하기 전에, 아래 항목 중 확인이 필요한 것이 있다면 먼저 질문해 주세요.(내가 답할 수 있는 건 미리 '=>'를 통해 답해줌)
 
-| 상황 | 처리 방식 |
-|------|---------|
-| 입력값 검증 실패 | `gErrorHandler(msg)` (toast) |
-| API 응답 에러 (4xx/5xx) | `gApiErrorHandler(err)` (modal) |
-| fetch 에러 캐치를 위해 | `if (!res.ok) throw res;` 패턴 적용 |
+- `env` 테이블이 **단일 row만 존재하는 구조**인지
+  - 단일 row만 존재
+- 이미지 컬럼(`kolas`, `ilac`, `company`)이
+  - 파일 경로 저장인지
+  - 파일명 저장인지
+  - base64 저장인지
+  => 오브젝트 스토리지의 경로  env/[kolas.이미지확장자, ilac.이미지확장자, company.이미지확장자] 형태로 존재.  
+- `update_member_id` 의 참조 대상이 무엇인지
+    => member 테이블 id  처음 기본값은 NULL
+- `update_datetime` 의 DB 기본값 처리 여부
+  => 처음 기본값은 NULL
+- `api/admin/??` 의 구체적인 네이밍 규칙
+  => 클로드가 알아서 요청 성격에 맞는 메서드네이밍 할 것
+- 저장 버튼 UI는 만들되 저장 API는 미구현으로 둘지 여부
+  => UI만 표시
+- 조회 대상 데이터가 없을 때 초기값을 어떻게 처리할지 여부
+  => 그냥 빈값으로 둘 것
+  => 참고로 저장할 때는 좌우 공백을 제거하는 것이 선행조건(필수값도 존재하지 않음)
 
 ---
 
-## 11. 작업 순서 (권장)
+## 8. 최종 요청
+위 요구사항을 모두 반영해서 작업해 주세요.
 
-1. DB: `sample` 테이블 DDL 작성 (delta + schema.sql 동기화)
-2. Backend: `Sample.java` 엔티티
-3. Backend: `SampleListRow.java` Projection
-4. Backend: `SampleDTO.java` DTO
-5. Backend: `SampleRepository.java` + `FileInfoRepository` 메서드 추가
-6. Backend: `SampleServiceImpl.java`
-7. Backend: `api/SampleController.java`
-8. Frontend: `sampleManage.html` (레이아웃)
-9. Frontend: `sampleManage.js` (기능)
-10. SSR Controller에 라우팅 추가 (이미 있으면 skip)
+특히 아래 사항을 반드시 지켜 주세요.
 
----
-
-## 12. 완료 검증 체크리스트
-
-- [ ] 중분류 선택 → 소분류 연동 갱신
-- [ ] 기기명 키워드 검색 → 그리드 페이징 동작
-- [ ] 행 클릭 → 우측 폼/파일 그리드 로드
-- [ ] 같은 행 재클릭 → 폼 초기화 (토글)
-- [ ] 신규 등록 → 중복 없음 → 저장 성공
-- [ ] 신규 등록 → 중복 있음 + 파일 → 기존 건에 파일 추가 confirm 흐름
-- [ ] 신규 등록 → 중복 있음 + 파일 없음 → 에러 toast
-- [ ] 수정 → 저장 성공
-- [ ] 파일 업로드 (Excel) → 파일 그리드 반영
-- [ ] 파일명 클릭 → 다운로드
-- [ ] 파일 키워드 검색 → 클라이언트 필터 동작
-- [ ] ADMIN: 샘플 삭제 → 연관 파일도 소프트삭제
-- [ ] ADMIN: 파일 삭제 → 그리드 즉시 반영 (서버 재호출 없음)
-- [ ] 비ADMIN: 삭제 버튼 접근 차단
+- 요청서 검토 후 **확인 필요한 부분은 먼저 피드백할 것**
+- **작업 단위를 분리하여 진행할 것**
+- `env` 테이블의 **DDL(create table)** 부터 정리할 것
+- 로컬에서 **어드민 React 페이지 진입 가능하도록 사전 점검할 것**
+- 회사정보 화면은 **조회 가능 상태까지 우선 구현**
+- 저장 기능은 아직 구현하지 말고, 클릭 시 **`구현 준비중입니다`** 토스트만 표시할 것
+- 이미지 3종(`kolas`, `ilac`, `company`)은 **직원수정 페이지 스타일을 참고하여 별도 UI/저장 구조**로 구성할 것

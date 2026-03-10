@@ -7,6 +7,7 @@ import com.bada.cali.repository.AgentManagerRepository;
 import com.bada.cali.repository.projection.DepartmentListPr;
 import com.bada.cali.repository.projection.ItemCodeList;
 import com.bada.cali.repository.projection.MemberLevelListPr;
+import com.bada.cali.repository.projection.MemberSelectRow;
 import com.bada.cali.repository.projection.OrderDetailsList;
 import com.bada.cali.security.CustomUserDetails;
 import com.bada.cali.service.AgentServiceImpl;
@@ -373,6 +374,19 @@ public class BasicController {
 		return ResponseEntity.ok(resMessage);
 	}
 	
+	// 접수자 select용 사내 직원 목록 조회
+	@Operation(summary = "사내 직원 목록 조회", description = "접수자 선택 시 사용. 재직중이고 삭제되지 않은 사내 직원(agentId=0) 목록 반환. 개발 계정 제외")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
+	@GetMapping(value = "/getInternalMembers")
+	public ResponseEntity<ResMessage<List<MemberSelectRow>>> getInternalMembers() {
+		List<MemberSelectRow> members = basicService.getInternalMembers();
+		return ResponseEntity.ok(new ResMessage<>(1, null, members));
+	}
+
 	// 부서관리, 직급관리, 사용중인 중분류코드 정보를 가져온다 (직원등록/수정 세팅)
 	@Operation(summary = "직원 등록/수정용 기본 옵션 조회", description = "직원 등록·수정 화면에서 사용하는 부서·직급·중분류코드 정보 일괄 조회")
 	@ApiResponses({

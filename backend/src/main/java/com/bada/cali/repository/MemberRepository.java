@@ -5,6 +5,7 @@ import com.bada.cali.entity.Member;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.repository.projection.GetMemberInfoPr;
 import com.bada.cali.repository.projection.MemberListPr;
+import com.bada.cali.repository.projection.MemberSelectRow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -121,6 +122,27 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 						@Param("isVisible") YnType isVisible,
 						@Param("deleteDatetime") LocalDateTime deleteDatetime,
 						@Param("deleteMemberId") Long deleteMemberId);
+
+	/**
+	 * 접수자 select 구성용 사내 직원 목록 조회.
+	 * - agentId = 0 (사내 직원)
+	 * - isActive = 'y' (재직중)
+	 * - leaveDate IS NULL OR leaveDate > CURRENT_DATE (퇴사하지 않은 직원)
+	 * - isVisible = 'y' (삭제되지 않음)
+	 * - loginId != 'bada' (bada 계정 제외)
+	 * id 기준 오름차순 정렬
+	 */
+	@Query("""
+			SELECT m.id AS id, m.name AS name
+			FROM Member m
+			WHERE m.agentId = 0
+			  AND m.isActive = 'y'
+			  AND m.isVisible = 'y'
+			  AND (m.leaveDate IS NULL OR m.leaveDate > CURRENT_DATE)
+			  AND m.loginId != 'bada'
+			ORDER BY m.id ASC
+			""")
+	List<MemberSelectRow> findInternalMembers();
 
 	// FileInfo가 복수 존재할 경우 NonUniqueResultException 방어 → List 반환 후 서비스에서 첫 번째 사용
 	@Query("""

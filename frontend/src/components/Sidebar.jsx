@@ -8,6 +8,7 @@ const menus = [
   { to: "/work-history", label: "작업이력관리" },
   { to: "/menu-permissions", label: "사용자메뉴권한관리" },
   { to: "/notices", label: "업데이트공지" },
+  { to: "/company-info", label: "회사정보" },
 ];
 
 const backendOrigin = import.meta.env.VITE_BACKEND_ORIGIN;
@@ -34,9 +35,8 @@ export default function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
-        <button className="sidebar-cta" type="button" onClick={ () => {
-            location.href = `http://211.188.55.249/cali/caliOrder`;
-            // location.href = `${backendOrigin}/cali/caliOrder`;
+        <button className="sidebar-cta" type="button" onClick={() => {
+          location.href = `${backendOrigin}/cali/caliOrder`;
         }}>
           교정관리 돌아가기
         </button>

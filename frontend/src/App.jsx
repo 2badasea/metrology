@@ -7,6 +7,7 @@ import LoginHistory from "./pages/LoginHistory";
 import WorkHistory from "./pages/WorkHistory";
 import MenuPermissions from "./pages/MenuPermissions";
 import Notices from "./pages/Notices";
+import CompanyInfo from "./pages/CompanyInfo";
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/work-history" element={<WorkHistory />} />
         <Route path="/menu-permissions" element={<MenuPermissions />} />
         <Route path="/notices" element={<Notices />} />
+        <Route path="/company-info" element={<CompanyInfo />} />
       </Route>
 
       <Route path="*" element={<div className="page">Not Found</div>} />
