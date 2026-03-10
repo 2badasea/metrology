@@ -215,6 +215,22 @@ public class MemberDTO {
 	// 직원 삭제 요청 DTO
 	public record DeleteMemberReq(List<Long> ids) {}
 
+	// 메뉴 권한 조회 - 개별 항목
+	public record MenuPermissionItem(
+			Long id,
+			String menuAlias,
+			Integer depth,
+			Long parentId,
+			boolean hasPermission) {}
+
+	// 메뉴 권한 조회 응답
+	public record MenuPermissionListRes(
+			boolean isAdminMember,
+			List<MenuPermissionItem> items) {}
+
+	// 메뉴 권한 저장 요청
+	public record SaveMenuPermissionsReq(List<Long> menuIds) {}
+
 	// 조합( record + class)
 	public record GetMemberInfoSet(
 			GetMemberInfoPr basicMemberInfo,

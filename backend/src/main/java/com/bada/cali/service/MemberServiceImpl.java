@@ -1,6 +1,7 @@
 package com.bada.cali.service;
 
 import com.bada.cali.common.ResMessage;
+import com.bada.cali.common.enums.AuthType;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.MemberDTO;
 import com.bada.cali.dto.TuiGridDTO;
@@ -27,8 +28,13 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -47,6 +53,9 @@ public class MemberServiceImpl {
 	
 	private final PasswordEncoder passwordEncoder;
 	private final MemberMapper memberMapper;
+	private final MenuRepository menuRepository;
+	private final MemberPermissionReadRepository memberPermissionReadRepository;
+	private final MenuQueryService menuQueryService;
 	
 	/**
 	 * 로그인 성공 처리 (로그인 카운트 초기화, 마지막 로그인 일시 갱신, 비밀번호 만료 경고, 이력 저장)
@@ -436,5 +445,84 @@ public class MemberServiceImpl {
 		MemberDTO.GetMemberInfoSet data = new MemberDTO.GetMemberInfoSet(getMemberInfo, memberImgPath, itemAuthData);
 		return new ResMessage<>(1, "", data);
 	}
-	
+
+	/**
+	 * 직원의 메뉴 읽기 권한 목록 조회
+	 * 전체 visible 메뉴 + 해당 직원의 권한 여부 플래그 포함
+	 */
+	@Transactional(readOnly = true)
+	public MemberDTO.MenuPermissionListRes getMenuPermissions(Long memberId) {
+		Member member = memberRepository.findByIdAndIsVisible(memberId, YnType.y);
+		if (member == null) throw new EntityNotFoundException("직원 정보를 찾을 수 없습니다.");
+
+		boolean isAdminMember = AuthType.admin == member.getAuth();
+
+		List<Menu> allMenus = menuQueryService.getAllVisibleMenus();
+		Set<Long> permittedMenuIds = new HashSet<>(memberPermissionReadRepository.findMenuIdsByMemberId(memberId));
+
+		// 부모-자식 계층 순서로 재정렬: 1depth → 하위 children 순으로 이어서 나열
+		Map<Long, List<Menu>> childrenByParentId = allMenus.stream()
+				.filter(m -> m.getParent() != null)
+				.collect(Collectors.groupingBy(m -> m.getParent().getId()));
+
+		List<MemberDTO.MenuPermissionItem> items = new ArrayList<>();
+		allMenus.stream()
+				.filter(m -> m.getParent() == null)
+				.sorted(Comparator.comparing(Menu::getSortOrder))
+				.forEach(root -> {
+					items.add(toMenuPermissionItem(root, permittedMenuIds));
+					childrenByParentId.getOrDefault(root.getId(), List.of())
+							.stream()
+							.sorted(Comparator.comparing(Menu::getSortOrder))
+							.forEach(child -> items.add(toMenuPermissionItem(child, permittedMenuIds)));
+				});
+
+		return new MemberDTO.MenuPermissionListRes(isAdminMember, items);
+	}
+
+	/**
+	 * 직원의 메뉴 읽기 권한 저장 (replace: 기존 전체 삭제 후 선택된 항목만 재저장)
+	 * ADMIN 계정은 변경 불가
+	 */
+	@Transactional
+	public ResMessage<Void> saveMenuPermissions(Long memberId, List<Long> menuIds, CustomUserDetails user) {
+		Member member = memberRepository.findByIdAndIsVisible(memberId, YnType.y);
+		if (member == null) throw new EntityNotFoundException("직원 정보를 찾을 수 없습니다.");
+
+		if (AuthType.admin == member.getAuth()) {
+			return new ResMessage<>(-1, "관리자 계정의 권한은 변경할 수 없습니다.", null);
+		}
+
+		memberPermissionReadRepository.deleteAllByMemberId(memberId);
+
+		if (menuIds != null && !menuIds.isEmpty()) {
+			List<Menu> menus = menuRepository.findAllById(menuIds);
+			List<MemberPermissionRead> newPerms = menus.stream()
+					.map(m -> MemberPermissionRead.of(member, m))
+					.toList();
+			memberPermissionReadRepository.saveAll(newPerms);
+		}
+
+		logRepository.save(Log.builder()
+				.logType("u")
+				.refTable("member_permission_read")
+				.refTableId(memberId)
+				.createDatetime(LocalDateTime.now())
+				.createMemberId(user.getId())
+				.logContent("메뉴 권한 변경 - 대상 직원 id: " + memberId + ", 부여된 메뉴 id 목록: " + (menuIds != null ? menuIds : "[]"))
+				.build());
+
+		return new ResMessage<>(1, "메뉴 권한이 저장되었습니다.", null);
+	}
+
+	private MemberDTO.MenuPermissionItem toMenuPermissionItem(Menu m, Set<Long> permittedMenuIds) {
+		return new MemberDTO.MenuPermissionItem(
+				m.getId(),
+				m.getMenuAlias(),
+				m.getDepth(),
+				m.getParent() != null ? m.getParent().getId() : null,
+				permittedMenuIds.contains(m.getId())
+		);
+	}
+
 }

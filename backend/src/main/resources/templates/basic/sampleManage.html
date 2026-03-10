@@ -19,26 +19,16 @@
                                     <ul class="ml-auto list-group list-group-horizontal">
                                         <li class="mr-1 d-flex">
                                             <select class=" form-control middleCodeSelect"
-                                                style="width: 100px !important;">
+                                                style="width: 150px !important;">
                                                 <option value="">중분류전체</option>
                                             </select>
                                             <select class=" form-control smallCodeSelect"
-                                                style="width: 100px !important;">
+                                                style="width: 150px !important;">
                                                 <option value="">소분류전체</option>
                                             </select>
                                         </li>
                                         <li class="mr-1 d-flex">
-                                            <div class="input-group">
-                                                <select class="form-control w100" name="searchType">
-                                                    <option value="">전체선택</option>
-                                                    <option value="">중분류명</option>
-                                                    <option value="">소분류명</option>
-                                                    <option value="">기기명</option>
-                                                </select>
-                                                <div class="input-group-append">
-                                                    <input type="input" class="w200 form-control" name="keyword" />
-                                                </div>
-                                            </div>
+                                            <input type="text" class="form-control w200" name="keyword" placeholder="기기명 검색" />
                                         </li>
                                         <li>
                                             <button type="submit" class="btn btn-primary"><i
@@ -91,7 +81,7 @@
                                     <tr>
                                         <th>파일 업로드</th>
                                         <td><input type="file" class="form-control sampleFiles p-1"
-                                                accept=".xls,.xlsx,.xlsm" multiple /></td>
+                                                accept=".xls,.xlsx,.xlsm" /></td>
                                     </tr>
                                 </tbody>
                             </table>

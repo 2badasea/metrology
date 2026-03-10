@@ -143,19 +143,16 @@ $(function () {
 				align: 'center',
 				width: '70',
 				formatter: function (data) {
-					let row = data.row;
-					let cntText = '';
-					let btnClass = 'btn-success';
-					if (row.reportCnt != undefined && row.reportCnt > 0) {
-						cntText = '1개 이상 존재';
-						btnClass = 'default p-0';
+					const row = data.row;
+					const cnt = row.reportTotalCnt ?? 0;
+
+					if (cnt > 0) {
+						// 성적서가 존재하는 경우: 개수 텍스트 표시 (셀 중앙정렬)
+						return `<div class="w-100 h-100 d-flex align-items-center justify-content-center"><span class="fw-bold">${cnt}개</span></div>`;
 					} else {
-						cntText = `<i class="bi bi-pencil-square"></i>`;
+						// 성적서가 없는 경우: 파란색 버튼 표시
+						return `<button type='button' class='btn btn-primary w-100 h-100 rounded-0'><i class="bi bi-pencil-square"></i></button>`;
 					}
-					// FIX 성적서가 존재하는 경우, 성적서의 개수를 표기한다.
-					return `
-							<button type='button' class='btn ${btnClass} w-100 h-100 rounded-0' >${cntText}</button>
-					`;
 				},
 			},
 			// {

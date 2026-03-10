@@ -14,6 +14,8 @@ import com.bada.cali.repository.AgentManagerRepository;
 import com.bada.cali.repository.AgentRepository;
 import com.bada.cali.repository.CaliOrderRepository;
 import com.bada.cali.repository.LogRepository;
+import com.bada.cali.repository.ReportRepository;
+import com.bada.cali.repository.projection.ReportCountRow;
 import com.bada.cali.security.CustomUserDetails;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -29,6 +31,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -39,7 +42,8 @@ public class CaliOrderServiceImpl {
 	private final CaliOrderRepository caliOrderRepository;
 	private final AgentRepository agentRepository;
 	private final AgentManagerRepository agentManagerRepository;
-	
+	private final ReportRepository reportRepository;
+
 	private final CaliOrderMapper caliOrderMapper;
 	
 	// 교정접수 리스트 가져오기
@@ -112,7 +116,19 @@ public class CaliOrderServiceImpl {
 		
 		// entity -> DTO 변환
 		List<CaliDTO.OrderRowData> rows = pageResult.getContent().stream().map(caliOrderMapper::toOrderDataFromEntity).toList();
-		
+
+		// 접수 ID 목록으로 성적서 개수를 한 번에 집계 (N+1 방지)
+		List<Long> caliOrderIds = pageResult.getContent().stream().map(CaliOrder::getId).collect(Collectors.toList());
+		if (!caliOrderIds.isEmpty()) {
+			// caliOrderId → reportCnt 맵 구성
+			Map<Long, Long> reportCntMap = reportRepository.countByCaliOrderIds(caliOrderIds)
+					.stream()
+					.collect(Collectors.toMap(ReportCountRow::getCaliOrderId, ReportCountRow::getReportCnt));
+
+			// 각 row에 성적서 개수 주입
+			rows.forEach(row -> row.setReportTotalCnt(reportCntMap.getOrDefault(row.getId(), 0L)));
+		}
+
 		// 페이지네이션
 		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
 				.page(request.getPage())

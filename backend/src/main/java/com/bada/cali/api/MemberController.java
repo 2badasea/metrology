@@ -162,6 +162,42 @@ public class MemberController {
 		return ResponseEntity.ok(resMessage);
 	}
 
+	@Operation(summary = "직원 메뉴 권한 조회", description = "전체 visible 메뉴와 해당 직원의 읽기 권한 여부를 함께 반환합니다.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "404", description = "직원 정보 없음",
+					content = @Content(schema = @Schema(implementation = ResMessage.class))),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
+	@GetMapping("/{memberId}/menuPermissions")
+	public ResponseEntity<ResMessage<MemberDTO.MenuPermissionListRes>> getMenuPermissions(
+			@Parameter(description = "직원 고유 id", required = true, example = "1")
+			@PathVariable Long memberId) {
+		MemberDTO.MenuPermissionListRes res = memberService.getMenuPermissions(memberId);
+		return ResponseEntity.ok(new ResMessage<>(1, null, res));
+	}
+
+	@Operation(summary = "직원 메뉴 권한 저장", description = "기존 권한을 전부 삭제 후 선택된 메뉴 id 목록으로 재저장합니다. ADMIN 계정은 변경 불가.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "저장 성공"),
+			@ApiResponse(responseCode = "400", description = "요청 파라미터 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class))),
+			@ApiResponse(responseCode = "404", description = "직원 정보 없음",
+					content = @Content(schema = @Schema(implementation = ResMessage.class))),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
+	@PutMapping("/{memberId}/menuPermissions")
+	public ResponseEntity<ResMessage<Void>> saveMenuPermissions(
+			@Parameter(description = "직원 고유 id", required = true, example = "1")
+			@PathVariable Long memberId,
+			@RequestBody MemberDTO.SaveMenuPermissionsReq req,
+			@AuthenticationPrincipal CustomUserDetails user) {
+		ResMessage<Void> res = memberService.saveMenuPermissions(memberId, req.menuIds(), user);
+		return ResponseEntity.ok(res);
+	}
+
 	@Operation(summary = "직원 상세 조회", description = "직원 고유 id로 상세 정보(기본 정보 + 서명 이미지 + 권한)를 조회합니다.")
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "조회 성공"),

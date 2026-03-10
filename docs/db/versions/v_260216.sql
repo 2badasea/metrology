@@ -1,3 +1,6 @@
+-- 스키마 구조 변경 시, "alter table~" 등의 쿼리문은 제외하고 최신 create table문을 기록하도록 한다.
+-- 스키마 변경 시 클로드에게 해당 테이블 관련 사이드이펙트를 확인해보라고 지시할 것
+
 CREATE TABLE IF NOT EXISTS `agent` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '업체 고유번호',
   `create_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'basic' COMMENT 'basic : 기본데이터(직접등록) , auto: 자동등록(접수), join(회원가입)',

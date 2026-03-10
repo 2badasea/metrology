@@ -98,26 +98,57 @@
 						return value == 0 ? '재직' : value == 1 ? '휴직' : '퇴직';
 					},
 				},
+				{
+					header: '메뉴권한',
+					name: 'menuPermission',
+					width: '90',
+					align: 'center',
+					formatter: function () {
+						return '<i class="bi bi-shield-lock" style="font-size:1.1rem;cursor:pointer;"></i>';
+					},
+				},
 			],
 			pageOptions: {
 				useClient: false, // 서버 페이징
 				perPage: 20,
 			},
 			rowHeaders: ['checkbox'],
+			rowHeight: 'auto',
 			minBodyHeight: 663,
 			bodyHeight: 663,
 			data: $modal.data_source,
 		});
 
+		// 서버 데이터 수신 후 레이아웃 재계산 (헤더-바디 열 정렬 보정)
+		$modal.grid.on('response', () => $modal.grid.refreshLayout());
+
 		// 그리드 이벤트 정의
 		$modal.grid.on('click', async function (e) {
 			const row = $modal.grid.getRow(e.rowKey);
+			if (!row || e.columnName === '_checked') return;
 
-			if (row && e.columnName != '_checked') {
-				const id = row.id;
-				// 직원 등록/수정 페이지 이동
-				location.href = `/member/memberModify?id=${id}`;
+			// 메뉴권한 열 클릭
+			if (e.columnName === 'menuPermission') {
+				if (G_USER.auth !== 'admin') {
+					gToast('권한이 없습니다.', 'warning');
+					return;
+				}
+				await gModal(
+					'/member/menuPermission',
+					{ memberId: row.id, memberName: row.name },
+					{
+						title: row.name + ' 메뉴권한',
+						size: 'md',
+						show_close_button: true,
+						show_confirm_button: true,
+						confirm_button_text: '저장',
+					},
+				);
+				return;
 			}
+
+			// 그 외 열 클릭 → 직원 등록/수정 페이지 이동
+			location.href = `/member/memberModify?id=${row.id}`;
 		});
 
 	};	// End init_modal

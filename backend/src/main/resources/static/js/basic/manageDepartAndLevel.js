@@ -179,20 +179,25 @@ $(function () {
 						body: JSON.stringify({
 							type: type,
 							saveData: rowData,
-							deleteIds: type == 'department' ? deleteDepartmentIds : deleteMemberLevelIds,
+							deleteIds: type === 'department' ? deleteDepartmentIds : deleteMemberLevelIds,
 						}),
 					};
 					const resSave = await fetch('/api/basic/saveBasicInfo', feOption);
 					if (resSave.ok) {
 						const resData = await resSave.json();
 						if (resData?.code > 0) {
+							if (type === 'department') {
+								deleteDepartmentIds.splice(0);
+							} else {
+								deleteMemberLevelIds.splice(0);
+							}
 							await gMessage(`${saveInfoKr}관리 저장`, '저장되었습니다.', 'success', 'alert');
 							saveGrid.reloadData();
 						} else {
 							await gMessage(`${saveInfoKr}관리 저장`, resData.msg ?? '저장 실패', 'warning', 'alert');
 						}
 					} else {
-						throw new Error('저장하는 데 실패했습니다.');
+						throw resSave;
 					}
 				} catch (xhr) {
 					customAjaxHandler(xhr);

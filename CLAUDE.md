@@ -148,7 +148,10 @@ npm run lint                     # ESLint
 
 ### DB 변경 관련
 
-- DB 스키마는 `docs/db/schema.sql` 을 단일 기준(source of truth)으로 참고합니다.
+- DB 스키마는 **하이브리드 방식**으로 관리합니다.
+    - `docs/db/schema.sql` — **단일 정오답(Full Schema)**. 항상 최신 전체 스키마 상태를 유지. 새 환경 셋업 시 이 파일만 실행하면 됨.
+    - `docs/db/versions/v_YYMMDD.sql` — **델타(변경분만)**. 해당 버전에서 추가/변경된 DDL만 포함. 히스토리 추적 용도.
+- 스키마 변경 작업 시 두 곳 모두 업데이트합니다: `schema.sql` 최신화 + `versions/` 에 델타 파일 추가.
 - DDL 변경은 **사전 승인 없이는 금지**. 필요하면 “제안”까지만 합니다.
 
 ---
