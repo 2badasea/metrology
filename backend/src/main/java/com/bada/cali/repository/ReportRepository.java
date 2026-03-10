@@ -7,6 +7,7 @@ import com.bada.cali.entity.Report;
 import com.bada.cali.repository.projection.LastManageNoByType;
 import com.bada.cali.repository.projection.LastReportNumByOrderType;
 import com.bada.cali.repository.projection.OrderDetailsList;
+import com.bada.cali.repository.projection.ReportCountRow;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -257,4 +258,22 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 	
 	
 	List<Report> findByMiddleItemCodeIdInAndIsVisible(List<Long> attr0, YnType isVisible);
+
+	/**
+	 * 접수 ID 목록을 받아 각 접수별 성적서 개수를 집계한다.
+	 * - 삭제된 성적서(is_visible != 'y') 제외
+	 * - 자식성적서(parent_id, parent_scale_id가 있는 것) 제외 → 최상위 성적서만 카운트
+	 *
+	 * @param caliOrderIds 집계할 접수 ID 목록
+	 * @return 접수 ID / 개수 쌍의 프로젝션 목록
+	 */
+	@Query("""
+			SELECT r.caliOrderId AS caliOrderId, COUNT(r.id) AS reportCnt
+			FROM Report r
+			WHERE r.caliOrderId IN :caliOrderIds
+			  AND r.isVisible = 'y'
+			  AND r.parentScaleId IS NULL
+			GROUP BY r.caliOrderId
+			""")
+	List<ReportCountRow> countByCaliOrderIds(@Param("caliOrderIds") List<Long> caliOrderIds);
 }
