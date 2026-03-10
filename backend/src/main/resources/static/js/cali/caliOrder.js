@@ -65,7 +65,7 @@ $(function () {
 				header: '접수번호',
 				name: 'orderNum',
 				className: 'cursor_pointer',
-				width: '140',
+				width: '120',
 				align: 'center',
 			},
 			{
@@ -88,24 +88,6 @@ $(function () {
 				className: 'cursor_pointer',
 				align: 'center',
 			},
-			// {
-			// 	header: '출장일시',
-			// 	name: 'btripDate',
-			// 	className: 'cursor_pointer',
-			// 	width: '100',
-			// 	align: 'center',
-			// 	formatter: function (data) {
-			// 		console.log("🚀 ~ data:", data)
-			// 		let row = data.row;
-			// 		console.log("🚀 ~ row:", row)
-			// 		let html = '';
-			// 		if (row.btripStartDate && row.btripEndDate) {
-			// 			html = `${row.btripStartDate} / ${row.btripEndDate}`;
-			// 		}
-			// 		// 출장시작일 ~ 종료일 형태로 작게 보여줄 것
-			// 		return html;
-			// 	},
-			// },
 			{
 				header: '요청사항',
 				name: 'grid_btn_remark',

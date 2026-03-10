@@ -21,6 +21,37 @@ $(function () {
 
 		let gridBodyHeight = Math.floor($modal.find('.caliOrderModifyForm').height() - 145);
 
+		// 접수자 select 구성 함수 - 호출 전에 먼저 정의되어야 함
+		$modal.loadOrderManagerSelect = async () => {
+			try {
+				const res = await fetch('/api/basic/getInternalMembers');
+				if (!res.ok) throw res;
+				const resData = await res.json();
+				const members = resData?.data ?? [];
+
+				const $select = $('select[name=orderManagerId]', $modal);
+				// 기본 옵션 초기화 후 직원 목록으로 채운다
+				$select.empty().append($('<option>', { value: 0, text: '선택하세요.' }));
+				members.forEach(m => {
+					$select.append($('<option>', { value: m.id, text: m.name }));
+				});
+			} catch (err) {
+				gApiErrorHandler(err);
+			}
+		};
+
+		// 사내 직원 목록을 가져와서 접수자 select를 구성한다.
+		await $modal.loadOrderManagerSelect();
+
+		// 등록 모드: 로그인 유저를 접수자로 자동 선택
+		// option에 존재하는 경우에만 설정 (목록에 없는 계정이면 기본값 유지)
+		if (!($modal.param?.id > 0)) {
+			const $select = $('select[name=orderManagerId]', $modal);
+			if ($select.find(`option[value="${G_USER.id}"]`).length) {
+				$select.val(G_USER.id);
+			}
+		}
+
 		if ($modal.param?.id > 0) {
 			// 옵셔널체이닝으로 체크
 			caliOrderId = Number($modal.param.id);
@@ -53,6 +84,17 @@ $(function () {
 				// TODO 신청업체 & 성적서업체 정보는 기본적으로 readonly 처리
 				$('input[name=custAgent]', $modal).prop('readonly', true);
 				$('input[name=reportAgent]', $modal).prop('readonly', true);
+
+				// 수정 모드: setupValues()로 orderManagerId가 세팅된 후 확인
+				// 저장된 값이 없거나 0이면 로그인 유저로 자동 선택
+				const $select = $('select[name=orderManagerId]', $modal);
+				const savedManagerId = Number($select.val() ?? 0);
+				if (!savedManagerId || savedManagerId === 0) {
+					// option에 존재하는 경우에만 설정 (목록에 없는 계정이면 기본값 유지)
+					if ($select.find(`option[value="${G_USER.id}"]`).length) {
+						$select.val(G_USER.id);
+					}
+				}
 			} catch (err) {
 				customAjaxHandler(err);
 			} finally {

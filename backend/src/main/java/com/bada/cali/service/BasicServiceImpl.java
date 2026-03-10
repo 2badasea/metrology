@@ -13,9 +13,11 @@ import com.bada.cali.repository.DepartmentRepository;
 import com.bada.cali.repository.ItemCodeRepository;
 import com.bada.cali.repository.LogRepository;
 import com.bada.cali.repository.MemberLevelRepository;
+import com.bada.cali.repository.MemberRepository;
 import com.bada.cali.repository.projection.DepartmentListPr;
 import com.bada.cali.repository.projection.ItemCodeList;
 import com.bada.cali.repository.projection.MemberLevelListPr;
+import com.bada.cali.repository.projection.MemberSelectRow;
 import com.bada.cali.security.CustomUserDetails;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -35,6 +37,7 @@ public class BasicServiceImpl {
 	private final DepartmentRepository departmentRepository;
 	private final MemberLevelRepository memberLevelRepository;
 	private final ItemCodeRepository itemCodeRepository;
+	private final MemberRepository memberRepository;
 	private final BasicMapper basicMapper;
 	
 	// 부서관리 리스트 가져오기
@@ -205,6 +208,13 @@ public class BasicServiceImpl {
 		
 		return result;
 	}
-	
-	
+	/**
+	 * 접수자 select용 사내 직원 목록 조회.
+	 * 조건: agentId=0, 재직중(isActive=y), 퇴사하지 않음(leaveDate 없거나 미래), 삭제되지 않음, bada 계정 제외
+	 */
+	@Transactional(readOnly = true)
+	public List<MemberSelectRow> getInternalMembers() {
+		return memberRepository.findInternalMembers();
+	}
+
 }
