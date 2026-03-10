@@ -312,16 +312,76 @@ npm run lint                     # ESLint
 
 ## F4) API 호출 규칙
 
-- Admin(React): axios 사용 권장
-    - 가능하면 axios instance + interceptor로 공통 처리(401/403/5xx, 로딩/메시지 정책)
+- Admin(React): `fetch` 기반 `adminFetch()` 사용
+    - 위치: `frontend/src/utils/adminCommon.js`
+    - async/await + ES6+ 문법 기반
+    - 공통 함수 추가가 필요하면 `adminCommon.js`에 추가하되, **사용자 제안 및 승인 후 진행**
 - SSR/일반 페이지: fetch 또는 `g_ajax` 사용
 - 공통 호출 유틸이 있으면 우선 사용하되, 계약 변경은 사전 승인.
 
+### Admin(React) 공통 함수 목록 (`adminCommon.js`)
+
+위치: `frontend/src/utils/adminCommon.js`
+의존 패키지: `sweetalert2`, `react-toastify` (ToastContainer는 `main.jsx`에 전역 등록)
+
+**HTTP**
+
+| 함수 | 설명 |
+|---|---|
+| `adminFetch(url, options)` | fetch 래퍼. JSON 기본값, 에러 throw, 응답 JSON 자동 파싱 |
+
+**UI — 토스트 (react-toastify, 우측 상단, 3초 자동 소멸)**
+
+| 함수 | 용도 |
+|---|---|
+| `adminToast(msg, type)` | 입력값 검증 실패, 간단 안내. type: `'info'`/`'success'`/`'error'`/`'warning'` |
+
+**UI — SweetAlert2 (화면 중앙)**
+
+| 함수 | 설명 |
+|---|---|
+| `adminLoading(title)` | 로딩 스피너 (gLoadingMessage 역할). `adminCloseLoading()`으로 닫음 |
+| `adminCloseLoading()` | 로딩 닫기 |
+| `adminSuccess(title, html)` | 성공 메시지. 확인 버튼 + 3초 타이머 자동 닫힘 |
+| `adminAlert(title, html, icon)` | 오류·안내 메시지. 확인 클릭 시 닫힘. icon 기본값: `'error'` |
+| `adminConfirm(title, html)` | 확인/취소 다이얼로그. `Promise<boolean>` 반환 |
+
+- `title`: 굵은 제목 (예: `"회사정보 저장"`)
+- `html`: 본문 내용 (예: `"저장하시겠습니까?"`) — 긴 문장은 여기에 두어 개행 문제 방지
+
+**포맷터 / 검증**
+
+| 함수 | 설명 |
+|---|---|
+| `formatTel(value)` | 전화번호 하이픈 자동 포맷 (02 / 기타 지역 / 010) |
+| `formatHp(value)` | 휴대폰번호 하이픈 자동 포맷 (3-4-4) |
+| `formatAgentNum(value)` | 사업자등록번호 하이픈 자동 포맷 (3-2-5) |
+| `validateTel(v)` | 전화번호 형식 검증 |
+| `validateEmail(v)` | 이메일 형식 검증 |
+| `validateAgentNum(v)` | 사업자등록번호 형식 검증 |
+
+### Admin(React) 코드 규칙
+
+- `common.js`(jQuery 기반)는 React 환경에서 사용 불가 — 재사용 금지
+- `gAjax`, `gToast`, `gErrorHandler` 등은 React에서 사용 불가 → `adminCommon.js` 함수로 대체
+- 스크립트 문법은 **ES6+ 기반** (const/let, arrow function, async/await, template literal 등)
+
 ### 에러 처리(중요: 함수 분리 운영)
 
+**SSR/일반 페이지**
 - 입력값 검증(로컬) 에러: **`gErrorHandler()`** 사용 → `g_toast` 기반
 - API 요청/응답 에러: **`gApiErrorHandler()`** 사용 → `g_message` 기반
+
+**Admin(React) 페이지**
+- 입력값 검증 / 간단 안내: **`adminToast()`** → react-toastify, 우측 상단
+- API 로딩 중: **`adminLoading()`** → SweetAlert2, 중앙 스피너
+- API 성공: **`adminSuccess(title, html)`** → SweetAlert2, 중앙
+- API 오류: **`adminAlert(title, html)`** → SweetAlert2, 중앙
+- 저장/삭제 전 확인: **`adminConfirm(title, html)`** → SweetAlert2, 중앙
+
+**공통**
 - fetch를 직접 사용할 때는, **HTTP 에러를 catch로 보내기 위해** `if (!res.ok) throw res;` 패턴을 적용합니다.
+- multipart(파일 업로드) 전송 시 `Content-Type` 헤더를 지정하지 않아야 브라우저가 boundary를 자동 포함합니다. `adminFetch` 대신 `fetch` 직접 사용.
 
 ---
 

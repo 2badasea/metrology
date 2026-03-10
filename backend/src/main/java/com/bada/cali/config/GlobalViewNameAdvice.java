@@ -8,9 +8,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.core.Authentication;
+import org.springframework.util.StringUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +30,10 @@ import java.util.stream.Collectors;
 public class GlobalViewNameAdvice {
 	private final MenuQueryService menuQueryService;
 	private final ResourceLoader resourceLoader;
+
+	// 환경별 어드민 URL (빈값이면 DB 값 그대로 사용)
+	@Value("${app.admin.url:}")
+	private String adminUrl;
 
 	// viewName과 renderMode 속성값 기본값으로 추가
 	@ModelAttribute
@@ -128,6 +134,11 @@ public class GlobalViewNameAdvice {
 			// 현재 메뉴에 대한 노드 생성/재사용
 			MenuNode current = nodeMap.computeIfAbsent(id, key -> MenuNode.from(menu));
 
+			// 어드민 URL 환경별 오버라이드 (app.admin.url 설정 시)
+			if (StringUtils.hasText(adminUrl) && menu.getUrl() != null && menu.getUrl().contains("/admin/")) {
+				current.setUrl(adminUrl);
+			}
+
 			// 현재 URL과 메뉴 url이 같으면 active 표시
 			if (menu.getUrl() != null && menu.getUrl().equals(currentPath)) {
 				current.setActive(true);
@@ -193,7 +204,7 @@ public class GlobalViewNameAdvice {
 		private final Long id;
 		private final String alias;
 		private final String code;
-		private final String url;
+		private String url;         // 환경별 오버라이드를 위해 non-final
 		private final Integer depth;
 		private final Integer sortOrder;
 		private final List<MenuNode> children = new ArrayList<>();
