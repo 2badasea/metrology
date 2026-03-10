@@ -176,7 +176,7 @@ $(function () {
 				header: '교정신청서',
 				name: 'grid_btn_orderForm',
 				className: 'cursor_pointer',
-				width: '70',
+				width: '80',
 				align: 'center',
 				formatter: function (data) {
 					const row = data.row;
