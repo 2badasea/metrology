@@ -11,6 +11,10 @@ on:
         required: false
         default: ""
 
+env:
+  # Node.js 20 기반 액션 deprecation 대응 (2026-06-02부터 Node 24가 기본값)
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
