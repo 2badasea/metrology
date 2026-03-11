@@ -3,6 +3,7 @@ package com.bada.cali.dto;
 import com.bada.cali.repository.projection.DepartmentListPr;
 import com.bada.cali.repository.projection.ItemCodeList;
 import com.bada.cali.repository.projection.MemberLevelListPr;
+import com.bada.cali.repository.projection.MemberSelectRow;
 
 import java.util.List;
 
@@ -33,6 +34,17 @@ public class BasicDTO {
 			List<ItemCodeList> isUseMiddleCodeData
 	) {
 	}
-	
+
+	/**
+	 * 중분류코드별 실무자/기술책임자 목록 응답 DTO.
+	 * workers  : authBitmask & 1 > 0 인 직원 (실무자 권한)
+	 * approvers: authBitmask & 6 > 0 인 직원 (기술책임자 부=2 or 정=4 권한)
+	 */
+	public record MembersByMiddleCodeRes(
+			List<MemberSelectRow> workers,
+			List<MemberSelectRow> approvers
+	) {
+	}
+
 	;
 }

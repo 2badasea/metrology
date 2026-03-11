@@ -144,6 +144,31 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 			""")
 	List<MemberSelectRow> findInternalMembers();
 
+	/**
+	 * 특정 중분류코드에 대해 지정한 권한 비트마스크를 보유한 사내 직원 조회.
+	 * JPQL이 비트 연산을 지원하지 않으므로 nativeQuery 사용.
+	 *
+	 * @param middleItemCodeId 중분류코드 고유 id
+	 * @param bitmask          권한 비트마스크 (1=실무자, 6=기술책임자 부/정 통합)
+	 * @return 조건에 맞는 직원 id·name 목록
+	 */
+	@Query(value = """
+			SELECT m.id AS id, m.name AS name
+			FROM member m
+			JOIN member_code_auth mca ON mca.member_id = m.id
+			WHERE mca.middle_item_code_id = :middleItemCodeId
+			  AND (mca.auth_bitmask & :bitmask) > 0
+			  AND m.agent_id = 0
+			  AND m.is_active = 'y'
+			  AND m.is_visible = 'y'
+			  AND (m.leave_date IS NULL OR m.leave_date > CURDATE())
+			  AND m.login_id != 'bada'
+			ORDER BY m.id ASC
+			""", nativeQuery = true)
+	List<MemberSelectRow> findMembersByMiddleCodeAndBitmask(
+			@Param("middleItemCodeId") Long middleItemCodeId,
+			@Param("bitmask") int bitmask);
+
 	// FileInfo가 복수 존재할 경우 NonUniqueResultException 방어 → List 반환 후 서비스에서 첫 번째 사용
 	@Query("""
 			   select
