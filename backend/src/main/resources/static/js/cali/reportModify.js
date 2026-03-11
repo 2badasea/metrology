@@ -498,7 +498,7 @@ $(function () {
 			if (confirmSave.isConfirmed === true) {
 				gLoadingMessage();
 				const options = {
-					method: 'POST',
+					method: 'PATCH',
 					headers: {
 						'Content-Type': 'application/json; charset=utf-8',
 					},

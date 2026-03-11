@@ -140,8 +140,7 @@
 					width: '70',
 					align: 'center',
 					formatter: function (data) {
-						// TODO 별도로 상태값에 맞는 formatter 생성해서 이용할 것
-						return '';
+						return reportStatusLabel(data.value);
 					},
 				},
 			],
@@ -168,7 +167,7 @@
 				// 자체
 				if (reportType === 'SELF') {
 					// 기술책임자 완료 및 결재 진행중인 건에 건은 '저장' 버튼 비활성화 (접수상세, 접수, 실무자, 기책 페이지별 구분)
-					const isModifiable = row.approvalDateTime || row.reportStatus === 'SUCCESS' || row.approvalStatus !== 'IDLE' ? false : true;
+					const isModifiable = row.approvalDatetime || row.reportStatus === 'COMPLETE' || row.approvalStatus !== 'IDLE' ? false : true;
 					const resModal = await gModal(
 						'/cali/reportModify',
 						{
@@ -268,7 +267,7 @@
 
 					// 자체와 대행을 분리한다.
 					if (reportType === 'SELF') {
-						if (row.workDatetime || row.approvalDateTime) {
+						if (row.workDatetime || row.approvalDatetime) {
 							// FIX 결재상태가 'IDLE'인지도 체크 필요
 							isFlag = false;
 							gToast('결재가 진행중인 건이 존재합니다.', 'warning');

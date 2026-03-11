@@ -47,7 +47,7 @@ $(function () {
 				width: '60',
 				align: 'center',
 				formatter: function (data) {
-					return data.value == 'emergency' ? '긴급' : '일반';
+					return data.value == 'EMERGENCY' ? '긴급' : '일반';
 				},
 			},
 			{
@@ -379,7 +379,7 @@ $(function () {
 			// 접수내역 호출
 			if (e.columnName == 'grid_btn_orderDetails') {
 				// TODO 나중에 window.open 방식을 get이 아닌 from으로 변경할 수 있도록 할 것
-				window.open(`/cali/orderDetails?caliOrderId=${row.id}&custAgent=${row.custAgent}&reportAgent=${row.reportAgent}`, '_blank');
+				window.open(`/cali/orderDetails?caliOrderId=${row.id}&custAgent=${encodeURIComponent(row.custAgent ?? '')}&reportAgent=${encodeURIComponent(row.reportAgent ?? '')}`, '_blank');
 			}
 			// 교정신청서 다운로드
 			else if (e.columnName == 'grid_btn_orderForm') {

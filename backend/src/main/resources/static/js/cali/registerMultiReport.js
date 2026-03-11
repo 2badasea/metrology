@@ -332,7 +332,7 @@
 				// 깊이를 기준으로 내림차순 (자식부터 정렬되도록)
 				let descendRowKeys = checkedRowKeys.sort((a, b) => {
 					// 자식 행에 속하는 행부터 먼저 정렬된다.
-					$modal.grid.getDepth(b) - $modal.grid.getDepth(a);
+					return $modal.grid.getDepth(b) - $modal.grid.getDepth(a);
 				});
 
 				for (const key of descendRowKeys) {
