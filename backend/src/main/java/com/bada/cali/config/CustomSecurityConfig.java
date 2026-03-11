@@ -54,6 +54,7 @@ public class CustomSecurityConfig {
 								, "/api/member/**"
 								, "/swagger-ui/**"           // Swagger UI 리소스
 								, "/v3/api-docs/**"          // OpenAPI 스펙 JSON
+								, "/actuator/health"         // CI/CD 헬스체크 전용 (인증 없이 접근 허용)
 						).permitAll()
 						.anyRequest().authenticated()                // 그외 요청에 대해선 인증된 사용자만 허용
 				)

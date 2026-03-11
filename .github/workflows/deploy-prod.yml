@@ -1,0 +1,91 @@
+# ============================================================
+# deploy-prod.yml — 운영서버 배포 워크플로우 (미구현, 추후 작성 예정)
+# ============================================================
+#
+# [브랜치 전략]
+#
+#   feature/* ──► develop ──► [개발서버, 수동 배포 - deploy-dev.yml]
+#                    │
+#                    PR 머지
+#                    │
+#                  main ──► (push 자체로는 배포 안 됨)
+#                              │
+#                           태그 생성 (v1.0.0)
+#                              │
+#                           운영서버 자동 배포 트리거
+#
+# ─────────────────────────────────────────────────────────────
+# [배포 트리거]
+#
+#   main 브랜치에 push 자체로는 배포되지 않음.
+#   아래 순서대로 태그를 생성·push해야 운영 배포가 시작됨:
+#
+#     git checkout main
+#     git pull origin main
+#     git tag v1.0.0          # 시맨틱 버저닝 태그 생성
+#     git push origin v1.0.0  # 이 push가 워크플로우를 트리거
+#
+# on:
+#   push:
+#     tags:
+#       - "v*"   # v1.0.0, v1.2.3 등 v로 시작하는 태그에만 반응
+#
+# ─────────────────────────────────────────────────────────────
+# [태그 네이밍 규칙 — 시맨틱 버저닝 v{major}.{minor}.{patch}]
+#
+#   major : 하위 호환성이 깨지는 대규모 변경
+#   minor : 하위 호환 기능 추가
+#   patch : 버그픽스·소규모 수정
+#
+#   예) v1.0.0 (최초 릴리즈)
+#       v1.1.0 (기능 추가)
+#       v1.1.1 (버그픽스)
+#       v2.0.0 (대규모 변경)
+#
+# ─────────────────────────────────────────────────────────────
+# [승인자 지정 — environment: production]
+#
+#   태그가 push되어도 2badasea 가 GitHub에서 직접 승인해야 배포가 진행됨.
+#   (실수로 태그를 push했을 때 안전망 역할)
+#
+#   설정 방법:
+#     GitHub 저장소 → Settings → Environments → "production" 환경 생성
+#     → Required reviewers 에 2badasea 추가
+#
+#   워크플로우 적용 방법:
+#     jobs:
+#       deploy:
+#         environment: production   ← 이 한 줄로 승인 게이트 활성화
+#         runs-on: ubuntu-latest
+#
+# ─────────────────────────────────────────────────────────────
+# [서버 구조 예정 — 개발서버와 동일 구조 기준]
+#
+#   - Nginx + systemctl 서비스 (서비스명: cali-prod 예정)
+#   - JAR 위치       : /opt/cali/backend.jar
+#   - Frontend 위치  : /var/www/cali/admin/
+#   - Health check   : http://localhost:8080/actuator/health
+#   - Rollback       : backend.jar.bak 복원 후 서비스 재시작
+#
+# ─────────────────────────────────────────────────────────────
+# [필요한 GitHub Secrets — 운영서버 전용, 개발서버 secrets와 분리]
+#
+#   PROD_HOST     — 운영서버 IP 또는 도메인
+#   PROD_USER     — SSH 접속 계정
+#   PROD_SSH_KEY  — SSH 개인키
+#   PROD_PORT     — SSH 포트
+#
+# ─────────────────────────────────────────────────────────────
+# [워크플로우 구현 시 체크리스트]
+#
+#   □ 운영서버 구축 후 위 Secrets 등록
+#   □ GitHub Settings → Environments → "production" 생성 및 승인자(2badasea) 등록
+#   □ 운영 전용 application-prod.properties 설정 확인
+#       (DB URL, 파일 스토리지, 포트 등 운영 환경값)
+#   □ SecurityConfig에서 /actuator/health 허용 여부 확인
+#       (개발서버와 동일하게 내부 호출만 허용되는지 검토)
+#   □ 서비스명 cali-prod 로 systemctl 등록
+#   □ deploy-dev.yml 의 빌드·배포 구조를 그대로 복사하되
+#       secrets를 PROD_* 로 교체, environment: production 추가
+#
+# ============================================================
