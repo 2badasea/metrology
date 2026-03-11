@@ -213,9 +213,23 @@ public class ReportServiceImpl {
 				}
 			}
 			
-			// 자식이 존재할 경우, 일괄적으로 저장
+			// 자식이 존재할 경우, 일괄적으로 저장 후 이력 기록
 			if (!childrenToSave.isEmpty()) {
-				reportRepository.saveAll(childrenToSave);
+				List<Report> savedChildren = reportRepository.saveAll(childrenToSave);
+
+				// 자식성적서는 성적서번호/관리번호가 없으므로 부모 성적서번호와 자식 ID를 묶어서 기록
+				for (Report child : savedChildren) {
+					Log childLog = Log.builder()
+							.createDatetime(now)
+							.createMemberId(workerId)
+							.workerName(workerName)
+							.refTable("report")
+							.refTableId(child.getId())
+							.logType("i")
+							.logContent(String.format("[자식성적서 등록] 부모 성적서번호: %s - 고유번호: %d", child.getParentScaleId(), child.getId()))
+							.build();
+					logRepository.save(childLog);
+				}
 			}
 		}
 		
@@ -274,13 +288,16 @@ public class ReportServiceImpl {
 		// 프로젝션(인터페이스)를 통해서 바로 dto로 넘겨줄 데이터를 받기 때문에, Page<> 타입으로 받지 않음
 		
 		List<OrderDetailsList> pageResult = reportRepository.searchOrderDetails(orderType, statusType, searchType, keyword, caliOrderId, middleItemCodeId, smallItemCodeId, pageable);
-		
+
 		// NOTE 프로젝션 타입으로 바로 받기 때문에 entity -> dto 변환 과정은 생략
-		
+
+		// 전체 건수 조회 (서버 페이징 totalCount 제공용 — 동일 WHERE 조건으로 별도 count 쿼리 실행)
+		long totalCount = reportRepository.countOrderDetails(orderType, statusType, searchType, keyword, caliOrderId, middleItemCodeId, smallItemCodeId);
+
 		// 페이지네이션 데이터 세팅
 		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
 				.page(request.getPage())
-				.totalCount(pageResult.size())
+				.totalCount((int) totalCount)
 				.build();
 		
 		return TuiGridDTO.ResData.<OrderDetailsList>builder()
@@ -447,6 +464,7 @@ public class ReportServiceImpl {
 						.createDatetime(now)
 						.createMemberId(userId)
 						.refTable("report")
+						.refTableId(deleteIds.get(0))	// 다건 삭제이므로 첫 번째 ID를 대표값으로 사용 (상세 목록은 logContent에 포함)
 						.build();
 				// 이력을 저장한다.
 				logRepository.save(deleteLog);

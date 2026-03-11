@@ -147,6 +147,59 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			@Param("smallItemCodeId") Long smallItemCodeId,
 			Pageable pageable
 			);
+
+	/**
+	 * searchOrderDetails 와 동일한 WHERE 조건으로 전체 건수를 집계한다.
+	 * - Toast Grid 서버 페이징(useClient: false)의 totalCount 제공용
+	 * - 자식성적서(parentId/parentScaleId IS NULL) 제외, 삭제 제외(isVisible = 'y') 조건 포함
+	 */
+	@Query("""
+			SELECT COUNT(r)
+			FROM Report r
+			WHERE r.isVisible = 'y'
+			AND r.parentId IS NULL
+			AND r.parentScaleId IS NULL
+			AND r.caliOrderId = :caliOrderId
+			AND (:middleItemCodeId IS NULL OR r.middleItemCodeId = :middleItemCodeId)
+			AND (:smallItemCodeId IS NULL OR r.smallItemCodeId = :smallItemCodeId)
+			AND (:orderType IS NULL OR r.orderType = :orderType)
+			AND (
+				:keyword = '' OR
+				(
+					(:searchType = 'reportNum' AND r.reportNum LIKE concat('%', :keyword, '%'))
+					OR (:searchType = 'manageNo' AND r.manageNo LIKE concat('%', :keyword, '%'))
+					OR (:searchType = 'itemName' AND r.itemName LIKE concat('%', :keyword, '%'))
+					OR (:searchType = 'itemMakeAgent' AND r.itemMakeAgent LIKE concat('%', :keyword, '%'))
+					OR (:searchType = 'itemFormat' AND r.itemFormat LIKE concat('%', :keyword, '%'))
+					OR (:searchType = 'itemNum' AND r.itemNum LIKE concat('%', :keyword, '%'))
+					OR (:searchType = 'all' AND (
+						r.reportNum LIKE concat('%', :keyword, '%')
+						OR r.manageNo LIKE concat('%', :keyword, '%')
+						OR r.itemName LIKE concat('%', :keyword, '%')
+						OR r.itemMakeAgent LIKE concat('%', :keyword, '%')
+						OR r.itemFormat LIKE concat('%', :keyword, '%')
+						OR r.itemNum LIKE concat('%', :keyword, '%')
+					))
+				)
+			)
+			AND (:statusType IS NULL OR (
+				(:statusType = 'cancel' AND r.reportStatus = 'CANCEL')
+				OR (:statusType = 'impossible' AND r.reportStatus = 'IMPOSSIBLE')
+				OR (:statusType = 'return' AND (r.reportStatus = 'WORK_RETURN' OR r.reportStatus = 'APPROV_RETURN'))
+				OR (:statusType = 'wait' AND r.workDatetime IS NULL AND r.approvalDatetime IS NULL)
+				OR (:statusType = 'progress' AND r.workDatetime IS NOT NULL AND r.approvalDatetime IS NULL)
+				OR (:statusType = 'success' AND r.workDatetime IS NOT NULL AND r.approvalDatetime IS NOT NULL)
+			))
+			""")
+	long countOrderDetails(
+			@Param("orderType") OrderType orderType,
+			@Param("statusType") String statusType,
+			@Param("searchType") String searchType,
+			@Param("keyword") String keyword,
+			@Param("caliOrderId") Long caliOrderId,
+			@Param("middleItemCodeId") Long middleItemCodeId,
+			@Param("smallItemCodeId") Long smallItemCodeId
+	);
 	
 	
 	/**

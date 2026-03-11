@@ -15,6 +15,7 @@ $(function () {
 	let id = null; // 성적서 id
 	let middleItemCodeSet = []; // 중분류정보
 	let smallItemCodeSet = {}; // 소분류정보
+	let memberLoadTimer = null; // 실무자/기술책임자 option 재로드 debounce 타이머
 	// TODO 어드민페이지에서 본사정보를 수정할 수 있는 경우, 고정표준실<->현자교정 변경 시 소재지 주소도 변겨되도록하기
 
 	$modal.init_modal = async (param) => {
@@ -75,6 +76,13 @@ $(function () {
 
 						// 중소분류 세팅
 						await $modal.setItemCode(parentInfo.middleItemCodeId, parentInfo.smallItemCodeId);
+
+						// 중분류코드 기준으로 실무자/기술책임자 option 세팅 및 기존 선택값 복원
+						await $modal.loadMemberOptions(
+							parentInfo.middleItemCodeId,
+							parentInfo.workMemberId,
+							parentInfo.approvalMemberId
+						);
 
 						// 자식성적서가 존재하는 경우, 세팅
 						if (childInfos.length > 0) {
@@ -228,6 +236,8 @@ $(function () {
 		.on('change', '.middleCodeSelect', function () {
 			const middleItemCodeId = $(this).val();
 			$modal.setItemCode(middleItemCodeId);
+			// 중분류 변경 시 실무자/기술책임자 option 재로드 (debounce 적용)
+			$modal.reloadMemberOptionsWithDelay(middleItemCodeId);
 		})
 		// 교정유형 선택
 		.on('change', 'input[name=caliType]', function () {
@@ -498,7 +508,7 @@ $(function () {
 			if (confirmSave.isConfirmed === true) {
 				gLoadingMessage();
 				const options = {
-					method: 'POST',
+					method: 'PATCH',
 					headers: {
 						'Content-Type': 'application/json; charset=utf-8',
 					},
@@ -564,12 +574,111 @@ $(function () {
 			table.find('input[name=caliFee]').val(comma(d.fee ?? 0));
 			// 부모와 자식의 중분류소분류는 별도로 한다.
 			if (isParent) {
+				// 품목 선택 전 중분류코드 저장 (변경 여부 판단용)
+				const prevMiddleItemCodeId = $('.middleCodeSelect', $modal).val();
 				$modal.setItemCode(d.middleItemCodeId, d.smallItemCodeId, 500);
+				// 중분류코드가 존재하고 이전과 달라진 경우 실무자/기술책임자 option 재로드
+				if (d.middleItemCodeId && String(d.middleItemCodeId) !== String(prevMiddleItemCodeId)) {
+					$modal.reloadMemberOptionsWithDelay(d.middleItemCodeId);
+				}
 			} else {
 				table.find('input[name=middleItemCodeId]').val(d.middleItemCodeId);
 				table.find('input[name=smallItemCodeId]').val(d.smallItemCodeId);
 			}
 		}
+	};
+
+	/**
+	 * 중분류코드 기준으로 실무자/기술책임자 select option을 서버에서 받아와 세팅한다.
+	 * - middleItemCodeId가 없거나 0이면 option을 기본값으로 초기화만 한다.
+	 * - selectedWorkMemberId, selectedApprovalMemberId: 초기 로드 시 기존 선택값 복원용
+	 *
+	 * @param {string|number} middleItemCodeId
+	 * @param {string|number} [selectedWorkMemberId=0]
+	 * @param {string|number} [selectedApprovalMemberId=0]
+	 */
+	$modal.loadMemberOptions = async (middleItemCodeId, selectedWorkMemberId = 0, selectedApprovalMemberId = 0) => {
+		const $workSelect = $('.workMemberId', $modal);
+		const $approvalSelect = $('.approvalMemberId', $modal);
+
+		// 기존 option 초기화 (첫 번째 기본 option만 유지)
+		$workSelect.find('option:not(:first)').remove().end().val('0');
+		$approvalSelect.find('option:not(:first)').remove().end().val('0');
+
+		// 중분류 미선택이면 option 초기화만 하고 종료
+		if (!middleItemCodeId || middleItemCodeId == '0') {
+			return;
+		}
+
+		try {
+			const res = await gAjax(
+				'/api/basic/getMembersByMiddleCode',
+				{ middleItemCodeId },
+				{ type: 'GET' }
+			);
+
+			if (res?.code > 0) {
+				const { workers, approvers } = res.data;
+
+				// 실무자 option 세팅
+				workers.forEach((m) => {
+					$workSelect.append(new Option(m.name, m.id));
+				});
+				// 기술책임자 option 세팅
+				approvers.forEach((m) => {
+					$approvalSelect.append(new Option(m.name, m.id));
+				});
+
+				// 기존 선택값 복원 (초기 로드 시)
+				if (selectedWorkMemberId && selectedWorkMemberId != '0') {
+					$workSelect.val(selectedWorkMemberId);
+				}
+				if (selectedApprovalMemberId && selectedApprovalMemberId != '0') {
+					$approvalSelect.val(selectedApprovalMemberId);
+				}
+			}
+		} catch (xhr) {
+			customAjaxHandler(xhr);
+		}
+	};
+
+	/**
+	 * 중분류코드 변경 시 실무자/기술책임자 option을 debounce 후 재로드한다.
+	 * - 키보드 빠른 연속 변경 방지: 700ms 이내 재호출 시 기존 타이머 취소 후 재시작
+	 * - option 즉시 초기화 → 로딩바 표시 → API 호출 → 로딩바 닫기 → gToast 안내
+	 *
+	 * @param {string|number} middleItemCodeId
+	 */
+	$modal.reloadMemberOptionsWithDelay = (middleItemCodeId) => {
+		// 기존 debounce 타이머 취소
+		if (memberLoadTimer) {
+			clearTimeout(memberLoadTimer);
+			memberLoadTimer = null;
+		}
+
+		const $workSelect = $('.workMemberId', $modal);
+		const $approvalSelect = $('.approvalMemberId', $modal);
+
+		// 실무자/기술책임자 select 즉시 초기화 (사용자에게 변경 즉시 피드백)
+		$workSelect.find('option:not(:first)').remove().end().val('0');
+		$approvalSelect.find('option:not(:first)').remove().end().val('0');
+
+		if (!middleItemCodeId || middleItemCodeId == '0') {
+			return;
+		}
+
+		// 로딩 표시 + 초기화 안내 메시지
+		gLoadingMessage('실무자/기술책임자 항목이 초기화됩니다.');
+
+		// 700ms debounce: 빠른 연속 변경 시 마지막 변경 기준으로만 API 호출
+		memberLoadTimer = setTimeout(async () => {
+			try {
+				await $modal.loadMemberOptions(middleItemCodeId);
+			} finally {
+				swal.close(); // 로딩 닫기
+				gToast('실무자/기술책임자 항목이 업데이트되었습니다.', 'info');
+			}
+		}, 700);
 	};
 
 	// 자식성적서 넘버링 세팅

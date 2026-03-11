@@ -387,6 +387,24 @@ public class BasicController {
 		return ResponseEntity.ok(new ResMessage<>(1, null, members));
 	}
 
+	// 성적서 수정 모달 - 중분류코드별 실무자/기술책임자 목록 조회
+	@Operation(
+			summary = "중분류별 실무자/기술책임자 목록 조회",
+			description = "성적서 수정 모달에서 중분류코드 기준으로 실무자(authBitmask & 1 > 0)와 기술책임자(authBitmask & 6 > 0) 권한을 보유한 사내 직원 목록을 각각 반환"
+	)
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
+	@GetMapping(value = "/getMembersByMiddleCode")
+	public ResponseEntity<ResMessage<BasicDTO.MembersByMiddleCodeRes>> getMembersByMiddleCode(
+			@Parameter(description = "중분류코드 고유 id", required = true, example = "1")
+			@RequestParam Long middleItemCodeId
+	) {
+		return ResponseEntity.ok(basicService.getMembersByMiddleCode(middleItemCodeId));
+	}
+
 	// 부서관리, 직급관리, 사용중인 중분류코드 정보를 가져온다 (직원등록/수정 세팅)
 	@Operation(summary = "직원 등록/수정용 기본 옵션 조회", description = "직원 등록·수정 화면에서 사용하는 부서·직급·중분류코드 정보 일괄 조회")
 	@ApiResponses({

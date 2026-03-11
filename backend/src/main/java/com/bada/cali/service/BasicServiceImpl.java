@@ -217,4 +217,20 @@ public class BasicServiceImpl {
 		return memberRepository.findInternalMembers();
 	}
 
+	/**
+	 * 중분류코드별 실무자/기술책임자 목록 조회.
+	 * - 실무자  : authBitmask & 1 > 0 (bit1 보유)
+	 * - 기술책임자: authBitmask & 6 > 0 (bit2=부 또는 bit4=정 보유, 두 유형 모두 기술책임자 select에 포함)
+	 *
+	 * @param middleItemCodeId 중분류코드 고유 id
+	 */
+	@Transactional(readOnly = true)
+	public ResMessage<BasicDTO.MembersByMiddleCodeRes> getMembersByMiddleCode(Long middleItemCodeId) {
+		// 실무자 권한 보유 직원 (bitmask & 1 > 0)
+		List<MemberSelectRow> workers = memberRepository.findMembersByMiddleCodeAndBitmask(middleItemCodeId, 1);
+		// 기술책임자 권한 보유 직원 (bitmask & 6 > 0: 부=2, 정=4 모두 포함)
+		List<MemberSelectRow> approvers = memberRepository.findMembersByMiddleCodeAndBitmask(middleItemCodeId, 6);
+		return new ResMessage<>(1, null, new BasicDTO.MembersByMiddleCodeRes(workers, approvers));
+	}
+
 }

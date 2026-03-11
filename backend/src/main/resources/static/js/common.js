@@ -1657,3 +1657,22 @@ function checkPwd(str = '') {
 	const regExp = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])[a-zA-Z0-9!@#$%^]{8,20}$/;
 	return regExp.test(str);
 }
+
+/**
+ * 성적서 진행상태(ReportStatus enum) → 화면 표시 레이블 변환
+ * @param {string} status - ReportStatus enum 문자열
+ * @returns {string} 한글 레이블. 매핑 없으면 원값 그대로 반환
+ */
+function reportStatusLabel(status) {
+	const map = {
+		WAIT: '대기',
+		REPAIR: '수리',
+		IMPOSSIBLE: '불가',
+		WORK_RETURN: '반려(실무)',
+		REUPLOAD: '재업로드',
+		APPROV_RETURN: '반려(기책)',
+		COMPLETE: '완료',
+		CANCEL: '취소',
+	};
+	return map[status] ?? status ?? '';
+}
