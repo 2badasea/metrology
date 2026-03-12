@@ -45,6 +45,11 @@ public class CustomSecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 						// DELETE는 무조건 ADMIN만 허용
 						.requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
+						// /api/admin/** 경로의 쓰기 요청(POST·PATCH·PUT)은 ADMIN만 허용
+						// GET은 제외 — 조회는 인증된 사용자 전체에 허용
+						.requestMatchers(org.springframework.http.HttpMethod.POST, "/api/admin/**").hasRole("ADMIN")
+						.requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/admin/**").hasRole("ADMIN")
+						.requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/admin/**").hasRole("ADMIN")
 						// 정적 리소스는 아래 WebSecurityCustomizer에서 처리
 						.requestMatchers(
 								"/error"
