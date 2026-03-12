@@ -13,12 +13,14 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
 import javax.sql.DataSource;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Log4j2
 @Configuration
@@ -94,8 +96,13 @@ public class CustomSecurityConfig {
 						.deleteCookies("JSESSIONID", "remember-me")    // 쿠키 삭제
 				)
 
-				// 인증이 필요한 URL에 미인증 접근 시 → AuthenticationEntryPoint로 위임하여 로그인 페이지로 리다이렉트
-				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthenticatedEntryPoint()));
+				// 예외처리
+				// - 미인증(401): AuthenticationEntryPoint → 로그인 페이지로 리다이렉트
+				// - 권한 부족(403): AccessDeniedHandler → ResMessage JSON 응답 ("권한이 없습니다.")
+				.exceptionHandling(exception -> exception
+						.authenticationEntryPoint(unauthenticatedEntryPoint())
+						.accessDeniedHandler(accessDeniedHandler())
+				);
 
 		return http.build();
 	}
@@ -119,13 +126,24 @@ public class CustomSecurityConfig {
 				.requestMatchers("/vendor/**");
 	}
 
-	// 허용되지 않은 URL 접근 시에 대한 예외처리
+	// 미인증 접근 시 → 로그인 페이지로 리다이렉트
 	@Bean
 	public AuthenticationEntryPoint unauthenticatedEntryPoint() {
 		return (request, response, authException) -> {
-			// 여기서 "로그인이 필요한 상황"이라고 판단된 경우 login 페이지로 보냄
 			String redirectUrl = "/member/login" + ("/".equals(request.getRequestURI()) ? "" : "?required=-1");
 			response.sendRedirect(redirectUrl);
+		};
+	}
+
+	// 인증은 됐지만 권한 부족(403) 시 → ResMessage JSON 응답
+	// @RestControllerAdvice는 Security 필터 단계에서 발생하는 AccessDeniedException을 잡지 못하므로 별도 핸들러 필요
+	@Bean
+	public AccessDeniedHandler accessDeniedHandler() {
+		return (request, response, accessDeniedException) -> {
+			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+			response.setContentType("application/json;charset=UTF-8");
+			// ResMessage 형식: { code, msg, data }
+			response.getWriter().write("{\"code\":-1,\"msg\":\"권한이 없습니다.\",\"data\":null}");
 		};
 	}
 
