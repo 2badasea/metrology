@@ -114,7 +114,7 @@ export default function CompanyInfo() {
       fetchEnv();
       adminSuccess('저장 완료', '회사정보가 저장되었습니다.');
     } catch (err) {
-      adminAlert('저장 실패', err.data?.message || '저장 중 오류가 발생했습니다.');
+      adminAlert('저장 실패', err.data?.msg || '저장 중 오류가 발생했습니다.');
     }
   };
 
@@ -158,7 +158,7 @@ export default function CompanyInfo() {
       if (!res.ok) {
         let data = null;
         try { data = await res.json(); } catch { /* noop */ }
-        adminAlert('저장 실패', data?.message || '이미지 저장 중 오류가 발생했습니다.');
+        adminAlert('저장 실패', data?.msg || '이미지 저장 중 오류가 발생했습니다.');
         return;
       }
       clearImageState(fieldKey);
@@ -180,7 +180,7 @@ export default function CompanyInfo() {
       fetchEnv();
       adminSuccess('삭제 완료', '이미지가 삭제되었습니다.');
     } catch (err) {
-      adminAlert('삭제 실패', err.data?.message || '이미지 삭제 중 오류가 발생했습니다.');
+      adminAlert('삭제 실패', err.data?.msg || '이미지 삭제 중 오류가 발생했습니다.');
     }
   };
 
