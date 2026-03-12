@@ -121,7 +121,8 @@ jobs:
             sudo cp /opt/cali/backend.jar /opt/cali/backend.jar.bak 2>/dev/null || true
 
             # 2) backend JAR 교체
-            sudo mkdir -p /opt/cali
+            sudo mkdir -p /opt/cali /opt/cali/logs
+            sudo chown www-data:www-data /opt/cali/logs
             JAR_PATH=$(ls -1 /tmp/cali/*.jar | head -n 1)
             sudo cp "$JAR_PATH" /opt/cali/backend.jar
             sudo chown www-data:www-data /opt/cali/backend.jar
