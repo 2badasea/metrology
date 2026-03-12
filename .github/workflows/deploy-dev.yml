@@ -46,7 +46,7 @@ jobs:
         working-directory: backend
         run: |
           chmod +x gradlew
-          ./gradlew clean bootJar
+          ./gradlew clean bootJar --no-build-cache
 
       # ── Frontend 빌드 ─────────────────────────────────────────
       # Node 캐시는 setup-node의 cache: npm 으로 처리 (package-lock.json 해시 기준)
@@ -121,7 +121,8 @@ jobs:
             sudo cp /opt/cali/backend.jar /opt/cali/backend.jar.bak 2>/dev/null || true
 
             # 2) backend JAR 교체
-            sudo mkdir -p /opt/cali
+            sudo mkdir -p /opt/cali /opt/cali/logs
+            sudo chown www-data:www-data /opt/cali/logs
             JAR_PATH=$(ls -1 /tmp/cali/*.jar | head -n 1)
             sudo cp "$JAR_PATH" /opt/cali/backend.jar
             sudo chown www-data:www-data /opt/cali/backend.jar
@@ -150,8 +151,8 @@ jobs:
             set -e
             echo "Waiting for app to start..."
 
-            # 5초 간격 × 12회 = 최대 60초 대기
-            for i in $(seq 1 12); do
+            # 5초 간격 × 24회 = 최대 120초 대기
+            for i in $(seq 1 24); do
               STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8050/actuator/health || true)
               if [ "$STATUS" = "200" ]; then
                 echo "✔ Health check passed (attempt $i)"
