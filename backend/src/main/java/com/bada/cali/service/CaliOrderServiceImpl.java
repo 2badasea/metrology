@@ -15,6 +15,7 @@ import com.bada.cali.repository.AgentRepository;
 import com.bada.cali.repository.CaliOrderRepository;
 import com.bada.cali.repository.LogRepository;
 import com.bada.cali.repository.ReportRepository;
+import com.bada.cali.service.NumberSequenceService;
 import com.bada.cali.repository.projection.ReportCountRow;
 import com.bada.cali.security.CustomUserDetails;
 import jakarta.persistence.EntityNotFoundException;
@@ -45,6 +46,7 @@ public class CaliOrderServiceImpl {
 	private final ReportRepository reportRepository;
 
 	private final CaliOrderMapper caliOrderMapper;
+	private final NumberSequenceService numberSequenceService;
 	
 	// 교정접수 리스트 가져오기
 	@Transactional(readOnly = true)        // 조회 전용이기에 readonly = true 명시
@@ -357,29 +359,19 @@ public class CaliOrderServiceImpl {
 	}
 	
 	// 새로운 접수번호 생성 뒤 반환하기
-	@Transactional(readOnly = true)
+	@Transactional    // 시퀀스 테이블 UPDATE가 포함되므로 readOnly 제거
 	public String getOrderNum(CaliDTO.saveCaliOrder orderData) {
-		// 접수번호 규칙 BADA-YYYY-001
-		String newOrderNum;
+		// 접수번호 규칙 BDyy-XXXX (예: BD26-0011)
 		LocalDate orderDate = LocalDate.parse(orderData.getOrderDate());    // 'yyyy-mm-dd'
-		String orderYear = String.valueOf(orderDate.getYear());        // 'YYyy'
-		String yy = orderYear.substring(2);                // 'yy'
-		String orderPrefix = "BD" + yy;                                // 'BDyy'
-		// 접수일 기준으로 그해 마지막 접수번호 + 1을 반환할 것
-		CaliOrder caliOrder = caliOrderRepository.getLastOrderByYear(orderPrefix, PageRequest.of(0, 1)).stream().findFirst().orElse(null);
-		// 없는 경우, 1부터 시작
-		if (caliOrder == null) {
-			newOrderNum = String.format("%s-0001", orderPrefix);
-		} else {
-			String lasOrderNum = caliOrder.getOrderNum();
-			// 뒤에 4자리 'XXXX' 반환
-			String suffixNum = lasOrderNum.substring(lasOrderNum.length() - 4);
-			int nextNum = Integer.parseInt(suffixNum) + 1;
-			String newSuffixNum = String.format("%04d", nextNum);
-			newOrderNum = String.format("%s-%s", orderPrefix, newSuffixNum);
-		}
-		
-		return newOrderNum;
+		String orderYear = String.valueOf(orderDate.getYear());             // 'yyyy'
+		String yy = orderYear.substring(2);                                 // 'yy'
+		String orderPrefix = "BD" + yy;                                     // 'BDyy'
+
+		// 시퀀스 테이블에서 원자적으로 채번 (SELECT FOR UPDATE → next_val 확보)
+		String seqKey = "order_" + orderYear;
+		int nextNum = numberSequenceService.reserve(seqKey, 1);
+
+		return String.format("%s-%04d", orderPrefix, nextNum);
 	}
 	
 	@Transactional(readOnly = true)
