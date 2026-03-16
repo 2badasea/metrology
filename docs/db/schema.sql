@@ -511,3 +511,10 @@ CREATE TABLE IF NOT EXISTS `env` (
   `update_datetime` datetime DEFAULT NULL COMMENT '수정일시',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='회사 기본정보 (단일 row, id=1 고정)';
+
+CREATE TABLE IF NOT EXISTS `number_sequence` (
+  `seq_key`    varchar(50)  NOT NULL COMMENT '시퀀스 키 (예: order_2026, report_ACCREDDIT_2026)',
+  `next_val`   int          NOT NULL DEFAULT 1 COMMENT '다음에 발급할 순번 (1-based)',
+  `updated_at` datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '최종 갱신일시',
+  PRIMARY KEY (`seq_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='채번 동시성 제어용 시퀀스 테이블';
