@@ -30,6 +30,15 @@ export const adminFetch = async (url, options = {}) => {
   });
 
   if (!res.ok) {
+    // 미인증(401): 세션 만료 또는 미로그인 → 백엔드 로그인 페이지로 강제 이동
+    // VITE_BACKEND_ORIGIN: 개발(http://localhost:8050) / 운영(빈 문자열, 동일 origin)
+    if (res.status === 401) {
+      const loginUrl = (import.meta.env.VITE_BACKEND_ORIGIN || '') + '/member/login';
+      window.location.href = loginUrl;
+      // 이후 코드가 실행되지 않도록 중단
+      throw new Error('Unauthorized');
+    }
+
     const err = new Error(`HTTP ${res.status}`);
     err.status = res.status;
     try {
