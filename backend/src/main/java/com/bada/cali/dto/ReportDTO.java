@@ -60,6 +60,19 @@ public class ReportDTO {
 		private Long smallItemCodeId;        // 소분류코드id
 	}
 	
+	// 실무자결재 목록 조회 요청 파라미터
+	@Getter
+	@Setter
+	public static class GetWorkApprovalListReq extends TuiGridDTO.Request {
+		private String searchType;       // 검색타입 (reportNum, custAgent, reportAgent, workMember, approvalMember, itemName, itemFormat, itemMakeAgent, itemNum, manageNo)
+		private String keyword;          // 검색키워드
+		private String reportStatus;     // 진행상태 (WAIT, WORK_RETURN, APPROV_RETURN, REUPLOAD, REPAIR, IMPOSSIBLE, CANCEL, COMPLETE) — 빈값이면 전체
+		private String workStatus;       // 실무자 결재상태 (IDLE, READY, PROGRESS, FAIL, SUCCESS) — 기본 IDLE
+		private OrderType orderType;     // 접수구분 (null이면 전체)
+		private Long middleItemCodeId;   // 중분류코드 id (0 또는 null이면 전체)
+		private Long smallItemCodeId;    // 소분류코드 id (0 또는 null이면 전체)
+	}
+
 	// 클라이언트에 반환할 데이터
 	@Setter
 	@Getter

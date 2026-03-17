@@ -60,6 +60,10 @@ public class Report {
 	// 교정일자
 	@Column(name = "cali_date")
 	private LocalDate caliDate;
+
+	// 완료예정일 (DB: expect_complete_date DATE NULL)
+	@Column(name = "expect_complete_date")
+	private LocalDate expectCompleteDate;
 	
 	// 교정주기
 	@Column(name = "item_cali_cycle", nullable = false)

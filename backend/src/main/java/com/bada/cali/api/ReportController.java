@@ -4,6 +4,7 @@ import com.bada.cali.common.ResMessage;
 import com.bada.cali.dto.ReportDTO;
 import com.bada.cali.dto.TuiGridDTO;
 import com.bada.cali.repository.projection.OrderDetailsList;
+import com.bada.cali.repository.projection.WorkApprovalListRow;
 import com.bada.cali.security.CustomUserDetails;
 import com.bada.cali.service.ReportServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -134,6 +135,20 @@ public class ReportController {
 		ResMessage<Object> resMessage = reportService.deleteById(id, user);
 
 		return ResponseEntity.ok(resMessage);
+	}
+
+	// 실무자결재 목록 조회
+	@Operation(summary = "실무자결재 목록 조회", description = "전체 자체성적서(SELF)를 대상으로 진행상태·결재상태·접수구분·중/소분류·키워드 필터 조건으로 목록을 조회함.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "500", description = "서버 오류"),
+	})
+	@GetMapping(value = "/workApprovalList")
+	public ResponseEntity<TuiGridDTO.Res<TuiGridDTO.ResData<WorkApprovalListRow>>> getWorkApprovalList(
+			@ModelAttribute ReportDTO.GetWorkApprovalListReq req) {
+
+		TuiGridDTO.ResData<WorkApprovalListRow> data = reportService.getWorkApprovalList(req);
+		return ResponseEntity.ok(new TuiGridDTO.Res<>(true, data));
 	}
 
 	// 성적서 수정 요청

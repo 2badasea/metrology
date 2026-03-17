@@ -14,6 +14,7 @@ import com.bada.cali.repository.EquipmentRefRepository;
 import com.bada.cali.repository.LogRepository;
 import com.bada.cali.repository.ReportRepository;
 import com.bada.cali.repository.projection.OrderDetailsList;
+import com.bada.cali.repository.projection.WorkApprovalListRow;
 import com.bada.cali.security.CustomUserDetails;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -529,6 +530,69 @@ public class ReportServiceImpl {
 		return new ResMessage<>(resCode, resMsg, null);
 	}
 	
+	/**
+	 * 실무자결재 목록 조회
+	 * - 전체 SELF 타입 성적서 대상 (접수 id 무관)
+	 * - 검색필터: 진행상태, 결재상태, 접수구분, 중/소분류, 키워드
+	 *
+	 * @param request 검색 파라미터 (GetWorkApprovalListReq)
+	 * @return Toast Grid 응답 포맷
+	 */
+	@Transactional(readOnly = true)
+	public TuiGridDTO.ResData<WorkApprovalListRow> getWorkApprovalList(ReportDTO.GetWorkApprovalListReq request) {
+		int pageIndex = request.getPage() - 1;
+		int perPage = request.getPerPage();
+		Pageable pageable = PageRequest.of(pageIndex, perPage);
+
+		// 진행상태: 빈값 → null (전체 조회)
+		String reportStatus = request.getReportStatus();
+		reportStatus = (reportStatus == null || reportStatus.isBlank()) ? null : reportStatus;
+
+		// 결재상태: 빈값 → null (전체 조회)
+		String workStatus = request.getWorkStatus();
+		workStatus = (workStatus == null || workStatus.isBlank()) ? null : workStatus;
+
+		// 접수구분: null이면 전체
+		OrderType orderTypeEnum = request.getOrderType();
+		String orderType = (orderTypeEnum == null) ? null : orderTypeEnum.name();
+
+		// 중/소분류: 0 또는 null → null (전체)
+		Long middleItemCodeId = request.getMiddleItemCodeId();
+		if (middleItemCodeId != null && middleItemCodeId == 0L) middleItemCodeId = null;
+		Long smallItemCodeId = request.getSmallItemCodeId();
+		if (smallItemCodeId != null && smallItemCodeId == 0L) smallItemCodeId = null;
+
+		// 검색타입: 빈값 → 'all'
+		String searchType = request.getSearchType();
+		if (searchType == null || searchType.isBlank()) searchType = "all";
+
+		// 키워드: null → 빈값 처리 (WHERE keyword = '' 로 전체 조회)
+		String keyword = request.getKeyword();
+		keyword = (keyword == null) ? "" : keyword.trim();
+
+		List<WorkApprovalListRow> pageResult = reportRepository.searchWorkApprovalList(
+				reportStatus, workStatus, orderType,
+				middleItemCodeId, smallItemCodeId,
+				searchType, keyword, pageable
+		);
+
+		long totalCount = reportRepository.countWorkApprovalList(
+				reportStatus, workStatus, orderType,
+				middleItemCodeId, smallItemCodeId,
+				searchType, keyword
+		);
+
+		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
+				.page(request.getPage())
+				.totalCount((int) totalCount)
+				.build();
+
+		return TuiGridDTO.ResData.<WorkApprovalListRow>builder()
+				.contents(pageResult)
+				.pagination(pagination)
+				.build();
+	}
+
 	// 성적서 수정 요청
 	@Transactional
 	public ResMessage<Object> updateReport(ReportDTO.ReportUpdateReq req, CustomUserDetails user) {

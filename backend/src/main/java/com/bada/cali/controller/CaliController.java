@@ -65,4 +65,11 @@ public class CaliController {
 		log.info("성적서 수정 모달 호출");
 		return "cali/reportModify";
 	}
+
+	// 실무자결재 페이지 이동
+	@GetMapping(value = "/workApproval")
+	public String workApproval(Model model) {
+		model.addAttribute("title", "실무자결재");
+		return "cali/workApproval";
+	}
 }
