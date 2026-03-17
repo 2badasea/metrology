@@ -385,6 +385,7 @@ $(function () {
 			else if (e.columnName == 'grid_btn_orderForm') {
 				const cnt = row.reportTotalCnt ?? 0;
 				if (cnt > 0) {
+					gLoadingMessage('교정신청서 다운로드 중...');
 					try {
 						// fetch로 요청하여 서버 오류를 클라이언트에서 감지할 수 있도록 한다
 						const res = await fetch(`/api/caliOrder/downloadOrderForm?id=${row.id}`);
@@ -405,6 +406,9 @@ $(function () {
 						URL.revokeObjectURL(url);
 					} catch (err) {
 						gApiErrorHandler(err);
+					} finally {
+						// 성공/실패 모두 로딩 닫기
+						Swal.close();
 					}
 				}
 			}
