@@ -139,8 +139,14 @@ public class CustomSecurityConfig {
 				response.setContentType("application/json;charset=UTF-8");
 				response.getWriter().write("{\"code\":-1,\"msg\":\"인증이 필요합니다.\",\"data\":null}");
 			} else {
-				String redirectUrl = "/member/login" + ("/".equals(uri) ? "" : "?required=-1");
-				response.sendRedirect(redirectUrl);
+				// 루트("/") 접근 시 단순 로그인 페이지 이동
+				// 그 외: 원래 요청 URI를 redirect 파라미터로 전달 → 로그인 성공 후 복귀에 사용
+				if ("/".equals(uri)) {
+					response.sendRedirect("/member/login");
+				} else {
+					String encodedUri = java.net.URLEncoder.encode(uri, java.nio.charset.StandardCharsets.UTF_8);
+					response.sendRedirect("/member/login?redirect=" + encodedUri + "&required=1");
+				}
 			}
 		};
 	}

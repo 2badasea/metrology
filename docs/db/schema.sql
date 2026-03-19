@@ -510,6 +510,7 @@ CREATE TABLE IF NOT EXISTS `env` (
   `company` varchar(500) DEFAULT NULL COMMENT '사내 로고 이미지 경로 (오브젝트 스토리지 key)',
   `update_member_id` bigint DEFAULT NULL COMMENT '수정자 (member.id)',
   `update_datetime` datetime DEFAULT NULL COMMENT '수정일시',
+  `sheet_info_setting` json DEFAULT NULL COMMENT '성적서시트 셀위치/형식 설정 (JSON)',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='회사 기본정보 (단일 row, id=1 고정)';
 

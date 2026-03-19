@@ -7,6 +7,8 @@ import com.bada.cali.entity.Log;
 import com.bada.cali.repository.EnvRepository;
 import com.bada.cali.repository.LogRepository;
 import com.bada.cali.security.CustomUserDetails;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -22,6 +24,8 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -32,10 +36,11 @@ public class EnvServiceImpl {
 	private static final Set<String> ALLOWED_IMAGE_FIELDS = Set.of("kolas", "ilac", "company");
 	private static final long MAX_IMAGE_SIZE = 10L * 1024 * 1024; // 10MB
 
-	private final EnvRepository    envRepository;
-	private final LogRepository    logRepository;
+	private final EnvRepository        envRepository;
+	private final LogRepository        logRepository;
 	private final NcpStorageProperties storageProps;
-	private final S3Client         ncloudS3Client;
+	private final S3Client             ncloudS3Client;
+	private final ObjectMapper         objectMapper;
 
 	// ──────────────────────────────── 조회 ────────────────────────────────
 
@@ -76,6 +81,46 @@ public class EnvServiceImpl {
 		envRepository.save(env);
 
 		saveLog("u", "회사정보 수정", user, httpReq);
+	}
+
+	// ──────────────────────────────── 성적서시트 설정 조회 ────────────────────────────────
+
+	@Transactional(readOnly = true)
+	public EnvDTO.SheetInfoSettingRes getSheetInfoSetting() {
+		Env env = envRepository.findById((byte) 1).orElse(null);
+		if (env == null || !StringUtils.hasText(env.getSheetInfoSetting())) {
+			// 아직 설정값이 없으면 빈 맵 반환
+			return new EnvDTO.SheetInfoSettingRes(Collections.emptyMap());
+		}
+		try {
+			Map<String, EnvDTO.SheetItemSetting> settingsMap = objectMapper.readValue(
+					env.getSheetInfoSetting(),
+					new TypeReference<Map<String, EnvDTO.SheetItemSetting>>() {}
+			);
+			return new EnvDTO.SheetInfoSettingRes(settingsMap);
+		} catch (Exception e) {
+			log.warn("성적서시트 설정 JSON 파싱 실패, 빈 맵 반환. 원인: {}", e.getMessage());
+			return new EnvDTO.SheetInfoSettingRes(Collections.emptyMap());
+		}
+	}
+
+	// ──────────────────────────────── 성적서시트 설정 저장 ────────────────────────────────
+
+	@Transactional
+	public void updateSheetInfoSetting(Map<String, EnvDTO.SheetItemSetting> settings,
+			CustomUserDetails user, HttpServletRequest httpReq) {
+		Env env = envRepository.findById((byte) 1)
+				.orElseGet(() -> Env.builder().id((byte) 1).build());
+		try {
+			env.setSheetInfoSetting(objectMapper.writeValueAsString(settings));
+		} catch (Exception e) {
+			throw new RuntimeException("성적서시트 설정 직렬화 중 오류가 발생했습니다.", e);
+		}
+		env.setUpdateMemberId(user.getId());
+		env.setUpdateDatetime(LocalDateTime.now());
+		envRepository.save(env);
+
+		saveLog("u", "성적서시트 설정 수정", user, httpReq);
 	}
 
 	// ──────────────────────────────── 이미지 저장 ────────────────────────────────

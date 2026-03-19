@@ -53,8 +53,16 @@
 
 				// 로그인 성공
 				if (res.code > 0) {
+					// 이동 URL 결정 (우선순위):
+					// 1. redirect 파라미터 (세션 만료 후 재로그인 시 이전 페이지 복귀)
+					// 2. ADMIN 계정 → 서버에서 내려준 어드민 URL (res.data.redirectUrl)
+					// 3. 기본 페이지 (/cali/caliOrder)
+					const urlParams = new URLSearchParams(window.location.search);
+					const savedRedirect = urlParams.get('redirect');
+					const targetUrl = savedRedirect || res.data?.redirectUrl || '/cali/caliOrder';
+
 					gMessage(res.msg ?? '로그인 성공', '', 'success').then(() => {
-						location.href = '/cali/caliOrder';
+						location.href = targetUrl;
 					});
 					return;
 				}

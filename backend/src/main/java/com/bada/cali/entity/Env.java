@@ -79,4 +79,7 @@ public class Env {
 	@Column(name = "update_datetime")
 	private LocalDateTime updateDatetime;     // 수정일시
 
+	@Column(name = "sheet_info_setting", columnDefinition = "JSON")
+	private String sheetInfoSetting;          // 성적서시트 셀위치/형식 설정 (JSON 문자열)
+
 }
