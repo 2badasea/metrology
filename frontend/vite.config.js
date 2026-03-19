@@ -12,6 +12,10 @@ export default defineConfig({
         target: "http://localhost:8050",
         changeOrigin: true,
       },
+      "/logout": {
+        target: "http://localhost:8050",
+        changeOrigin: true,
+      },
     },
   },
 });
