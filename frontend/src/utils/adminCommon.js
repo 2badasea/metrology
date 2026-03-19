@@ -30,6 +30,18 @@ export const adminFetch = async (url, options = {}) => {
   });
 
   if (!res.ok) {
+    // 미인증(401): 세션 만료 또는 미로그인 → 백엔드 로그인 페이지로 강제 이동
+    // VITE_BACKEND_ORIGIN: 개발(http://localhost:8050) / 운영(빈 문자열, 동일 origin)
+    if (res.status === 401) {
+      // 현재 경로(pathname + search)를 redirect 파라미터로 전달 → 재로그인 후 원래 페이지로 복귀
+      const currentPath = window.location.pathname + window.location.search;
+      const redirectParam = '?redirect=' + encodeURIComponent(currentPath) + '&required=1';
+      const loginUrl = (import.meta.env.VITE_BACKEND_ORIGIN || '') + '/member/login' + redirectParam;
+      window.location.href = loginUrl;
+      // 이후 코드가 실행되지 않도록 중단
+      throw new Error('Unauthorized');
+    }
+
     const err = new Error(`HTTP ${res.status}`);
     err.status = res.status;
     try {

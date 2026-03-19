@@ -6,9 +6,9 @@ body {
 .wrapper {
 	min-height: 100vh;
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	justify-content: center;
-	padding: 24px 12px;
+	padding: 18vh 12px 24px;
 }
 
 .login_form {

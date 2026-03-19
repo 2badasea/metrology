@@ -2,11 +2,9 @@
 import { NavLink } from "react-router-dom";
 
 const menus = [
-  { to: "/dashboard", label: "DASHBOARD" },
-  { to: "/company-accounts", label: "업체계정관리" },
-  { to: "/login-history", label: "로그인 이력관리" },
-  { to: "/work-history", label: "작업이력관리" },
-  { to: "/menu-permissions", label: "사용자메뉴권한관리" },
+  { to: "/dashboard", label: "대시보드" },
+  { to: "/monitoring-calibration", label: "모니터링(교정)" },
+  { to: "/monitoring-estimate", label: "모니터링(견적)" },
   { to: "/notices", label: "업데이트공지" },
   { to: "/company-info", label: "회사정보" },
 ];

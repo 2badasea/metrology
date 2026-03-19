@@ -374,6 +374,64 @@ class DateEditor {
 	beforeDestroy() {}
 }
 
+// 실무자결재 페이지: 업로드 버튼 + 드래그앤드롭 커스텀 렌더러
+// - 버튼 클릭: 파일 선택 창 열기 (triggerWorkApprovalFileSelect 호출)
+// - 드래그앤드롭: 셀 위에 엑셀 파일 드롭
+class UploadCellRenderer {
+	constructor(props) {
+		const el = document.createElement('div');
+		el.style.cssText = 'display:flex; align-items:center; justify-content:center; width:100%; height:100%; min-height:28px;';
+
+		const btn = document.createElement('button');
+		btn.type = 'button';
+		btn.className = 'btn btn-sm btn-outline-secondary';
+		btn.textContent = '업로드';
+
+		// 버튼 클릭 → 파일 선택 창 열기 (workApproval.js에 정의된 함수 호출)
+		btn.addEventListener('click', (e) => {
+			e.stopPropagation();
+			if (typeof triggerWorkApprovalFileSelect === 'function') {
+				triggerWorkApprovalFileSelect(props.rowKey);
+			}
+		});
+
+		el.appendChild(btn);
+
+		// 드래그 진입: 시각 피드백
+		el.addEventListener('dragover', (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			el.style.background = '#e8f0fe';
+			btn.textContent = '드롭';
+		});
+
+		// 드래그 이탈: 초기화
+		el.addEventListener('dragleave', () => {
+			el.style.background = '';
+			btn.textContent = '업로드';
+		});
+
+		// 드롭: 파일 처리 (workApproval.js에 정의된 함수 호출)
+		el.addEventListener('drop', (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			el.style.background = '';
+			btn.textContent = '업로드';
+			if (typeof handleWorkApprovalUploadFile === 'function') {
+				handleWorkApprovalUploadFile(e.dataTransfer.files[0], props.rowKey);
+			}
+		});
+
+		this.el = el;
+	}
+
+	getElement() {
+		return this.el;
+	}
+
+	render(props) {}
+}
+
 // 셀에 체크박스를 "항상" 표시하는 커스텀 렌더러
 class AuthCheckboxRenderer {
   constructor(props) {

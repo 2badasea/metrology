@@ -4,6 +4,7 @@ import com.bada.cali.common.ResMessage;
 import com.bada.cali.dto.EnvDTO;
 import com.bada.cali.security.CustomUserDetails;
 import com.bada.cali.service.EnvServiceImpl;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -56,6 +57,42 @@ public class EnvController {
 			@AuthenticationPrincipal CustomUserDetails user,
 			HttpServletRequest httpReq) {
 		envService.updateEnv(req, user, httpReq);
+		return ResponseEntity.ok(new ResMessage<>(1, "저장되었습니다.", null));
+	}
+
+	// ──────────────────────────────── 성적서시트 설정 조회 ────────────────────────────────
+
+	@Operation(summary = "성적서시트 설정 조회",
+			description = "env 테이블에 저장된 성적서시트 셀위치·형식 설정 조회. 미설정이면 빈 맵 반환")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
+	@GetMapping("/sheetSetting")
+	public ResponseEntity<ResMessage<EnvDTO.SheetInfoSettingRes>> getSheetInfoSetting() {
+		EnvDTO.SheetInfoSettingRes res = envService.getSheetInfoSetting();
+		return ResponseEntity.ok(new ResMessage<>(1, null, res));
+	}
+
+	// ──────────────────────────────── 성적서시트 설정 저장 ────────────────────────────────
+
+	@Operation(summary = "성적서시트 설정 저장",
+			description = "항목코드 → 셀 주소·형식 맵을 env.sheet_info_setting에 JSON으로 저장. " +
+					"셀 주소 형식 검증은 프론트에서 사전 수행")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "저장 성공"),
+			@ApiResponse(responseCode = "400", description = "요청 본문 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class))),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
+	@PatchMapping("/sheetSetting")
+	public ResponseEntity<ResMessage<Void>> updateSheetInfoSetting(
+			@RequestBody EnvDTO.SheetInfoSettingUpdateReq req,
+			@AuthenticationPrincipal CustomUserDetails user,
+			HttpServletRequest httpReq) {
+		envService.updateSheetInfoSetting(req.settings(), user, httpReq);
 		return ResponseEntity.ok(new ResMessage<>(1, "저장되었습니다.", null));
 	}
 

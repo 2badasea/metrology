@@ -13,9 +13,8 @@ import com.bada.cali.repository.CaliOrderRepository;
 import com.bada.cali.repository.EquipmentRefRepository;
 import com.bada.cali.repository.LogRepository;
 import com.bada.cali.repository.ReportRepository;
-import com.bada.cali.repository.projection.LastManageNoByType;
-import com.bada.cali.repository.projection.LastReportNumByOrderType;
 import com.bada.cali.repository.projection.OrderDetailsList;
+import com.bada.cali.repository.projection.WorkApprovalListRow;
 import com.bada.cali.security.CustomUserDetails;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -41,6 +40,7 @@ public class ReportServiceImpl {
 	private final ItemServiceImpl itemService;
 	private final EquipmentRefRepository equipmentRefRepository;
 	private final StandardEquipmentRefMapper standardEquipmentRefMapper;
+	private final NumberSequenceService numberSequenceService;
 	
 	/**
 	 * 성적서 등록
@@ -69,45 +69,28 @@ public class ReportServiceImpl {
 		CaliType caliType = orderInfo.getCaliType();                // 교정유형
 		CaliTakeType caliTakeType = orderInfo.getCaliTakeType();    // 교정상세유형
 		
-		// 접수구분별 성적서번호 enumMap
-		Map<OrderType, Integer> nextReportNums = new EnumMap<>(OrderType.class);
-		for (OrderType t : OrderType.values()) {
-			nextReportNums.put(t, 1);
+		// 접수구분별 부모 성적서 건수 집계
+		Map<OrderType, Integer> countByType = new EnumMap<>(OrderType.class);
+		for (ReportDTO.addReportReq dto : reports) {
+			countByType.merge(dto.getOrderType(), 1, Integer::sum);
 		}
-		// 접수구분별 성적서번호 시작 넘버링 세팅
-		for (LastReportNumByOrderType p : reportRepository.findLastReportNumsByOrderType(caliOrderId)) {
-			OrderType orderType = OrderType.valueOf(p.getOrderType());        // 접수구분
-			String reportNum = p.getReportNum();            // 접수구분별 가장 마지막 성적서번호
-			if (reportNum == null || reportNum.isBlank()) {
-				continue;
-				// // NOTE java에서는 substring에 음수 인덱스를 못 받기 때문에 아래와 같이 사용한다.
-				// reportNum = reportNum.substring(reportNum.length() - 4);
-			}
-			
-			// 마지막 4자리 파싱
-			String suffix = reportNum.length() >= 4 ? reportNum.substring(reportNum.length() - 4) : reportNum;
-			int lastNum = Integer.parseInt(suffix);
-			nextReportNums.put(orderType, lastNum + 1);
+
+		// 접수구분별 시퀀스 범위 일괄 예약 (SELECT FOR UPDATE)
+		// reserve(seqKey, count) → 반환값 ~ 반환값+count-1 범위가 이 트랜잭션에 독점 할당됨
+		Map<OrderType, Integer> reportStartNums = new EnumMap<>(OrderType.class);
+		Map<OrderType, Integer> manageStartNums = new EnumMap<>(OrderType.class);
+		for (Map.Entry<OrderType, Integer> entry : countByType.entrySet()) {
+			OrderType type = entry.getKey();
+			int count = entry.getValue();
+			reportStartNums.put(type, numberSequenceService.reserve(
+					"report_" + caliOrderId + "_" + type.name(), count));
+			manageStartNums.put(type, numberSequenceService.reserve(
+					"manage_" + type.name() + "_" + orderYear, count));
 		}
-		
-		// 접수구분별 관리번호 enumMap
-		EnumMap<OrderType, Integer> nextManageNos = new EnumMap<>(OrderType.class);
-		for (OrderType t : OrderType.values()) {
-			nextManageNos.put(t, 1);
-		}
-		// 접수구분별 관리번호 시작번호 세팅
-		for (LastManageNoByType m : reportRepository.findLastManageNoByOrderType(orderYear)) {
-			OrderType orderType = OrderType.valueOf(m.getOrderType());
-			String manageNo = m.getManageNo();
-			if (manageNo == null || manageNo.isBlank()) {
-				continue;
-			}
-			
-			// 관리번호의 넘버링은 5자리
-			String suffix = manageNo.length() >= 5 ? manageNo.substring(manageNo.length() - 5) : manageNo;
-			int last = Integer.parseInt(suffix);
-			nextManageNos.put(orderType, last + 1);
-		}
+
+		// 접수구분별 배분 오프셋 (루프 내에서 0부터 순서대로 증가)
+		Map<OrderType, Integer> reportOffsets = new EnumMap<>(OrderType.class);
+		Map<OrderType, Integer> manageOffsets = new EnumMap<>(OrderType.class);
 		
 		// 자식성적서들의 경우, list에 담았다가 부모가 저장되고 나면 일괄적으로 저장한다.
 		List<Report> childrenToSave = new ArrayList<>();
@@ -121,9 +104,16 @@ public class ReportServiceImpl {
 		for (ReportDTO.addReportReq dto : reports) {
 			OrderType orderType = dto.getOrderType();        //
 			
-			String prefix = reportNumPrefix.get(orderType);            // 접수구분별 prefix "", "B", "T"
-			int reportNumSeq = takeNext(nextReportNums, orderType);    // 성적서번호 넘버링
-			int manageNoSeq = takeNext(nextManageNos, orderType);    // 관리번호 넘버링
+			String prefix = reportNumPrefix.get(orderType);    // 접수구분별 prefix "", "B", "T"
+
+			// 예약된 범위에서 순서대로 배분 (startNum + offset)
+			int reportOffset = reportOffsets.getOrDefault(orderType, 0);
+			reportOffsets.put(orderType, reportOffset + 1);
+			int reportNumSeq = reportStartNums.get(orderType) + reportOffset;
+
+			int manageOffset = manageOffsets.getOrDefault(orderType, 0);
+			manageOffsets.put(orderType, manageOffset + 1);
+			int manageNoSeq = manageStartNums.get(orderType) + manageOffset;
 			
 			String reportNum = orderNum + "-" + prefix + String.format("%04d", reportNumSeq);    // 성적서번호
 			String manageNo = "BD" + manageNoPrefix + "-" + prefix + String.format("%05d", manageNoSeq);    // 관리번호
@@ -238,13 +228,6 @@ public class ReportServiceImpl {
 		return new ResMessage<>(resCode, resMessage, null);
 	}
 	
-	
-	// 숫자를 반환 후 자동으로 다시 넘버링을 올려준다.
-	private int takeNext(Map<OrderType, Integer> map, OrderType type) {
-		int current = map.getOrDefault(type, 1);
-		map.put(type, current + 1);
-		return current;
-	}
 	
 	// 접수상세내역에 표시할 데이터를 가져온다.
 	@Transactional(readOnly = true)
@@ -547,6 +530,69 @@ public class ReportServiceImpl {
 		return new ResMessage<>(resCode, resMsg, null);
 	}
 	
+	/**
+	 * 실무자결재 목록 조회
+	 * - 전체 SELF 타입 성적서 대상 (접수 id 무관)
+	 * - 검색필터: 진행상태, 결재상태, 접수구분, 중/소분류, 키워드
+	 *
+	 * @param request 검색 파라미터 (GetWorkApprovalListReq)
+	 * @return Toast Grid 응답 포맷
+	 */
+	@Transactional(readOnly = true)
+	public TuiGridDTO.ResData<WorkApprovalListRow> getWorkApprovalList(ReportDTO.GetWorkApprovalListReq request) {
+		int pageIndex = request.getPage() - 1;
+		int perPage = request.getPerPage();
+		Pageable pageable = PageRequest.of(pageIndex, perPage);
+
+		// 진행상태: 빈값 → null (전체 조회)
+		String reportStatus = request.getReportStatus();
+		reportStatus = (reportStatus == null || reportStatus.isBlank()) ? null : reportStatus;
+
+		// 결재상태: 빈값 → null (전체 조회)
+		String workStatus = request.getWorkStatus();
+		workStatus = (workStatus == null || workStatus.isBlank()) ? null : workStatus;
+
+		// 접수구분: null이면 전체
+		OrderType orderTypeEnum = request.getOrderType();
+		String orderType = (orderTypeEnum == null) ? null : orderTypeEnum.name();
+
+		// 중/소분류: 0 또는 null → null (전체)
+		Long middleItemCodeId = request.getMiddleItemCodeId();
+		if (middleItemCodeId != null && middleItemCodeId == 0L) middleItemCodeId = null;
+		Long smallItemCodeId = request.getSmallItemCodeId();
+		if (smallItemCodeId != null && smallItemCodeId == 0L) smallItemCodeId = null;
+
+		// 검색타입: 빈값 → 'all'
+		String searchType = request.getSearchType();
+		if (searchType == null || searchType.isBlank()) searchType = "all";
+
+		// 키워드: null → 빈값 처리 (WHERE keyword = '' 로 전체 조회)
+		String keyword = request.getKeyword();
+		keyword = (keyword == null) ? "" : keyword.trim();
+
+		List<WorkApprovalListRow> pageResult = reportRepository.searchWorkApprovalList(
+				reportStatus, workStatus, orderType,
+				middleItemCodeId, smallItemCodeId,
+				searchType, keyword, pageable
+		);
+
+		long totalCount = reportRepository.countWorkApprovalList(
+				reportStatus, workStatus, orderType,
+				middleItemCodeId, smallItemCodeId,
+				searchType, keyword
+		);
+
+		TuiGridDTO.Pagination pagination = TuiGridDTO.Pagination.builder()
+				.page(request.getPage())
+				.totalCount((int) totalCount)
+				.build();
+
+		return TuiGridDTO.ResData.<WorkApprovalListRow>builder()
+				.contents(pageResult)
+				.pagination(pagination)
+				.build();
+	}
+
 	// 성적서 수정 요청
 	@Transactional
 	public ResMessage<Object> updateReport(ReportDTO.ReportUpdateReq req, CustomUserDetails user) {

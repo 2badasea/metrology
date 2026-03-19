@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+
+<body>
+    <div layout:fragment="content">
+
+        <!-- 페이지 상단: 저장 버튼 -->
+        <div class="d-flex mb-1 px-1">
+            <ul class="ml-auto list-group list-group-horizontal">
+                <li>
+                    <button type="button" class="btn btn-success saveSheetSetting">저장</button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="row m-0 px-1">
+
+            <!-- ===== 왼쪽 카드: 형식 없는 항목 (27개) — 3열 테이블 ===== -->
+            <div class="col-lg-6 col-md-12 pl-0 pr-1 mb-2">
+                <div class="card">
+                    <div class="card-header p-1">
+                        <h6 class="font-weight-bold card_header_style mb-0">데이터 항목 — 셀위치</h6>
+                    </div>
+                    <div class="card-body p-1">
+                        <table class="table table-bordered table-sm text-center mb-0 sheet-table">
+                            <colgroup>
+                                <col width="180px">
+                                <col width="210px">
+                                <col>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>항목명</th>
+                                    <th>항목코드</th>
+                                    <th>셀위치</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>신청업체(국)</td>
+                                    <td class="code-cell">custAgent</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="custAgent" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>신청업체(영)</td>
+                                    <td class="code-cell">custAgentEn</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="custAgentEn" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>신청업체주소(국)</td>
+                                    <td class="code-cell">custAgentAddr</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="custAgentAddr" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>신청업체주소(영)</td>
+                                    <td class="code-cell">custAgentAddrEn</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="custAgentAddrEn" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>접수번호</td>
+                                    <td class="code-cell">orderNum</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="orderNum" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>성적서번호</td>
+                                    <td class="code-cell">reportNum</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="reportNum" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>중분류코드</td>
+                                    <td class="code-cell">middleItemCodeNum</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="middleItemCodeNum" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>소분류코드</td>
+                                    <td class="code-cell">smallItemcodeNum</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="smallItemcodeNum" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>기기명(국)</td>
+                                    <td class="code-cell">itemName</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="itemName" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>기기명(영)</td>
+                                    <td class="code-cell">itemNameEn</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="itemNameEn" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>제작회사(국)</td>
+                                    <td class="code-cell">makeAgent</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="makeAgent" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>제작회사(영)</td>
+                                    <td class="code-cell">makeAgentEn</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="makeAgentEn" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>형식</td>
+                                    <td class="code-cell">format</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="format" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>기기번호</td>
+                                    <td class="code-cell">itemNum</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="itemNum" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>자산번호</td>
+                                    <td class="code-cell">assetNum</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="assetNum" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>교정장소</td>
+                                    <td class="code-cell">caliAddress</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="caliAddress" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>소재지주소(국)</td>
+                                    <td class="code-cell">siteAddr</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="siteAddr" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>소재지주소(영)</td>
+                                    <td class="code-cell">siteAddrEn</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="siteAddrEn" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>교정주기</td>
+                                    <td class="code-cell">itemCaliCycle</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="itemCaliCycle" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>최저온도</td>
+                                    <td class="code-cell">tempMin</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="tempMin" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>최고온도</td>
+                                    <td class="code-cell">tempMax</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="tempMax" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>최저습도</td>
+                                    <td class="code-cell">humMin</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="humMin" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>최고습도</td>
+                                    <td class="code-cell">humMax</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="humMax" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>최저기압</td>
+                                    <td class="code-cell">preMin</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="preMin" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>최고기압</td>
+                                    <td class="code-cell">preMax</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="preMax" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>소급성문구(국)</td>
+                                    <td class="code-cell">traceStatement</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="traceStatement" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                                <tr>
+                                    <td>소급성문구(영)</td>
+                                    <td class="code-cell">traceStatementEn</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="traceStatementEn" maxlength="10" placeholder="예) B3"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== 오른쪽 카드: 형식 옵션이 있는 항목 (6개) — 4열 테이블 ===== -->
+            <div class="col-lg-6 col-md-12 pl-0 pr-0 mb-2">
+                <div class="card">
+                    <div class="card-header p-1">
+                        <h6 class="font-weight-bold card_header_style mb-0">날짜·이름 형식 설정</h6>
+                    </div>
+                    <div class="card-body p-1">
+                        <table class="table table-bordered table-sm text-center mb-0 sheet-table">
+                            <colgroup>
+                                <col width="145px">
+                                <col width="168px">
+                                <col width="96px">
+                                <col>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>항목명</th>
+                                    <th>항목코드</th>
+                                    <th>셀위치</th>
+                                    <th>형식</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                <!-- 교정일자: 날짜 형식 선택 (yyyy. m. d 기본) -->
+                                <tr>
+                                    <td>교정일자</td>
+                                    <td class="code-cell">caliDate</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="caliDate" maxlength="10" placeholder="예) B3"></td>
+                                    <td>
+                                        <div class="format-options">
+                                            <label class="format-label"><input type="radio" name="caliDate_format" value="yyyy. m. d" checked> yyyy. m. d</label>
+                                            <label class="format-label"><input type="radio" name="caliDate_format" value="yyyy-mm-dd"> yyyy-mm-dd</label>
+                                            <label class="format-label"><input type="radio" name="caliDate_format" value="yyyy. mm. dd"> yyyy. mm. dd</label>
+                                            <label class="format-label"><input type="radio" name="caliDate_format" value="yyyy-m-d"> yyyy-m-d</label>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- 승인일자: 날짜 형식 선택 (yyyy. m. d 기본) -->
+                                <tr>
+                                    <td>승인일자</td>
+                                    <td class="code-cell">approvalDate</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="approvalDate" maxlength="10" placeholder="예) B3"></td>
+                                    <td>
+                                        <div class="format-options">
+                                            <label class="format-label"><input type="radio" name="approvalDate_format" value="yyyy. m. d" checked> yyyy. m. d</label>
+                                            <label class="format-label"><input type="radio" name="approvalDate_format" value="yyyy-mm-dd"> yyyy-mm-dd</label>
+                                            <label class="format-label"><input type="radio" name="approvalDate_format" value="yyyy. mm. dd"> yyyy. mm. dd</label>
+                                            <label class="format-label"><input type="radio" name="approvalDate_format" value="yyyy-m-d"> yyyy-m-d</label>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- 실무자(국): 이름 형식 선택 (dense 기본) -->
+                                <!--
+                                    dense       → 이바다 (붙여쓰기)
+                                    first_indent → 이 바다 (성만 분리)
+                                    indent      → 이 바 다 (전체 분리)
+                                -->
+                                <tr>
+                                    <td>실무자(국)</td>
+                                    <td class="code-cell">worker</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="worker" maxlength="10" placeholder="예) B3"></td>
+                                    <td>
+                                        <div class="format-options">
+                                            <label class="format-label"><input type="radio" name="worker_format" value="dense" checked> <b>김교정</b>&nbsp;(붙여쓰기)</label>
+                                            <label class="format-label"><input type="radio" name="worker_format" value="first_indent"> <b>김&nbsp;교정</b>&nbsp;(성 분리)</label>
+                                            <label class="format-label"><input type="radio" name="worker_format" value="indent"> <b>김&nbsp;교&nbsp;정</b>&nbsp;(전체 분리)</label>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- 실무자(영): 이름 형식 선택 (dense 기본) -->
+                                <tr>
+                                    <td>실무자(영)</td>
+                                    <td class="code-cell">workerEn</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="workerEn" maxlength="10" placeholder="예) B3"></td>
+                                    <td>
+                                        <div class="format-options">
+                                            <label class="format-label"><input type="radio" name="workerEn_format" value="dense" checked> <b>김교정</b>&nbsp;(붙여쓰기)</label>
+                                            <label class="format-label"><input type="radio" name="workerEn_format" value="first_indent"> <b>김&nbsp;교정</b>&nbsp;(성 분리)</label>
+                                            <label class="format-label"><input type="radio" name="workerEn_format" value="indent"> <b>김&nbsp;교&nbsp;정</b>&nbsp;(전체 분리)</label>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- 기술책임자(국): 이름 형식 선택 (dense 기본) -->
+                                <tr>
+                                    <td>기술책임자(국)</td>
+                                    <td class="code-cell">approval</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="approval" maxlength="10" placeholder="예) B3"></td>
+                                    <td>
+                                        <div class="format-options">
+                                            <label class="format-label"><input type="radio" name="approval_format" value="dense" checked> <b>김교정</b>&nbsp;(붙여쓰기)</label>
+                                            <label class="format-label"><input type="radio" name="approval_format" value="first_indent"> <b>김&nbsp;교정</b>&nbsp;(성 분리)</label>
+                                            <label class="format-label"><input type="radio" name="approval_format" value="indent"> <b>김&nbsp;교&nbsp;정</b>&nbsp;(전체 분리)</label>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- 기술책임자(영): 이름 형식 선택 (dense 기본) -->
+                                <tr>
+                                    <td>기술책임자(영)</td>
+                                    <td class="code-cell">approvalEn</td>
+                                    <td><input type="text" class="form-control form-control-sm cell-input" data-field="approvalEn" maxlength="10" placeholder="예) B3"></td>
+                                    <td>
+                                        <div class="format-options">
+                                            <label class="format-label"><input type="radio" name="approvalEn_format" value="dense" checked> <b>김교정</b>&nbsp;(붙여쓰기)</label>
+                                            <label class="format-label"><input type="radio" name="approvalEn_format" value="first_indent"> <b>김&nbsp;교정</b>&nbsp;(성 분리)</label>
+                                            <label class="format-label"><input type="radio" name="approvalEn_format" value="indent"> <b>김&nbsp;교&nbsp;정</b>&nbsp;(전체 분리)</label>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /row -->
+    </div>
+
+    <th:block layout:fragment="script">
+        <script th:src="@{/js/basic/dataSheetSetting.js}"></script>
+    </th:block>
+</body>
+</html>

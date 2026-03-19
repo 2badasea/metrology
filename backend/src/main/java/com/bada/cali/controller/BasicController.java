@@ -119,4 +119,11 @@ public class BasicController {
 		model.addAttribute("title", "샘플관리");
 		return "basic/sampleManage";
 	}
+
+	// 성적서시트 설정 페이지 이동
+	@GetMapping(value = "/dataSheetSetting")
+	public String dataSheetSetting(Model model) {
+		model.addAttribute("title", "성적서시트");
+		return "basic/dataSheetSetting";
+	}
 }

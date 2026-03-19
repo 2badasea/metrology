@@ -8,6 +8,7 @@ import com.bada.cali.repository.projection.LastManageNoByType;
 import com.bada.cali.repository.projection.LastReportNumByOrderType;
 import com.bada.cali.repository.projection.OrderDetailsList;
 import com.bada.cali.repository.projection.ReportCountRow;
+import com.bada.cali.repository.projection.WorkApprovalListRow;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -311,6 +312,158 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 	
 	
 	List<Report> findByMiddleItemCodeIdInAndIsVisible(List<Long> attr0, YnType isVisible);
+
+	/**
+	 * 실무자결재 목록 조회 (native query)
+	 * - SELF 타입 자체성적서만, 삭제 제외, 자식성적서 제외, 재발행 성적서 포함
+	 * - cali_order, item_code(소분류), member(작성자/실무자/기술책임자) LEFT JOIN
+	 * - 정렬: 접수 id DESC → 공인/비공인/시험 순 → 성적서번호 마지막 순번 오름차순
+	 *
+	 * @param reportStatus  진행상태 필터 (null이면 전체)
+	 * @param workStatus    실무자 결재상태 필터 (null이면 전체)
+	 * @param orderType     접수구분 필터 (null이면 전체)
+	 * @param middleItemCodeId 중분류코드 id (null이면 전체)
+	 * @param smallItemCodeId  소분류코드 id (null이면 전체)
+	 * @param searchType    키워드 검색 대상 컬럼
+	 * @param keyword       검색 키워드 (빈값이면 전체)
+	 * @param pageable      페이징 (LIMIT/OFFSET 적용)
+	 * @return 실무자결재 목록 Projection 리스트
+	 */
+	@Query(value = """
+			SELECT
+			    r.id                                                  AS id,
+			    r.manage_no                                           AS manageNo,
+			    sic.code_num                                          AS smallCodeNum,
+			    o.order_date                                          AS orderDate,
+			    r.expect_complete_date                                AS expectCompleteDate,
+			    r.report_num                                          AS reportNum,
+			    o.cust_agent                                          AS custAgent,
+			    o.report_agent                                        AS reportAgent,
+			    r.item_name                                           AS itemName,
+			    r.item_num                                            AS itemNum,
+			    r.item_make_agent                                     AS itemMakeAgent,
+			    r.item_format                                         AS itemFormat,
+			    r.report_status                                       AS reportStatus,
+			    r.work_status                                         AS workStatus,
+			    r.order_type                                          AS orderType,
+			    wr.name                                               AS writeMemberName,
+			    wm.name                                               AS workMemberName,
+			    am.name                                               AS approvalMemberName
+			FROM report r
+			LEFT JOIN cali_order o  ON o.id  = r.cali_order_id
+			LEFT JOIN item_code sic ON sic.id = r.small_item_code_id
+			LEFT JOIN member wr     ON wr.id  = r.write_member_id
+			LEFT JOIN member wm     ON wm.id  = r.work_member_id
+			LEFT JOIN member am     ON am.id  = r.approval_member_id
+			WHERE r.is_visible        = 'y'
+			  AND r.report_type       = 'SELF'
+			  AND r.parent_scale_id   IS NULL
+			  AND (:reportStatus IS NULL OR r.report_status  = :reportStatus)
+			  AND (:workStatus   IS NULL OR r.work_status    = :workStatus)
+			  AND (:orderType    IS NULL OR r.order_type     = :orderType)
+			  AND (:middleItemCodeId IS NULL OR r.middle_item_code_id = :middleItemCodeId)
+			  AND (:smallItemCodeId  IS NULL OR r.small_item_code_id  = :smallItemCodeId)
+			  AND (
+			      :keyword = '' OR (
+			          (:searchType = 'reportNum'      AND r.report_num     LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'custAgent'   AND o.cust_agent     LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'reportAgent' AND o.report_agent   LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'workMember'  AND wm.name          LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'approvalMember' AND am.name       LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'itemName'    AND r.item_name      LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'itemFormat'  AND r.item_format    LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'itemMakeAgent' AND r.item_make_agent LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'itemNum'     AND r.item_num       LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'manageNo'    AND r.manage_no      LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'all' AND (
+			                r.report_num         LIKE CONCAT('%', :keyword, '%')
+			                OR o.cust_agent      LIKE CONCAT('%', :keyword, '%')
+			                OR o.report_agent    LIKE CONCAT('%', :keyword, '%')
+			                OR wm.name           LIKE CONCAT('%', :keyword, '%')
+			                OR am.name           LIKE CONCAT('%', :keyword, '%')
+			                OR r.item_name       LIKE CONCAT('%', :keyword, '%')
+			                OR r.item_format     LIKE CONCAT('%', :keyword, '%')
+			                OR r.item_make_agent LIKE CONCAT('%', :keyword, '%')
+			                OR r.item_num        LIKE CONCAT('%', :keyword, '%')
+			                OR r.manage_no       LIKE CONCAT('%', :keyword, '%')
+			          ))
+			      )
+			  )
+			ORDER BY
+			    r.cali_order_id DESC,
+			    CASE
+			        WHEN r.order_type = 'ACCREDDIT'   THEN 0
+			        WHEN r.order_type = 'UNACCREDDIT' THEN 1
+			        WHEN r.order_type = 'TESTING'     THEN 2
+			        ELSE 9
+			    END ASC,
+			    CAST(REGEXP_REPLACE(SUBSTRING_INDEX(r.report_num, '-', -1), '[^0-9]', '') AS UNSIGNED) ASC
+			""", nativeQuery = true)
+	List<WorkApprovalListRow> searchWorkApprovalList(
+			@Param("reportStatus") String reportStatus,
+			@Param("workStatus") String workStatus,
+			@Param("orderType") String orderType,
+			@Param("middleItemCodeId") Long middleItemCodeId,
+			@Param("smallItemCodeId") Long smallItemCodeId,
+			@Param("searchType") String searchType,
+			@Param("keyword") String keyword,
+			Pageable pageable
+	);
+
+	/**
+	 * 실무자결재 목록 전체 건수 조회 (searchWorkApprovalList 와 동일 WHERE 조건)
+	 * - Toast Grid 서버 페이징 totalCount 제공용
+	 */
+	@Query(value = """
+			SELECT COUNT(*)
+			FROM report r
+			LEFT JOIN cali_order o  ON o.id  = r.cali_order_id
+			LEFT JOIN member wm     ON wm.id  = r.work_member_id
+			LEFT JOIN member am     ON am.id  = r.approval_member_id
+			WHERE r.is_visible        = 'y'
+			  AND r.report_type       = 'SELF'
+			  AND r.parent_scale_id   IS NULL
+			  AND (:reportStatus IS NULL OR r.report_status  = :reportStatus)
+			  AND (:workStatus   IS NULL OR r.work_status    = :workStatus)
+			  AND (:orderType    IS NULL OR r.order_type     = :orderType)
+			  AND (:middleItemCodeId IS NULL OR r.middle_item_code_id = :middleItemCodeId)
+			  AND (:smallItemCodeId  IS NULL OR r.small_item_code_id  = :smallItemCodeId)
+			  AND (
+			      :keyword = '' OR (
+			          (:searchType = 'reportNum'      AND r.report_num     LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'custAgent'   AND o.cust_agent     LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'reportAgent' AND o.report_agent   LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'workMember'  AND wm.name          LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'approvalMember' AND am.name       LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'itemName'    AND r.item_name      LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'itemFormat'  AND r.item_format    LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'itemMakeAgent' AND r.item_make_agent LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'itemNum'     AND r.item_num       LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'manageNo'    AND r.manage_no      LIKE CONCAT('%', :keyword, '%'))
+			          OR (:searchType = 'all' AND (
+			                r.report_num         LIKE CONCAT('%', :keyword, '%')
+			                OR o.cust_agent      LIKE CONCAT('%', :keyword, '%')
+			                OR o.report_agent    LIKE CONCAT('%', :keyword, '%')
+			                OR wm.name           LIKE CONCAT('%', :keyword, '%')
+			                OR am.name           LIKE CONCAT('%', :keyword, '%')
+			                OR r.item_name       LIKE CONCAT('%', :keyword, '%')
+			                OR r.item_format     LIKE CONCAT('%', :keyword, '%')
+			                OR r.item_make_agent LIKE CONCAT('%', :keyword, '%')
+			                OR r.item_num        LIKE CONCAT('%', :keyword, '%')
+			                OR r.manage_no       LIKE CONCAT('%', :keyword, '%')
+			          ))
+			      )
+			  )
+			""", nativeQuery = true)
+	long countWorkApprovalList(
+			@Param("reportStatus") String reportStatus,
+			@Param("workStatus") String workStatus,
+			@Param("orderType") String orderType,
+			@Param("middleItemCodeId") Long middleItemCodeId,
+			@Param("smallItemCodeId") Long smallItemCodeId,
+			@Param("searchType") String searchType,
+			@Param("keyword") String keyword
+	);
 
 	/**
 	 * 교정신청서 다운로드용 성적서 목록 조회

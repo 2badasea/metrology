@@ -126,12 +126,28 @@ public class CustomSecurityConfig {
 				.requestMatchers("/vendor/**");
 	}
 
-	// 미인증 접근 시 → 로그인 페이지로 리다이렉트
+	// 미인증 접근 시
+	// - API 요청(/api/**): 401 JSON 응답 (React SPA가 감지하여 로그인 페이지로 이동)
+	// - 일반 페이지 요청: 로그인 페이지로 리다이렉트
 	@Bean
 	public AuthenticationEntryPoint unauthenticatedEntryPoint() {
 		return (request, response, authException) -> {
-			String redirectUrl = "/member/login" + ("/".equals(request.getRequestURI()) ? "" : "?required=-1");
-			response.sendRedirect(redirectUrl);
+			String uri = request.getRequestURI();
+			if (uri.startsWith("/api/")) {
+				// API 요청에 리다이렉트를 보내면 React가 HTML을 받아 처리할 수 없으므로 JSON 401 반환
+				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				response.setContentType("application/json;charset=UTF-8");
+				response.getWriter().write("{\"code\":-1,\"msg\":\"인증이 필요합니다.\",\"data\":null}");
+			} else {
+				// 루트("/") 접근 시 단순 로그인 페이지 이동
+				// 그 외: 원래 요청 URI를 redirect 파라미터로 전달 → 로그인 성공 후 복귀에 사용
+				if ("/".equals(uri)) {
+					response.sendRedirect("/member/login");
+				} else {
+					String encodedUri = java.net.URLEncoder.encode(uri, java.nio.charset.StandardCharsets.UTF_8);
+					response.sendRedirect("/member/login?redirect=" + encodedUri + "&required=1");
+				}
+			}
 		};
 	}
 

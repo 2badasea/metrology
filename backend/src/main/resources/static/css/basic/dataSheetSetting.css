@@ -1,0 +1,51 @@
+/* 셀위치 입력 필드 — td 너비에 꽉 채움 */
+.cell-input {
+    width: 100%;
+    text-align: center;
+    text-transform: uppercase;
+    border-radius: 0;
+}
+
+/* 테이블 헤더 배경 */
+.sheet-table th {
+    background-color: #e8e8e8;
+    vertical-align: middle;
+}
+
+.sheet-table td {
+    vertical-align: middle;
+}
+
+/* 항목코드 셀 — 고정폭 폰트 */
+.code-cell {
+    font-family: monospace;
+    font-size: 0.82rem;
+    color: #444;
+}
+
+/* 형식 radio 레이블: radio와 텍스트를 세로 중앙 정렬 */
+.format-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 14px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.format-label input[type="radio"] {
+    margin: 0;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+/* 형식 td 내부: 옵션들을 가로로 고르게 배치 */
+.format-options {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-wrap: wrap;
+    row-gap: 6px;
+    padding: 6px 4px;
+}
