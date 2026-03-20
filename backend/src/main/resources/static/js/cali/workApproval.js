@@ -133,33 +133,44 @@ $(function () {
 	$modal.grid = gGrid('.workApprovalList', {
 		columns: [
 			{
+				// 접수구분: ACCREDDIT=공인, UNACCREDDIT=비공인, TESTING=시험
+				header: '구분',
+				name: 'orderType',
+				width: 60,
+				align: 'center',
+				formatter: function (data) {
+					const map = { ACCREDDIT: '공인', UNACCREDDIT: '비공인', TESTING: '시험' };
+					return map[data.value] ?? data.value ?? '';
+				},
+			},
+			{
 				header: '관리번호',
 				name: 'manageNo',
-				width: 120,
+				width: 100,
 				align: 'center',
 			},
 			{
 				header: '소분류',
 				name: 'smallCodeNum',
-				width: 80,
+				width: 65,
 				align: 'center',
 			},
 			{
 				header: '접수일',
 				name: 'orderDate',
-				width: 100,
+				width: 85,
 				align: 'center',
 			},
 			{
 				header: '완료예정일',
 				name: 'expectCompleteDate',
-				width: 100,
+				width: 85,
 				align: 'center',
 			},
 			{
 				header: '성적서번호',
 				name: 'reportNum',
-				width: 140,
+				width: 120,
 				align: 'center',
 			},
 			{
@@ -286,8 +297,22 @@ $(function () {
 				}
 			}
 		})
-		// 버튼: 성적서작성 (별도 기획 필요 — 준비중)
+		// 버튼: 성적서작성
+		// 1) 체크된 항목이 없으면 warning
+		// 2) 체크된 항목의 소분류가 모두 동일해야 함
+		// 3) 모두 통과 시 준비중 안내 (향후 실제 기능으로 교체)
 		.on('click', '.btnWriteReport', function () {
+			const checkedRows = $modal.grid.getCheckedRows();
+			if (!checkedRows || checkedRows.length === 0) {
+				gToast('리스트에서 항목을 선택해 주세요.', 'warning');
+				return;
+			}
+			// 소분류 동일성 체크
+			const smallCodes = [...new Set(checkedRows.map((row) => row.smallCodeNum))];
+			if (smallCodes.length > 1) {
+				gToast('동일한 소분류 항목만 선택해 주세요.', 'warning');
+				return;
+			}
 			gToast('구현 준비중입니다.', 'info');
 		})
 		// 버튼: 성적서대기변경 (준비중)
