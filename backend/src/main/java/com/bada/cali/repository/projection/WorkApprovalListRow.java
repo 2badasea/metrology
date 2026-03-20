@@ -13,6 +13,8 @@ public interface WorkApprovalListRow {
 
 	String getManageNo();            // 관리번호
 
+	Long getSmallItemCodeId();       // 소분류코드 id (성적서작성 모달 호출 시 전달용)
+
 	String getSmallCodeNum();        // 소분류코드
 
 	LocalDate getOrderDate();        // 접수일 (cali_order.order_date)

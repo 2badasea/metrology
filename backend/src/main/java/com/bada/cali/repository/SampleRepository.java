@@ -3,6 +3,7 @@ package com.bada.cali.repository;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.entity.Sample;
 import com.bada.cali.repository.projection.SampleListRow;
+import com.bada.cali.repository.projection.SampleReportWriteRow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -83,6 +84,42 @@ public interface SampleRepository extends JpaRepository<Sample, Long> {
 			@Param("searchType") String searchType,
 			@Param("keyword") String keyword,
 			Pageable pageable
+	);
+
+	// 성적서작성 모달 — 소분류 기준 샘플 파일 목록 조회 (sample + file_info + member JOIN, 최신순)
+	// 성적서작성 모달 — 전체 목록 조회 (페이지네이션 없음, 스크롤 방식)
+	@Query(value = """
+			SELECT fi.id,
+			       s.id           AS sampleId,
+			       s.name         AS itemName,
+			       fi.origin_name AS fileName,
+			       m.name         AS createMemberName,
+			       fi.create_datetime AS createDatetime
+			  FROM sample s
+			  JOIN file_info fi ON fi.ref_table_name = 'sample'
+			                   AND fi.ref_table_id   = s.id
+			                   AND fi.is_visible     = 'y'
+			  JOIN member m ON m.id = fi.create_member_id
+			 WHERE s.is_visible        = 'y'
+			   AND s.small_item_code_id = :smallItemCodeId
+			   AND (
+			         :keyword = ''
+			         OR (
+			               (:searchType = 'all'              AND (s.name        LIKE CONCAT('%',:keyword,'%')
+			                                                   OR fi.origin_name LIKE CONCAT('%',:keyword,'%')
+			                                                   OR m.name         LIKE CONCAT('%',:keyword,'%')))
+			            OR (:searchType = 'itemName'         AND s.name         LIKE CONCAT('%',:keyword,'%'))
+			            OR (:searchType = 'fileName'         AND fi.origin_name LIKE CONCAT('%',:keyword,'%'))
+			            OR (:searchType = 'createMemberName' AND m.name         LIKE CONCAT('%',:keyword,'%'))
+			         )
+			       )
+			 ORDER BY fi.create_datetime DESC
+			""",
+			nativeQuery = true)
+	List<SampleReportWriteRow> searchReportWriteSamples(
+			@Param("smallItemCodeId") Long smallItemCodeId,
+			@Param("searchType") String searchType,
+			@Param("keyword") String keyword
 	);
 
 	// 중복 체크 (중분류 + 소분류 + 기기명 + is_visible=y)

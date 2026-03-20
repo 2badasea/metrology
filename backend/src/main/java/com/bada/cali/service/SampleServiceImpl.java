@@ -11,6 +11,7 @@ import com.bada.cali.repository.FileInfoRepository;
 import com.bada.cali.repository.LogRepository;
 import com.bada.cali.repository.SampleRepository;
 import com.bada.cali.repository.projection.SampleListRow;
+import com.bada.cali.repository.projection.SampleReportWriteRow;
 import com.bada.cali.security.CustomUserDetails;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -73,6 +74,29 @@ public class SampleServiceImpl {
 				.build();
 
 		return new TuiGridDTO.Res<>(true, resData);
+	}
+
+	// 성적서작성 모달 — 소분류 기준 샘플 파일 목록 전체 조회 (페이지네이션 없이 스크롤 방식)
+	@Transactional(readOnly = true)
+	public List<SampleReportWriteRow> getReportWriteList(SampleDTO.GetReportWriteListReq req) {
+		// searchType 화이트리스트 검증
+		String searchType = req.getSearchType();
+		if (searchType == null || searchType.isBlank()) {
+			searchType = "all";
+		}
+		searchType = switch (searchType) {
+			case "all", "itemName", "fileName", "createMemberName" -> searchType;
+			default -> "all";
+		};
+
+		String keyword = req.getKeyword();
+		if (keyword == null) keyword = "";
+
+		return sampleRepository.searchReportWriteSamples(
+				req.getSmallItemCodeId() != null ? req.getSmallItemCodeId() : 0L,
+				searchType,
+				keyword
+		);
 	}
 
 	// 샘플 파일 목록 조회 (최신순)

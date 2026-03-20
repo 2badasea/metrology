@@ -333,6 +333,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			SELECT
 			    r.id                                                  AS id,
 			    r.manage_no                                           AS manageNo,
+			    r.small_item_code_id                                  AS smallItemCodeId,
 			    sic.code_num                                          AS smallCodeNum,
 			    o.order_date                                          AS orderDate,
 			    r.expect_complete_date                                AS expectCompleteDate,

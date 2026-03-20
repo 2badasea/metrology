@@ -138,6 +138,7 @@ $(function () {
 				name: 'orderType',
 				width: 60,
 				align: 'center',
+				className: 'cursor_pointer',
 				formatter: function (data) {
 					const map = { ACCREDDIT: '공인', UNACCREDDIT: '비공인', TESTING: '시험' };
 					return map[data.value] ?? data.value ?? '';
@@ -148,36 +149,42 @@ $(function () {
 				name: 'manageNo',
 				width: 100,
 				align: 'center',
+				className: 'cursor_pointer',
 			},
 			{
 				header: '소분류',
 				name: 'smallCodeNum',
 				width: 65,
 				align: 'center',
+				className: 'cursor_pointer',
 			},
 			{
 				header: '접수일',
 				name: 'orderDate',
 				width: 85,
 				align: 'center',
+				className: 'cursor_pointer',
 			},
 			{
 				header: '완료예정일',
 				name: 'expectCompleteDate',
 				width: 85,
 				align: 'center',
+				className: 'cursor_pointer',
 			},
 			{
 				header: '성적서번호',
 				name: 'reportNum',
 				width: 120,
 				align: 'center',
+				className: 'cursor_pointer',
 			},
 			{
 				header: '신청업체',
 				name: 'custAgent',
 				width: 130,
 				align: 'center',
+				className: 'cursor_pointer',
 				whiteSpace: 'pre-line',
 			},
 			{
@@ -185,12 +192,14 @@ $(function () {
 				name: 'reportAgent',
 				width: 130,
 				align: 'center',
+				className: 'cursor_pointer',
 				whiteSpace: 'pre-line',
 			},
 			{
 				header: '기기명',
 				name: 'itemName',
 				align: 'center',
+				className: 'cursor_pointer',
 				whiteSpace: 'pre-line',
 			},
 			{
@@ -198,6 +207,7 @@ $(function () {
 				name: 'itemNum',
 				width: 120,
 				align: 'center',
+				className: 'cursor_pointer',
 				whiteSpace: 'pre-line',
 			},
 			{
@@ -205,6 +215,7 @@ $(function () {
 				name: 'itemMakeAgent',
 				width: 120,
 				align: 'center',
+				className: 'cursor_pointer',
 				whiteSpace: 'pre-line',
 			},
 			{
@@ -212,6 +223,7 @@ $(function () {
 				name: 'itemFormat',
 				width: 120,
 				align: 'center',
+				className: 'cursor_pointer',
 				whiteSpace: 'pre-line',
 			},
 			{
@@ -219,6 +231,7 @@ $(function () {
 				name: 'reportStatus',
 				width: 90,
 				align: 'center',
+				className: 'cursor_pointer',
 				formatter: function (data) {
 					return reportStatusLabel(data.value);
 				},
@@ -228,22 +241,26 @@ $(function () {
 				name: 'writeMemberName',
 				width: 80,
 				align: 'center',
+				className: 'cursor_pointer',
 			},
 			{
 				header: '실무자',
 				name: 'workMemberName',
 				width: 80,
 				align: 'center',
+				className: 'cursor_pointer',
 			},
 			{
 				header: '기술책임자',
 				name: 'approvalMemberName',
 				width: 90,
 				align: 'center',
+				className: 'cursor_pointer',
 			},
 			{
 				// 업로드 컬럼: gridClass.js의 UploadCellRenderer 사용
 				// 버튼 클릭 및 드래그앤드롭 이벤트는 렌더러 내부에서 window 함수로 위임
+				// cursor_pointer 미적용 — 버튼 자체 커서가 있음
 				header: '업로드',
 				name: 'uploadBtn',
 				width: 80,
@@ -263,6 +280,39 @@ $(function () {
 		bodyHeight: 600,
 		rowHeight: 'auto',
 		data: $modal.dataSource,
+	});
+
+	// =====================================================================
+	// 그리드 행 클릭 → 성적서수정(reportModify) 모달 호출
+	// 업로드 컬럼(uploadBtn)과 체크박스 rowHeader(_checked) 클릭은 제외
+	// 모달 닫힘 후 현재 페이지 재조회
+	// =====================================================================
+	$modal.grid.on('click', async function (ev) {
+		const { columnName, rowKey } = ev;
+		// 체크박스 rowHeader 및 업로드 컬럼 클릭 무시
+		if (columnName === '_checked' || columnName === 'uploadBtn') return;
+
+		const row = $modal.grid.getRow(rowKey);
+		if (!row || !row.id) return;
+
+		const reportNum = row.reportNum ?? '';
+		await gModal(
+			'/cali/reportModify',
+			{ id: row.id },
+			{
+				title: `성적서 수정 [성적서번호 - ${reportNum}]`,
+				size: 'xxl',
+				show_close_button: true,
+				// 성적서작성 버튼: reportModify.js에서 .modal-btn-write-report 클릭 핸들러가 처리
+				custom_btn_html_arr: [
+					'<button type="button" class="btn btn-primary btn-sm modal-btn-write-report mr-auto"><i class="bi bi-pencil-square"></i> 성적서작성</button>',
+				],
+			},
+		);
+
+		// 모달 닫힘 후 현재 페이지 유지하며 그리드 재조회
+		const currentPage = $modal.grid.getPagination()?.getCurrentPage() ?? 1;
+		$modal.grid.getPagination().movePageTo(currentPage);
 	});
 
 	// =====================================================================
@@ -298,22 +348,45 @@ $(function () {
 			}
 		})
 		// 버튼: 성적서작성
-		// 1) 체크된 항목이 없으면 warning
-		// 2) 체크된 항목의 소분류가 모두 동일해야 함
-		// 3) 모두 통과 시 준비중 안내 (향후 실제 기능으로 교체)
-		.on('click', '.btnWriteReport', function () {
+		// 1) 체크된 항목 없으면 warning
+		// 2) 소분류가 모두 동일해야 함
+		// 3) 검증 통과 시 성적서작성 모달(reportWrite) 호출
+		.on('click', '.btnWriteReport', async function () {
 			const checkedRows = $modal.grid.getCheckedRows();
 			if (!checkedRows || checkedRows.length === 0) {
 				gToast('리스트에서 항목을 선택해 주세요.', 'warning');
 				return;
 			}
-			// 소분류 동일성 체크
+			// 소분류 동일성 체크 (smallCodeNum 기준)
 			const smallCodes = [...new Set(checkedRows.map((row) => row.smallCodeNum))];
 			if (smallCodes.length > 1) {
 				gToast('동일한 소분류 항목만 선택해 주세요.', 'warning');
 				return;
 			}
-			gToast('구현 준비중입니다.', 'info');
+
+			// 첫 번째 체크 행에서 소분류 정보 추출
+			const firstRow = checkedRows[0];
+			const smallCodeNum    = firstRow.smallCodeNum;
+			// orderType 열 데이터에서 smallItemCodeId를 직접 가져올 수 없으므로
+			// 그리드 원본 데이터(dataSource)에서 id를 참조하거나 별도 조회가 필요할 수 있음
+			// 현재 WorkApprovalListRow에 smallItemCodeId가 없으므로, 백엔드 API 파라미터로
+			// smallCodeNum 대신 smallItemCodeId가 필요한 경우 projection을 확장해야 함
+			// NOTE: 현재는 smallItemCodeId를 그리드 행에서 직접 가져옴
+			const smallItemCodeId = firstRow.smallItemCodeId;
+
+			// 성적서작성 모달 호출
+			await gModal(
+				'/cali/reportWrite',
+				{
+					smallItemCodeId: smallItemCodeId,
+					smallCodeNum: smallCodeNum,
+				},
+				{
+					title: `성적서 작성 [소분류코드 - ${smallCodeNum}]`,
+					size: 'xl',
+					show_close_button: true,
+				},
+			);
 		})
 		// 버튼: 성적서대기변경 (준비중)
 		.on('click', '.btnWaitChange', function () {

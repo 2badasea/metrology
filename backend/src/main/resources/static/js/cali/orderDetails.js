@@ -143,12 +143,11 @@
 						return reportStatusLabel(data.value);
 					},
 				},
-			],
-			pageOptions: {
+		],
+		pageOptions: {
 				useClient: false, // 서버 페이징
 				perPage: 20, // 기본 20. 선택한 '행 수'에 따라 유동적으로 변경	=> change 이벤트를 통해 setPerPage() 함수 호출
 			},
-			rowHeaders: ['checkbox'],
 			minBodyHeight: 663,
 			bodyHeight: 663,
 			data: $modal.data_source, // 그리드의 데이터를 초기화하는 과정에서 api 호출
@@ -179,6 +178,10 @@
 							show_close_button: true,
 							show_confirm_button: isModifiable,
 							confirm_button_text: '저장',
+							// 성적서작성 버튼: footer 왼쪽 끝에 배치
+							custom_btn_html_arr: [
+								'<button type="button" class="btn btn-primary btn-sm modal-btn-write-report mr-auto"><i class="bi bi-pencil-square"></i> 성적서작성</button>',
+							],
 						},
 					);
 
@@ -219,9 +222,7 @@
 					show_confirm_button: true,
 					confirm_button_text: '저장',
 					// FIX 엑셀등록 기능 구현할 것
-					// custom_btn_html_arr: [
 					// 	`<button type="button" class="btn btn-success addReportExcel btn-sm"><i class="bi bi-file-excel"></i>EXCEL 등록</button>`,
-					// ],
 				},
 			);
 			if (resModal) {

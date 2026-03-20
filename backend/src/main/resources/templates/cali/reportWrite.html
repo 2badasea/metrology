@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <div layout:fragment="content">
+        <div class="modal-view modal-body">
+
+            <!-- 검색 영역 -->
+            <form class="searchForm" name="searchForm">
+                <div class="reportWrite-search-area">
+                    <!-- 검색 타입 + 키워드 -->
+                    <div class="input-group input-group-sm">
+                        <select class="form-control form-control-sm searchType" name="searchType" style="width: 90px;">
+                            <option value="all">전체선택</option>
+                            <option value="itemName">기기명</option>
+                            <option value="fileName">파일명</option>
+                            <option value="createMemberName">등록자</option>
+                        </select>
+                        <input type="text" class="form-control form-control-sm" id="keyword" name="keyword"
+                               value="" style="width: 150px;" />
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+
+            <!-- 그리드 영역 -->
+            <div class="grid reportWriteGrid"></div>
+
+        </div>
+    </div>
+</body>
+
+</html>

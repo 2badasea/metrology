@@ -36,4 +36,13 @@ public class SampleDTO {
 			boolean exists,
 			Long sampleId
 	) {}
+
+	// 성적서작성 모달 — 샘플 파일 목록 조회 요청 (페이지네이션 없이 전체 조회)
+	@Getter
+	@Setter
+	public static class GetReportWriteListReq {
+		private Long smallItemCodeId;         // 소분류 코드 id (필수)
+		private String searchType = "all";    // 검색 타입: all, itemName, fileName, createMemberName
+		private String keyword = "";          // 검색 키워드
+	}
 }

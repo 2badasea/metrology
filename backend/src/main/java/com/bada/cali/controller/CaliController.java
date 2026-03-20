@@ -72,4 +72,11 @@ public class CaliController {
 		model.addAttribute("title", "실무자결재");
 		return "cali/workApproval";
 	}
+
+	// 성적서작성 모달 (workApproval 리스트 또는 reportModify 모달에서 호출)
+	// gModal은 jQuery .load(url, data)를 사용하므로 데이터가 있을 때 POST로 전송됨
+	@PostMapping(value = "/reportWrite")
+	public String reportWrite() {
+		return "cali/reportWrite";
+	}
 }

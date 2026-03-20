@@ -4,6 +4,7 @@ import com.bada.cali.common.ResMessage;
 import com.bada.cali.dto.FileInfoDTO;
 import com.bada.cali.dto.SampleDTO;
 import com.bada.cali.dto.TuiGridDTO;
+import com.bada.cali.repository.projection.SampleReportWriteRow;
 import com.bada.cali.security.CustomUserDetails;
 import com.bada.cali.service.SampleServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,6 +42,19 @@ public class SampleController {
 	@GetMapping("/list")
 	public TuiGridDTO.Res<?> getSampleList(@ModelAttribute SampleDTO.GetListReq req) {
 		return sampleService.getSampleList(req);
+	}
+
+	@Operation(summary = "성적서작성 모달 샘플 목록 조회",
+			description = "소분류 코드 기준으로 해당 소분류의 샘플 파일 목록 전체 조회. 페이지네이션 없이 전체 반환하며 프론트에서 스크롤로 표시")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
+	@GetMapping("/reportWriteList")
+	public ResponseEntity<ResMessage<List<SampleReportWriteRow>>> getReportWriteList(
+			@ModelAttribute SampleDTO.GetReportWriteListReq req) {
+		return ResponseEntity.ok(new ResMessage<>(1, "조회 성공", sampleService.getReportWriteList(req)));
 	}
 
 	@Operation(summary = "샘플 파일 목록 조회", description = "특정 샘플에 연결된 파일 목록을 최신순으로 조회")

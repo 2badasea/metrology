@@ -23,7 +23,8 @@
       "Bash(grep -n \"order.xlsx\\\\|downloadOrder\\\\|orderDown\\\\|ExcelService\\\\|POI\\\\|xlsx\\\\|excel\" C:/BadaDev/cali/backend/src/main/java/com/bada/cali/api/CaliController.java 2>/dev/null | head -20\ngrep -n \"order.xlsx\\\\|ExcelService\\\\|xlsx\" C:/BadaDev/cali/backend/src/main/java/com/bada/cali/service/CaliOrderServiceImpl.java 2>/dev/null | head -10)",
       "Read(//mnt/c/BadaDev/**)",
       "Bash(mkdir -p C:/BadaDev/cali/docs/claude && mv C:/BadaDev/cali/claudeReqOrderDown.md C:/BadaDev/cali/docs/claude/ && mv C:/BadaDev/cali/claudeReqSample.md C:/BadaDev/cali/docs/claude/ && mv C:/BadaDev/cali/CLAUDE.md C:/BadaDev/cali/docs/claude/)",
-      "Bash(ls C:/BadaDev/cali/frontend/.env*)"
+      "Bash(ls C:/BadaDev/cali/frontend/.env*)",
+      "Bash(grep -rn modal_deferreds*= C:/BadaDev/cali/backend/src/main/resources/static/)"
     ]
   }
 }

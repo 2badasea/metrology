@@ -1,0 +1,11 @@
+/* 성적서작성 모달 전용 스타일 */
+
+/* 검색영역 */
+.reportWrite-search-area {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 0;
+    flex-wrap: nowrap;
+}
+

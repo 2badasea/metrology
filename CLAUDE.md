@@ -550,6 +550,13 @@ public ResponseEntity<?> create(...) { ... }
 2. **주석**: 구현한 코드에는 로직의 흐름, 파라미터 의도, 주의사항 등 충분한 주석을 남긴다.
 3. **피드백**: 작업 요청에 대해 효율성·유지보수성·표준 방식 측면에서 개선 의견이 있으면
    작업 전 또는 완료 후 사용자에게 제안한다. (임의 적용 금지, 제안만)
+4. **CSS 분리 원칙**: 스타일은 가급적 별도 CSS 파일로 분리한다.
+   - 간단한 인라인 `style=""` 속성(width, display 등 단순값)은 허용
+   - `<style>` 태그를 HTML 파일 내부에 직접 작성하는 것은 **금지**
+   - CSS가 필요한 경우 페이지 전용 CSS 파일을 생성한다
+     - 경로 규칙: Thymeleaf 템플릿 경로와 동일하게 `static/css/` 하위에 위치
+     - 예: `templates/cali/reportWrite.html` → `static/css/cali/reportWrite.css`
+   - CSS 파일은 해당 HTML에서 `<link>` 또는 레이아웃 fragment를 통해 로드한다
 
 ---
 

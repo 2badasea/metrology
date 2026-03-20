@@ -1,4 +1,4 @@
-$(function () {
+﻿$(function () {
 	console.log('++ cali/caliOrderModify.js');
 
 	const $candidates = $('.modal-view:not(.modal-view-applied)');
@@ -186,6 +186,10 @@ $(function () {
 							show_close_button: true,
 							show_confirm_button: isModifiable,
 							confirm_button_text: '저장',
+							// 성적서작성 버튼: footer 왼쪽 끝에 배치
+							custom_btn_html_arr: [
+								'<button type="button" class="btn btn-primary btn-sm modal-btn-write-report mr-auto"><i class="bi bi-pencil-square"></i> 성적서작성</button>',
+							],
 						}
 					);
 					// 모달이 정상적으로 닫히면 그리드를 갱신한다.
