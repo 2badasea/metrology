@@ -365,28 +365,26 @@ $(function () {
 			}
 
 			// 첫 번째 체크 행에서 소분류 정보 추출
-			const firstRow = checkedRows[0];
+			const firstRow        = checkedRows[0];
 			const smallCodeNum    = firstRow.smallCodeNum;
-			// orderType 열 데이터에서 smallItemCodeId를 직접 가져올 수 없으므로
-			// 그리드 원본 데이터(dataSource)에서 id를 참조하거나 별도 조회가 필요할 수 있음
-			// 현재 WorkApprovalListRow에 smallItemCodeId가 없으므로, 백엔드 API 파라미터로
-			// smallCodeNum 대신 smallItemCodeId가 필요한 경우 projection을 확장해야 함
-			// NOTE: 현재는 smallItemCodeId를 그리드 행에서 직접 가져옴
 			const smallItemCodeId = firstRow.smallItemCodeId;
+			// 체크된 모든 행의 성적서 id 수집 → 배치 생성 시 전달
+			const reportIds       = checkedRows.map((row) => row.id);
 
 			// 성적서작성 모달 호출
 			await gModal(
 				'/cali/reportWrite',
-				{
-					smallItemCodeId: smallItemCodeId,
-					smallCodeNum: smallCodeNum,
-				},
+				{ smallItemCodeId, smallCodeNum, reportIds },
 				{
 					title: `성적서 작성 [소분류코드 - ${smallCodeNum}]`,
 					size: 'xl',
 					show_close_button: true,
 				},
 			);
+
+			// 모달 닫힘 후 그리드 재조회 — write_status 변경 반영
+			const currentPage = $modal.grid.getPagination()?.getCurrentPage() ?? 1;
+			$modal.grid.getPagination().movePageTo(currentPage);
 		})
 		// 버튼: 성적서대기변경 (준비중)
 		.on('click', '.btnWaitChange', function () {

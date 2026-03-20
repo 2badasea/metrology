@@ -188,11 +188,18 @@ public class Report {
 	// 작성자 고유 id
 	@Column(name = "write_member_id")
 	private Long writeMemberId;
-	
+
 	// 작성일시
 	@Column(name = "write_datetime")
 	private LocalDateTime writeDatetime;
-	
+
+	// 성적서작성 진행상태 (IDLE: 미작성, PROGRESS: 작성중, SUCCESS: 작성완료, FAIL: 작성실패)
+	// work_status / approval_status 와 동일한 패턴으로 관리
+	@Column(name = "write_status", nullable = false, length = 50)
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private AppStatus writeStatus = AppStatus.IDLE;
+
 	// 실무자 id
 	@Column(name = "work_member_id")
 	private Long workMemberId;

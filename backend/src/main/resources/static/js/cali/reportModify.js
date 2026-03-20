@@ -395,7 +395,7 @@
 		}
 		await gModal(
 			'/cali/reportWrite',
-			{ smallItemCodeId, smallCodeNum },
+			{ smallItemCodeId, smallCodeNum, reportIds: [id] },  // id: init_modal에서 설정된 현재 성적서 id
 			{
 				title: `성적서 작성 [소분류코드 - ${smallCodeNum}]`,
 				size: 'xl',

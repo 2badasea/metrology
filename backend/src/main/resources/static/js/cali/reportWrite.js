@@ -108,6 +108,57 @@ $(function () {
 			$modal.loadGridData();
 		});
 
+	// 그리드 행 클릭 → 성적서작성 배치 생성
+	// SampleReportWriteRow: getId() = file_info.id, getSampleId() = sample.id
+	// 배치 생성 API에는 sample.id(sampleId)를 전달해야 하므로 row.sampleId 사용
+	$modal.grid.on('click', async function (ev) {
+		const { rowKey } = ev;
+		const row = $modal.grid.getRow(rowKey);
+		if (!row) return;
+
+		const reportIds  = $modal.param?.reportIds ?? [];
+		const sampleId   = row.sampleId;   // sample.id (SampleReportWriteRow.getSampleId())
+		const sampleName = row.itemName ?? '';
+		const fileName   = row.fileName ?? '';
+
+		// 대상 성적서 목록 미전달 시 경고 (reportWrite 단독 접근 등)
+		if (!reportIds || reportIds.length === 0) {
+			gToast('대상 성적서 정보가 없습니다.', 'warning');
+			return;
+		}
+
+		// 샘플 선택 확인
+		const result = await gMessage(
+			'성적서 작성',
+			`선택한 샘플로 성적서를 작성하시겠습니까?<br><b>${sampleName}</b> (${fileName})<br>대상 성적서: ${reportIds.length}건`,
+			'question',
+			'confirm',
+			{ confirmButtonText: '작성 시작' },
+		);
+		if (!result.isConfirmed) return;
+
+		// 배치 생성 API 호출
+		try {
+			gLoadingMessage('성적서작성 작업을 준비 중입니다...');
+			const res = await fetch('/api/report/jobs/batches', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json; charset=utf-8' },
+				body: JSON.stringify({ reportIds, sampleId }),
+			});
+			if (!res.ok) throw res;
+			const resData = await res.json();
+			if (resData?.code > 0) {
+				await gMessage('성적서 작성', resData.msg, 'success', 'alert');
+				$modal_root.modal('hide');  // 모달 닫기
+			} else {
+				await gMessage('성적서 작성 실패', resData.msg ?? '오류가 발생했습니다.', 'error', 'alert');
+			}
+		} catch (err) {
+			swal.close();
+			customAjaxHandler(err);
+		}
+	});
+
 	// =====================================================================
 	// 페이지 마운트 처리 (common.js 규약)
 	// =====================================================================
