@@ -1079,3 +1079,142 @@ CREATE TABLE `report_job_item` (
 - 작업 현황 모니터링 UI (진행률 바, 개별 성적서 상태 목록)
 - 실패 재시도 기능
 
+---
+
+## 구현 진행 현황 (2026-03-20 기준)
+
+---
+
+### ✅ Phase 1 — CALI 내 연동 API 구현 (완료)
+
+#### 1-1. DB 사전 작업 (완료)
+
+| 항목 | 내용 |
+|---|---|
+| `report.expect_complete_date` | DATE NULL 컬럼 추가 (`v_260317.sql`) |
+| `report.write_status` | VARCHAR NOT NULL DEFAULT 'IDLE' 추가. IDLE→PROGRESS→SUCCESS/FAIL 상태 관리 |
+| `report_job_batch` | 배치 작업 테이블 신설 (job_type, status, total/success/fail_count 등) |
+| `report_job_item` | 개별 item 테이블 신설 (batch_id, report_id, status, step, message 등) |
+| `file_info.type` | VARCHAR NULL 추가 (origin / signed 구분) |
+
+#### 1-2. CALI 엔티티 / DTO / 리포지토리 (완료)
+
+- `entity/ReportJobBatch.java` — 배치 엔티티
+- `entity/ReportJobItem.java` — item 엔티티 (step, message, retry_count 포함)
+- `dto/ReportJobBatchDTO.java` — `CreateWriteBatchReq`, `CreateBatchRes`, `BatchStatusRes`, `ItemStatusRes`, `ItemCallbackReq`, `WorkerTriggerReq`
+- `repository/ReportJobBatchRepository.java`
+- `repository/ReportJobItemRepository.java` (`findByBatchId`)
+- `common/enums/BatchStatus.java`, `JobItemStatus.java`, `JobType.java`
+
+#### 1-3. 배치 생성 API (완료)
+
+- `POST /api/report/jobs/batches`
+- 대상 성적서 유효성 검증 (삭제여부, SELF 타입, 소분류 설정, 중복 진행 방지)
+- batch(READY) + items(READY) 생성 → report.write_status = PROGRESS
+- 작업 로그 기록
+
+#### 1-4. 작업서버 트리거 (완료)
+
+- `ReportJobBatchServiceImpl.triggerWorkerServer(batchId)` 구현
+- `POST {app.worker.url}/api/jobs/execute` 호출 (RestClient)
+- `app.worker.url` 미설정 시 트리거 생략(개발 모드)
+- 트리거 실패 시: batch=FAIL, item=CANCELED, report.write_status=IDLE 복원
+
+#### 1-5. Polling API (완료)
+
+- `GET /api/report/jobs/batches/{batchId}` — 브라우저용. 배치+item 진행상황 반환 (세션 인증)
+
+#### 1-6. 작업서버 콜백 수신 API (완료)
+
+- `WorkerCallbackController` 신규 생성 (`/api/worker/**`, `permitAll` + API 키 검증)
+- `GET /api/worker/batches/{batchId}` — 작업서버가 item 목록을 조회
+- `POST /api/worker/items/{itemId}/callback` — 작업서버가 item 처리 결과 보고
+  - PROGRESS → 배치 시작일시 기록, 배치 READY→PROGRESS 전환
+  - SUCCESS → `report.write_status=SUCCESS`, `write_member_id`, `write_datetime` 갱신, batch.successCount++
+  - FAIL → `report.write_status=FAIL`, batch.failCount++
+  - 모든 item 완료 시 batch 최종 상태(SUCCESS/FAIL) + end_datetime 기록
+
+#### 1-7. 프론트 — 성적서작성 모달 (완료)
+
+- `templates/cali/reportWrite.html` — 소분류별 샘플 목록 표시 모달
+- `static/js/cali/reportWrite.js` — 샘플 행 클릭 → 확인 → 배치 생성 API 호출
+
+#### 1-8. 통신 프로토콜 확정 사항
+
+| 항목 | 확정 내용 |
+|---|---|
+| 트리거 경로 | `POST {app.worker.url}/api/jobs/execute` |
+| 트리거 헤더 | `X-Worker-Api-Key: {app.worker.api-key}` |
+| 트리거 페이로드 | `batchId`, `callbackBaseUrl`, `workerApiKey`, 스토리지 접속정보 5종 |
+| 콜백 경로 | `POST {callbackBaseUrl}/api/worker/items/{itemId}/callback` |
+| 콜백 헤더 | `X-Worker-Api-Key: {workerApiKey}` |
+| 콜백 페이로드 | `status`, `step`, `message` |
+| 배치 조회 | `GET {callbackBaseUrl}/api/worker/batches/{batchId}` |
+
+#### 설정 프로퍼티
+
+```properties
+app.worker.url=                          # 비어있으면 트리거 생략 (개발 모드)
+app.worker.api-key=cali-worker-key-dev   # 운영 시 외부 properties에서 오버라이드
+app.cali.callback-base-url=http://localhost:8050
+```
+
+---
+
+### 🔲 Phase 2 — 성적서작업 워커 애플리케이션 구현 (다음 작업)
+
+> 별도 Spring Boot 프로젝트. WSL2에 배포 후 CALI와 통신 테스트.
+
+#### 2-1. 프로젝트 구조 (예정)
+
+- `cali-worker` (가칭) — 독립 Spring Boot 3.x 프로젝트
+- 포트: 8060 (미확정)
+- 배포 대상: WSL2(로컬 개발) → 미니PC 홈서버 → 퍼블릭 클라우드
+
+#### 2-2. 구현할 기능
+
+| 기능 | 내용 |
+|---|---|
+| 트리거 수신 | `POST /api/jobs/execute` — batchId + 스토리지 설정 수신, API 키 검증 |
+| 배치 정보 조회 | `GET {callbackBaseUrl}/api/worker/batches/{batchId}` 호출 → item 목록 확인 |
+| 샘플 파일 다운로드 | NCP 오브젝트 스토리지에서 `sample` 파일 다운로드 |
+| 임시 디렉토리 관리 | 배치 단위로 UUID 기반 임시 디렉토리 생성 → 작업 완료 후 정리 |
+| 엑셀 데이터 삽입 | Apache POI — 각 성적서 raw 데이터를 샘플 엑셀에 삽입 |
+| 스토리지 업로드 | 완성된 `origin.xlsx`를 `{rootDir}/report/{reportId}/report_origin.xlsx` 경로로 저장 |
+| CALI 콜백 | 각 item 처리 단계마다 `POST /api/worker/items/{itemId}/callback` 호출 |
+| 로컬 저장 (선택) | `app.local.save-enabled=true` 시 `/mnt/c/데이터시트/...` 동시 저장 (개발 편의) |
+
+#### 2-3. 미확정 사항 (구현 전 합의 필요)
+
+- 작업서버가 CALI report 상세 데이터를 조회하는 API 경로 (`GET /api/worker/reports/{reportId}`)
+- 엑셀 셀 위치 매핑 방식 (`env.sheet_info_setting` JSON 구조 확정)
+- item 처리 실패 시 임시 디렉토리 보존 정책 (즉시 삭제 vs 일정 기간 보존)
+- WSL2 내 작업 디렉토리 경로 (`app.worker.work-dir`)
+
+#### 2-4. WSL2 배포 및 통신 테스트 순서 (예정)
+
+1. `cali-worker` 프로젝트 생성 및 기본 구조 구성
+2. `POST /api/jobs/execute` 엔드포인트 구현 (트리거 수신 + 응답)
+3. WSL2에 JAR 배포, CALI `app.worker.url=http://localhost:8060` 설정
+4. CALI → 워커 트리거 → 워커 → CALI 콜백 흐름 엔드투엔드 통신 테스트
+5. 실제 엑셀 작업 로직 순차 구현 (스토리지 다운로드 → POI 삽입 → 스토리지 업로드)
+
+---
+
+### 🔲 Phase 1 잔여 — 실무자결재 업로드/결재 API (미구현)
+
+> Phase 2 워커 통신 테스트 이후 진행 예정
+
+- `work_status` 기반 실무자결재 흐름 API
+- 원본 파일 업로드(origin 교체) 및 결재(signed 파일 생성) API
+- 다건 일괄 처리 지원
+
+---
+
+### 🔲 Phase 3 — 기술책임자결재 페이지 (미구현)
+
+- 기술책임자 전용 결재 페이지 UI
+- `work_status=SUCCESS` 조건부 결재 처리
+- signed 파일 교체 (soft delete + 새 insert)
+- `approval_status=SUCCESS`, `report_status=COMPLETE` 업데이트
+

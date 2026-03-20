@@ -62,6 +62,9 @@ public class CustomSecurityConfig {
 								, "/swagger-ui/**"           // Swagger UI 리소스
 								, "/v3/api-docs/**"          // OpenAPI 스펙 JSON
 								, "/actuator/health"         // CI/CD 헬스체크 전용 (인증 없이 접근 허용)
+								// 성적서 작업서버 ↔ CALI 내부 통신 경로 (세션 없는 서버→서버 호출)
+								// 인증은 X-Worker-Api-Key 헤더로 컨트롤러 레벨에서 검증함
+								, "/api/worker/**"
 						).permitAll()
 						.anyRequest().authenticated()                // 그외 요청에 대해선 인증된 사용자만 허용
 				)

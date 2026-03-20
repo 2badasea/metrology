@@ -24,7 +24,8 @@
       "Read(//mnt/c/BadaDev/**)",
       "Bash(mkdir -p C:/BadaDev/cali/docs/claude && mv C:/BadaDev/cali/claudeReqOrderDown.md C:/BadaDev/cali/docs/claude/ && mv C:/BadaDev/cali/claudeReqSample.md C:/BadaDev/cali/docs/claude/ && mv C:/BadaDev/cali/CLAUDE.md C:/BadaDev/cali/docs/claude/)",
       "Bash(ls C:/BadaDev/cali/frontend/.env*)",
-      "Bash(grep -rn modal_deferreds*= C:/BadaDev/cali/backend/src/main/resources/static/)"
+      "Bash(grep -rn modal_deferreds*= C:/BadaDev/cali/backend/src/main/resources/static/)",
+      "Bash(powershell.exe -Command '$env:JAVA_HOME=\"C:\\\\Users\\\\gnjqt\\\\.jdks\\\\corretto-17.0.16\"; $env:PATH=\"$env:JAVA_HOME\\\\bin;$env:PATH\"; cd C:\\\\BadaDev\\\\cali\\\\backend; .\\\\gradlew.bat compileJava 2>&1 | Select-Object -Last 25' 2>&1)"
     ]
   }
 }
