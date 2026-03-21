@@ -11,6 +11,7 @@ import com.bada.cali.mapper.ReportMapper;
 import com.bada.cali.mapper.StandardEquipmentRefMapper;
 import com.bada.cali.repository.CaliOrderRepository;
 import com.bada.cali.repository.EquipmentRefRepository;
+import com.bada.cali.repository.FileInfoRepository;
 import com.bada.cali.repository.LogRepository;
 import com.bada.cali.repository.ReportRepository;
 import com.bada.cali.repository.projection.OrderDetailsList;
@@ -25,6 +26,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -41,6 +44,7 @@ public class ReportServiceImpl {
 	private final EquipmentRefRepository equipmentRefRepository;
 	private final StandardEquipmentRefMapper standardEquipmentRefMapper;
 	private final NumberSequenceService numberSequenceService;
+	private final FileInfoRepository fileInfoRepository;
 	
 	/**
 	 * 성적서 등록
@@ -673,9 +677,166 @@ public class ReportServiceImpl {
 		
 		resCode = 1;
 		resMessage = "성적서 수정에 성공했습니다.";
-		
+
 		return new ResMessage<>(resCode, resMessage, null);
 	}
-	
-	
+
+
+	// ── 성적서작성 필수항목 검증 ──────────────────────────────────────────────
+
+	/**
+	 * 성적서작성 전 필수항목 일괄 검증.
+	 *
+	 * 검증 항목 (순서 유지):
+	 *   교정일자, 최고온도, 최저온도, 최저습도, 최고습도, 최저기압, 최고기압,
+	 *   중분류, 소분류, 실무자, 기술책임자, 실무자 서명이미지, 기술책임자 서명이미지
+	 *
+	 * - environmentInfo는 JSON 문자열 컬럼. tempMin/tempMax/humMin/humMax/preMin/preMax 키를 파싱해서 확인.
+	 * - 서명이미지는 file_info 테이블에서 ref_table_name='member', ref_table_id=멤버id, is_visible='y' 인 행 존재 여부로 판단.
+	 * - 성적서번호(report_num)가 null인 경우 "성적서ID:{id}" 형태로 대체 표기.
+	 *
+	 * @param reportIds 검증 대상 성적서 id 목록
+	 * @return ValidateWriteRes (allPassed, passedIds, failedIds, failures)
+	 */
+	@Transactional(readOnly = true)
+	public ReportDTO.ValidateWriteRes validateWriteReports(List<Long> reportIds) {
+		// 1. 대상 성적서 전체 조회
+		List<Report> reports = reportRepository.findAllById(reportIds);
+
+		// ── 사전 차단: 작업이 이미 진행중인 성적서가 1건이라도 있으면 즉시 반환 ──
+		// write/work/approvalStatus 중 하나라도 READY·PROGRESS 상태면 진행 불가
+		// 이 경우 필드 검증을 수행하지 않고 즉시 hasInProgress=true 응답을 반환한다.
+		List<String> inProgressNums = new ArrayList<>();
+		for (Report r : reports) {
+			boolean inProgress =
+					r.getWriteStatus()    == AppStatus.PROGRESS ||
+					r.getWorkStatus()     == AppStatus.READY    || r.getWorkStatus()     == AppStatus.PROGRESS ||
+					r.getApprovalStatus() == AppStatus.READY    || r.getApprovalStatus() == AppStatus.PROGRESS;
+			if (inProgress) {
+				inProgressNums.add(r.getReportNum());
+			}
+		}
+		if (!inProgressNums.isEmpty()) {
+			// 진행중 성적서가 존재 → 프론트에서 진행 완전 차단
+			return new ReportDTO.ValidateWriteRes(true, inProgressNums, false, List.of(), reportIds, List.of());
+		}
+
+		// 2. 실무자·기술책임자 멤버 ID 수집 → 서명이미지 존재 여부를 한 번에 조회
+		Set<Long> memberIds = new HashSet<>();
+		reports.forEach(r -> {
+			if (r.getWorkMemberId() != null)     memberIds.add(r.getWorkMemberId());
+			if (r.getApprovalMemberId() != null) memberIds.add(r.getApprovalMemberId());
+		});
+		// 서명이미지가 등록된 멤버 ID Set
+		Set<Long> membersWithSign = new HashSet<>();
+		if (!memberIds.isEmpty()) {
+			fileInfoRepository.findByRefTableNameAndRefTableIdInAndIsVisible("member", memberIds, YnType.y)
+					.forEach(fi -> membersWithSign.add(fi.getRefTableId()));
+		}
+
+		// 3. 검증 항목 순서 정의 (LinkedHashMap으로 순서 유지)
+		// key: 표시용 한글명, value: 누락 성적서번호 리스트
+		Map<String, List<String>> failureMap = new LinkedHashMap<>();
+		String[] fieldLabels = {
+				"교정일자", "최고온도", "최저온도", "최저습도", "최고습도", "최저기압", "최고기압",
+				"중분류", "소분류", "실무자", "기술책임자", "실무자 서명이미지", "기술책임자 서명이미지"
+		};
+		for (String label : fieldLabels) {
+			failureMap.put(label, new ArrayList<>());
+		}
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		List<Long> passedIds = new ArrayList<>();
+		List<Long> failedIds = new ArrayList<>();
+
+		// 4. 성적서별 필드 검증
+		for (Report r : reports) {
+			boolean hasFail = false;
+			// 성적서번호가 null인 경우 대체 표기
+			String displayNum = (r.getReportNum() != null && !r.getReportNum().isBlank())
+					? r.getReportNum()
+					: "성적서ID:" + r.getId();
+
+			// environmentInfo JSON 파싱 (파싱 실패 시 빈 맵으로 처리)
+			Map<String, String> envMap = new HashMap<>();
+			if (r.getEnvironmentInfo() != null && !r.getEnvironmentInfo().isBlank()) {
+				try {
+					envMap = objectMapper.readValue(r.getEnvironmentInfo(), new TypeReference<>() {});
+				} catch (Exception e) {
+					log.warn("environmentInfo JSON 파싱 실패 — reportId={}, value={}", r.getId(), r.getEnvironmentInfo());
+				}
+			}
+
+			// ① 교정일자
+			if (r.getCaliDate() == null) {
+				failureMap.get("교정일자").add(displayNum); hasFail = true;
+			}
+			// ② 최고온도
+			if (!hasValue(envMap.get("tempMax"))) {
+				failureMap.get("최고온도").add(displayNum); hasFail = true;
+			}
+			// ③ 최저온도
+			if (!hasValue(envMap.get("tempMin"))) {
+				failureMap.get("최저온도").add(displayNum); hasFail = true;
+			}
+			// ④ 최저습도
+			if (!hasValue(envMap.get("humMin"))) {
+				failureMap.get("최저습도").add(displayNum); hasFail = true;
+			}
+			// ⑤ 최고습도
+			if (!hasValue(envMap.get("humMax"))) {
+				failureMap.get("최고습도").add(displayNum); hasFail = true;
+			}
+			// ⑥ 최저기압
+			if (!hasValue(envMap.get("preMin"))) {
+				failureMap.get("최저기압").add(displayNum); hasFail = true;
+			}
+			// ⑦ 최고기압
+			if (!hasValue(envMap.get("preMax"))) {
+				failureMap.get("최고기압").add(displayNum); hasFail = true;
+			}
+			// ⑧ 중분류
+			if (r.getMiddleItemCodeId() == null) {
+				failureMap.get("중분류").add(displayNum); hasFail = true;
+			}
+			// ⑨ 소분류
+			if (r.getSmallItemCodeId() == null) {
+				failureMap.get("소분류").add(displayNum); hasFail = true;
+			}
+			// ⑩ 실무자
+			if (r.getWorkMemberId() == null) {
+				failureMap.get("실무자").add(displayNum); hasFail = true;
+			}
+			// ⑪ 기술책임자
+			if (r.getApprovalMemberId() == null) {
+				failureMap.get("기술책임자").add(displayNum); hasFail = true;
+			}
+			// ⑫ 실무자 서명이미지 (실무자가 지정되어 있어도 서명이미지가 없으면 누락)
+			if (r.getWorkMemberId() == null || !membersWithSign.contains(r.getWorkMemberId())) {
+				failureMap.get("실무자 서명이미지").add(displayNum); hasFail = true;
+			}
+			// ⑬ 기술책임자 서명이미지
+			if (r.getApprovalMemberId() == null || !membersWithSign.contains(r.getApprovalMemberId())) {
+				failureMap.get("기술책임자 서명이미지").add(displayNum); hasFail = true;
+			}
+
+			if (hasFail) failedIds.add(r.getId());
+			else         passedIds.add(r.getId());
+		}
+
+		// 5. 누락이 없는 항목(빈 리스트)은 제거하여 failures 구성
+		List<ReportDTO.ValidateWriteRes.FieldFailure> failures = failureMap.entrySet().stream()
+				.filter(e -> !e.getValue().isEmpty())
+				.map(e -> new ReportDTO.ValidateWriteRes.FieldFailure(e.getKey(), e.getValue()))
+				.toList();
+
+		return new ReportDTO.ValidateWriteRes(false, List.of(), failedIds.isEmpty(), passedIds, failedIds, failures);
+	}
+
+	/** null이거나 공백인 경우 false 반환 */
+	private boolean hasValue(String val) {
+		return val != null && !val.isBlank();
+	}
+
+
 }

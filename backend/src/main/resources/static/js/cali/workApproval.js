@@ -296,13 +296,17 @@ $(function () {
 		if (!row || !row.id) return;
 
 		const reportNum = row.reportNum ?? '';
+		// COMPLETE(최종완료) 상태이면 저장 버튼 비활성화 (orderDetails.js 패턴 동일)
+		const isModifiable = row.reportStatus !== 'COMPLETE';
 		await gModal(
 			'/cali/reportModify',
 			{ id: row.id },
 			{
 				title: `성적서 수정 [성적서번호 - ${reportNum}]`,
-				size: 'xxl',
+				size: 'xxxl',
 				show_close_button: true,
+				show_confirm_button: isModifiable,
+				confirm_button_text: '저장',
 				// 성적서작성 버튼: reportModify.js에서 .modal-btn-write-report 클릭 핸들러가 처리
 				custom_btn_html_arr: [
 					'<button type="button" class="btn btn-primary btn-sm modal-btn-write-report mr-auto"><i class="bi bi-pencil-square"></i> 성적서작성</button>',

@@ -16,6 +16,13 @@ import java.util.List;
 @Repository
 public interface FileInfoRepository extends JpaRepository<FileInfo, Long> {
 	
+	// 여러 ref_table_id에 해당하는 파일 목록 일괄 조회 (서명이미지 존재여부 확인 등에 사용)
+	List<FileInfo> findByRefTableNameAndRefTableIdInAndIsVisible(
+			String refTableName,
+			Collection<Long> refTableIds,
+			YnType isVisible
+	);
+
 	// 특정 조건에 맞는 파일 목록 리턴
 	List<FileInfo> findByRefTableNameAndRefTableIdAndIsVisible(
 			String refTableName,

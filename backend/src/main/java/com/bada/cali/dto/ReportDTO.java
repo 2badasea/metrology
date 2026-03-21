@@ -1,10 +1,9 @@
 package com.bada.cali.dto;
 
 import com.bada.cali.common.enums.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotEmpty;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -71,6 +70,74 @@ public class ReportDTO {
 		private OrderType orderType;     // 접수구분 (null이면 전체)
 		private Long middleItemCodeId;   // 중분류코드 id (0 또는 null이면 전체)
 		private Long smallItemCodeId;    // 소분류코드 id (0 또는 null이면 전체)
+	}
+
+	// ── 성적서작성 필수항목 검증 ─────────────────────────────────────────────────
+
+	/**
+	 * 성적서작성 필수항목 검증 요청 DTO
+	 *
+	 * POST /api/report/validateWrite
+	 * reportWrite 모달에서 샘플 행 클릭 후 배치 생성 전에 대상 성적서들의
+	 * 필수항목(교정일자, 환경정보, 중/소분류, 실무자·기술책임자 및 서명이미지) 존재를 일괄 검증한다.
+	 */
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@Schema(description = "성적서작성 필수항목 검증 요청")
+	public static class ValidateWriteReq {
+
+		@NotEmpty(message = "대상 성적서를 1건 이상 선택해야 합니다.")
+		@Schema(description = "검증 대상 성적서 id 목록", example = "[1, 2, 3]")
+		private List<Long> reportIds;
+	}
+
+	/**
+	 * 성적서작성 필수항목 검증 결과 DTO
+	 *
+	 * hasInProgress=true → 이미 작업이 진행중인 성적서가 1건 이상 존재.
+	 *                       inProgressReportNums에 해당 성적서번호 목록 포함.
+	 *                       프론트는 이 경우 진행을 완전히 차단해야 한다.
+	 * hasInProgress=false + allPassed=true  → 모든 성적서가 검증 통과 (failures는 빈 리스트)
+	 * hasInProgress=false + allPassed=false → 1건 이상 누락 필드 존재. passedIds/failedIds/failures에 상세 포함.
+	 */
+	@Getter
+	@AllArgsConstructor
+	@Schema(description = "성적서작성 필수항목 검증 결과")
+	public static class ValidateWriteRes {
+
+		@Schema(description = "이미 작업이 진행중인 성적서가 1건이라도 있는지 여부. true이면 진행 완전 차단")
+		private boolean hasInProgress;
+
+		@Schema(description = "작업 진행중인 성적서번호 목록 (hasInProgress=true일 때만 내용 있음)")
+		private List<String> inProgressReportNums;
+
+		@Schema(description = "모든 성적서가 검증을 통과했는지 여부")
+		private boolean allPassed;
+
+		@Schema(description = "검증을 통과한 성적서 id 목록")
+		private List<Long> passedIds;
+
+		@Schema(description = "1건 이상 필수항목이 누락된 성적서 id 목록")
+		private List<Long> failedIds;
+
+		@Schema(description = "필드별 누락 성적서번호 목록 (allPassed=false 일 때만 내용 있음)")
+		private List<FieldFailure> failures;
+
+		/**
+		 * 누락 항목 1건 — 필드 한글명과 해당 성적서번호 목록을 묶음
+		 */
+		@Getter
+		@AllArgsConstructor
+		@Schema(description = "누락 필드 및 해당 성적서번호 목록")
+		public static class FieldFailure {
+
+			@Schema(description = "누락 필드 한글명", example = "교정일자")
+			private String field;
+
+			@Schema(description = "해당 필드가 누락된 성적서번호 목록", example = "[\"2026-001-01\", \"2026-001-02\"]")
+			private List<String> reportNums;
+		}
 	}
 
 	// 클라이언트에 반환할 데이터

@@ -118,10 +118,24 @@ public class ReportJobBatchServiceImpl {
                 throw new IllegalArgumentException(
                         String.format("소분류가 설정되지 않은 성적서가 포함되어 있습니다. (id: %d)", report.getId()));
             }
-            // 이미 작성 진행 중인 성적서는 중복 실행 방지
+            // 이미 성적서작성 진행 중인 경우 중복 실행 방지
             if (report.getWriteStatus() == AppStatus.PROGRESS) {
                 throw new IllegalArgumentException(
-                        String.format("이미 성적서작성이 진행 중인 성적서가 포함되어 있습니다. (id: %d)", report.getId()));
+                        String.format("이미 성적서작성이 진행 중인 성적서가 포함되어 있습니다. (id: %d, 성적서번호: %s)",
+                                report.getId(), report.getReportNum()));
+            }
+            // 실무자결재가 대기(READY) 또는 진행 중(PROGRESS)인 경우 성적서작성 차단
+            // (결재 진행 중 원본 파일 교체 방지)
+            if (report.getWorkStatus() == AppStatus.READY || report.getWorkStatus() == AppStatus.PROGRESS) {
+                throw new IllegalArgumentException(
+                        String.format("실무자결재가 진행 중인 성적서가 포함되어 있습니다. (id: %d, 성적서번호: %s)",
+                                report.getId(), report.getReportNum()));
+            }
+            // 기술책임자결재가 대기(READY) 또는 진행 중(PROGRESS)인 경우 성적서작성 차단
+            if (report.getApprovalStatus() == AppStatus.READY || report.getApprovalStatus() == AppStatus.PROGRESS) {
+                throw new IllegalArgumentException(
+                        String.format("기술책임자결재가 진행 중인 성적서가 포함되어 있습니다. (id: %d, 성적서번호: %s)",
+                                report.getId(), report.getReportNum()));
             }
             validatedIds.add(report.getId());
         }

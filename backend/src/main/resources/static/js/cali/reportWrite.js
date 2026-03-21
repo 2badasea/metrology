@@ -108,7 +108,7 @@ $(function () {
 			$modal.loadGridData();
 		});
 
-	// 그리드 행 클릭 → 성적서작성 배치 생성
+	// 그리드 행 클릭 → 필수항목 검증 → 성적서작성 배치 생성
 	// SampleReportWriteRow: getId() = file_info.id, getSampleId() = sample.id
 	// 배치 생성 API에는 sample.id(sampleId)를 전달해야 하므로 row.sampleId 사용
 	$modal.grid.on('click', async function (ev) {
@@ -117,7 +117,7 @@ $(function () {
 		if (!row) return;
 
 		const reportIds  = $modal.param?.reportIds ?? [];
-		const sampleId   = row.sampleId;   // sample.id (SampleReportWriteRow.getSampleId())
+		const sampleId   = row.sampleId;   // sample.id
 		const sampleName = row.itemName ?? '';
 		const fileName   = row.fileName ?? '';
 
@@ -127,36 +127,113 @@ $(function () {
 			return;
 		}
 
-		// 샘플 선택 확인
-		const result = await gMessage(
-			'성적서 작성',
-			`선택한 샘플로 성적서를 작성하시겠습니까?<br><b>${sampleName}</b> (${fileName})<br>대상 성적서: ${reportIds.length}건`,
+		// ── Step 1. 필수값 검증 진행 여부 확인 ─────────────────────────────
+		const confirmResult = await gMessage(
+			'필수항목 검증',
+			`선택한 샘플 <b>${sampleName}</b>(${fileName})로 성적서를 작성하기 전,<br>` +
+			`대상 성적서 ${reportIds.length}건의 필수값 검증을 진행하겠습니다.`,
 			'question',
 			'confirm',
-			{ confirmButtonText: '작성 시작' },
+			{ confirmButtonText: '확인' }
 		);
-		if (!result.isConfirmed) return;
+		if (!confirmResult.isConfirmed) return;
 
-		// 배치 생성 API 호출
+		// ── Step 2. 필수항목 검증 API 호출 ────────────────────────────────
+		let validateData;
 		try {
-			gLoadingMessage('성적서작성 작업을 준비 중입니다...');
-			const res = await fetch('/api/report/jobs/batches', {
+			gLoadingMessage('필수항목 데이터를 검증합니다.');
+			const res = await fetch('/api/report/validateWrite', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json; charset=utf-8' },
-				body: JSON.stringify({ reportIds, sampleId }),
+				body: JSON.stringify({ reportIds }),
 			});
+			swal.close();
 			if (!res.ok) throw res;
 			const resData = await res.json();
 			if (resData?.code > 0) {
-				await gMessage('성적서 작성', resData.msg, 'success', 'alert');
-				$modal_root.modal('hide');  // 모달 닫기
+				validateData = resData.data;
 			} else {
-				await gMessage('성적서 작성 실패', resData.msg ?? '오류가 발생했습니다.', 'error', 'alert');
+				await gMessage('검증 오류', resData.msg ?? '검증 중 오류가 발생했습니다.', 'error', 'alert');
+				return;
 			}
 		} catch (err) {
 			swal.close();
 			customAjaxHandler(err);
+			return;
 		}
+
+		// ── Step 3. 검증 결과에 따라 분기 ─────────────────────────────────
+		let targetIds;
+
+		// ③-0 진행중 성적서가 1건이라도 있으면 완전 차단 (전체 진행 포함 모든 옵션 불가)
+		if (validateData.hasInProgress) {
+			const numList = validateData.inProgressReportNums.join(', ');
+			await gMessage(
+				'작업 불가',
+				`이미 작업 중인 성적서가 존재합니다.<br>${numList}`,
+				'error',
+				'alert'
+			);
+			return;
+		}
+
+		if (validateData.allPassed) {
+			// 모두 통과 → 성적서작성 최종 확인
+			const writeResult = await gMessage(
+				'성적서 작성',
+				`성적서작성을 진행하시겠습니까?<br>대상: ${reportIds.length}건`,
+				'question',
+				'confirm',
+				{ confirmButtonText: '진행' }
+			);
+			if (!writeResult.isConfirmed) return;
+			targetIds = reportIds;
+
+		} else {
+			// 일부 실패 → 누락 항목 안내 + 3버튼 선택
+			// 필드별 누락 성적서번호를 HTML로 포맷팅
+			const failureHtml = validateData.failures
+				.map(f => `<b>${f.field}</b><br>${f.reportNums.join(', ')}`)
+				.join('<br><br>');
+
+			const failResult = await Swal.fire({
+				title: '필수값 누락 안내',
+				html:
+					`<div style="text-align:left; max-height:280px; overflow-y:auto; padding-right:6px; font-size:0.92em;">` +
+					`다음 성적서들의 경우 필수값이 없습니다.<br><br>${failureHtml}` +
+					`</div>`,
+				icon: 'warning',
+				showConfirmButton: true,
+				showDenyButton: true,
+				showCancelButton: true,
+				confirmButtonText: '전체 진행',   // isConfirmed — 누락 성적서 포함 전체 진행
+				denyButtonText:    '통과만 진행', // isDenied   — 검증 통과 성적서만 진행
+				cancelButtonText:  '취소',
+			});
+
+			if (failResult.isConfirmed) {
+				// 전체 진행 (누락 성적서 포함)
+				targetIds = reportIds;
+
+			} else if (failResult.isDenied) {
+				// 통과 성적서만 진행
+				if (!validateData.passedIds || validateData.passedIds.length === 0) {
+					gToast('검증을 통과한 성적서가 없습니다.', 'warning');
+					return;
+				}
+				targetIds = validateData.passedIds;
+
+			} else {
+				// 취소
+				await gMessage('취소', '취소했습니다.', 'info', 'alert');
+				return;
+			}
+		}
+
+		// ── Step 4. 워커 트리거 (미구현) ─────────────────────────────────
+		// TODO: 워커 애플리케이션 구현 완료 후 배치 생성 API 호출로 교체
+		// fetch('/api/report/jobs/batches', { method: 'POST', ... })
+		gToast('구현 준비중입니다.', 'info');
 	});
 
 	// =====================================================================
