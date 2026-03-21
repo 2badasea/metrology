@@ -2,7 +2,9 @@ package com.bada.cali.api;
 
 import com.bada.cali.common.ResMessage;
 import com.bada.cali.dto.ReportJobBatchDTO;
+import com.bada.cali.dto.WorkerDataDTO;
 import com.bada.cali.service.ReportJobBatchServiceImpl;
+import com.bada.cali.service.WorkerDataServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -43,6 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class WorkerCallbackController {
 
     private final ReportJobBatchServiceImpl batchService;
+    private final WorkerDataServiceImpl workerDataService;
 
     /** CALI ↔ 작업서버 공용 API 인증 키 */
     @Value("${app.worker.api-key:}")
@@ -119,6 +123,77 @@ public class WorkerCallbackController {
         }
         batchService.handleItemCallback(itemId, req);
         return ResponseEntity.ok(new ResMessage<>(1, "item 상태 업데이트 완료", null));
+    }
+
+    // ── 워커용 데이터 조회 API ─────────────────────────────────────────────────
+
+    /**
+     * 성적서시트 셀위치/형식 전체 설정 조회.
+     *
+     * 워커가 성적서 엑셀 작성 시 fieldCode 별 셀 주소/형식을 알아야 할 때 호출.
+     * 데이터 출처: Env(id=1).sheetInfoSetting JSON
+     */
+    @Operation(
+            summary = "성적서시트 설정 조회 (작업서버용)",
+            description = "Env.sheetInfoSetting JSON 을 파싱하여 fieldCode → 셀설정 맵으로 반환. " +
+                    "워커가 성적서 엑셀 작성 전 셀 위치를 확인할 때 호출"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "403", description = "API 키 불일치",
+                    content = @Content(schema = @Schema(implementation = ResMessage.class))),
+            @ApiResponse(responseCode = "404", description = "Env 설정 없음",
+                    content = @Content(schema = @Schema(implementation = ResMessage.class))),
+            @ApiResponse(responseCode = "500", description = "서버 오류",
+                    content = @Content(schema = @Schema(implementation = ResMessage.class)))
+    })
+    @GetMapping("/env/sheet-setting")
+    public ResponseEntity<ResMessage<WorkerDataDTO.SheetSettingRes>> getSheetSetting(
+            @RequestHeader(value = "X-Worker-Api-Key", defaultValue = "") String apiKey
+    ) {
+        if (!isValidApiKey(apiKey)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ResMessage<>(-1, "유효하지 않은 API 키입니다.", null));
+        }
+        return ResponseEntity.ok(
+                new ResMessage<>(1, "성적서시트 설정 조회 성공", workerDataService.getSheetSetting()));
+    }
+
+    /**
+     * 성적서 엑셀 삽입 데이터 조회.
+     *
+     * 워커가 엑셀 셀에 값을 채우기 위한 모든 데이터를 하나의 응답으로 반환.
+     * Report, CaliOrder, Member, ItemCode, Env, FileInfo 를 조합한 데이터.
+     *
+     * @param reportId  성적서 id
+     * @param sampleId  데이터시트(샘플) 파일의 file_info.id
+     */
+    @Operation(
+            summary = "성적서 엑셀 삽입 데이터 조회 (작업서버용)",
+            description = "Report·CaliOrder·Member·ItemCode·Env·FileInfo 를 조합하여 " +
+                    "엑셀 셀에 삽입할 모든 데이터를 반환. sampleId = 데이터시트 file_info.id"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "403", description = "API 키 불일치",
+                    content = @Content(schema = @Schema(implementation = ResMessage.class))),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 reportId",
+                    content = @Content(schema = @Schema(implementation = ResMessage.class))),
+            @ApiResponse(responseCode = "500", description = "서버 오류",
+                    content = @Content(schema = @Schema(implementation = ResMessage.class)))
+    })
+    @GetMapping("/reports/{reportId}/fill-data")
+    public ResponseEntity<ResMessage<WorkerDataDTO.ReportFillDataRes>> getReportFillData(
+            @Parameter(description = "성적서 id", example = "100") @PathVariable Long reportId,
+            @Parameter(description = "샘플 파일의 file_info.id", example = "55") @RequestParam Long sampleId,
+            @RequestHeader(value = "X-Worker-Api-Key", defaultValue = "") String apiKey
+    ) {
+        if (!isValidApiKey(apiKey)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ResMessage<>(-1, "유효하지 않은 API 키입니다.", null));
+        }
+        return ResponseEntity.ok(new ResMessage<>(1, "성적서 삽입 데이터 조회 성공",
+                workerDataService.getReportFillData(reportId, sampleId)));
     }
 
     /**

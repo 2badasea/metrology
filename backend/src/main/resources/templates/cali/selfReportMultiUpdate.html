@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <link rel="stylesheet" th:href="@{/css/cali/selfReportMultiUpdate.css}" />
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <form class="multiUpdateForm">
+            <table class="table table-bordered text-center mb-0">
+                <colgroup>
+                    <col width="110px" />
+                    <col />
+                    <col width="110px" />
+                    <col />
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th>완료예정일</th>
+                        <td>
+                            <input type="date" class="form-control" name="expectCompleteDate" />
+                        </td>
+                        <th>교정일자</th>
+                        <td>
+                            <input type="date" class="form-control" name="caliDate" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>온도 (°C)</th>
+                        <td>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">최저</span>
+                                </div>
+                                <input type="text" class="form-control environmentInfo environment_decimal" name="tempMin" />
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">최고</span>
+                                </div>
+                                <input type="text" class="form-control environmentInfo environment_decimal" name="tempMax" />
+                            </div>
+                        </td>
+                        <th>습도 (%R.H.)</th>
+                        <td>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">최저</span>
+                                </div>
+                                <input type="text" class="form-control environmentInfo environment_decimal" name="humMin" />
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">최고</span>
+                                </div>
+                                <input type="text" class="form-control environmentInfo environment_decimal" name="humMax" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>기압 (hPa)</th>
+                        <td colspan="3">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">최저</span>
+                                </div>
+                                <input type="text" class="form-control environmentInfo environment_decimal" name="preMin" />
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">최고</span>
+                                </div>
+                                <input type="text" class="form-control environmentInfo environment_decimal" name="preMax" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>중분류</th>
+                        <td>
+                            <select class="form-control middleCodeSelect" name="middleItemCodeId">
+                                <option value="0">선택 안 함</option>
+                            </select>
+                        </td>
+                        <th>소분류</th>
+                        <td>
+                            <select class="form-control smallCodeSelect" name="smallItemCodeId">
+                                <option value="0">선택 안 함</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <!-- 실무자/기술책임자 토글 체크박스 -->
+                    <tr>
+                        <th colspan="4" class="text-left">
+                            <div class="form-check d-inline-block ml-2">
+                                <input type="checkbox" class="form-check-input" id="updateMemberInfoCheck" />
+                                <label class="form-check-label font-weight-bold" for="updateMemberInfoCheck">
+                                    실무자 &amp; 기술책임자 정보
+                                </label>
+                                <small class="text-muted ml-2">
+                                    — 체크 시 아래 선택값이 서버에 전달됩니다.
+                                      선택한 담당자가 성적서의 원래 중분류에 속하는 직원일 때만 변경됩니다.
+                                </small>
+                            </div>
+                        </th>
+                    </tr>
+                    <!-- 실무자/기술책임자 입력행 (체크박스 해제 시 숨김) -->
+                    <tr class="memberRow">
+                        <th>실무자</th>
+                        <td>
+                            <select class="form-control workMemberId" name="workMemberId">
+                                <option value="0">선택하세요.</option>
+                            </select>
+                        </td>
+                        <th>기술책임자</th>
+                        <td>
+                            <select class="form-control approvalMemberId" name="approvalMemberId">
+                                <option value="0">선택하세요.</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <!-- 표준장비 -->
+                    <tr>
+                        <th colspan="3" class="border-0">
+                            <p class="float-left pl-3 mb-0" style="line-height: 2;">표준장비 리스트</p>
+                        </th>
+                        <th class="border-0">
+                            <button type="button" class="btn btn-secondary btn-sm float-right searchEquipage">조회</button>
+                        </th>
+                    </tr>
+                    <tr>
+                        <td colspan="4">
+                            <div class="equipageList"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+</body>
+
+</html>

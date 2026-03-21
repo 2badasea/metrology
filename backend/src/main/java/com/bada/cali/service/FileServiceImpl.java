@@ -220,6 +220,75 @@ public class FileServiceImpl {
 		}
 	}
 	
+	/**
+	 * 성적서 파일 전용 다운로드
+	 *
+	 * 성적서 파일은 file_info.id 가 아닌 report.id 기반의 고정 경로로 S3 에 저장된다.
+	 *   - 원본: {rootDir}/report/{reportId}/origin.xlsx
+	 *   - 결재 EXCEL: {rootDir}/report/{reportId}/signed.xlsx
+	 *   - 결재 PDF:  {rootDir}/report/{reportId}/signed.pdf
+	 *
+	 * fileType 허용값: "origin" | "signed_xlsx" | "signed_pdf"
+	 *
+	 * @param reportId  성적서 id
+	 * @param fileType  파일 종류 ("origin", "signed_xlsx", "signed_pdf")
+	 * @return 파일 다운로드 응답
+	 * @throws IllegalArgumentException 파일을 스토리지에서 찾을 수 없을 때
+	 */
+	@Transactional(readOnly = true)
+	public ResponseEntity<Resource> downloadReportFile(Long reportId, String fileType) {
+
+		// fileType → 실제 파일명 + contentType 매핑
+		final String fileName;
+		final String contentType;
+		switch (fileType) {
+			case "origin" -> {
+				fileName    = "origin.xlsx";
+				contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+			}
+			case "signed_xlsx" -> {
+				fileName    = "signed.xlsx";
+				contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+			}
+			case "signed_pdf" -> {
+				fileName    = "signed.pdf";
+				contentType = "application/pdf";
+			}
+			default -> throw new IllegalArgumentException("유효하지 않은 fileType: " + fileType
+					+ " (허용값: origin | signed_xlsx | signed_pdf)");
+		}
+
+		// 성적서 파일 고정 objectKey: {rootDir}/report/{reportId}/{fileName}
+		final String objectKey = storageProps.getRootDir() + "/report/" + reportId + "/" + fileName;
+
+		try {
+			ResponseInputStream<GetObjectResponse> s3is = ncloudS3Client.getObject(
+					GetObjectRequest.builder()
+							.bucket(storageProps.getBucketName())
+							.key(objectKey)
+							.build()
+			);
+			long contentLength = s3is.response().contentLength();
+
+			String encodedName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)
+					.replaceAll("\\+", "%20");
+
+			return ResponseEntity.ok()
+					.contentType(MediaType.parseMediaType(contentType))
+					.header(HttpHeaders.CONTENT_DISPOSITION,
+							"attachment; filename=\"" + encodedName + "\"; filename*=UTF-8''" + encodedName)
+					.contentLength(contentLength)
+					.body(new InputStreamResource(s3is));
+
+		} catch (S3Exception e) {
+			if (e.statusCode() == 404) {
+				throw new IllegalArgumentException(
+						"스토리지에서 성적서 파일을 찾을 수 없습니다. reportId=" + reportId + ", fileType=" + fileType, e);
+			}
+			throw new IllegalStateException("성적서 파일 다운로드 중 오류 발생", e);
+		}
+	}
+
 	// 파일 삭제(스토리지에선 그대로)
 	@Transactional
 	public int deleteFile(Long fileId, CustomUserDetails user) {

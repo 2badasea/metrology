@@ -7,10 +7,12 @@ import com.bada.cali.common.enums.JobType;
 import com.bada.cali.common.enums.ReportType;
 import com.bada.cali.common.enums.YnType;
 import com.bada.cali.dto.ReportJobBatchDTO;
+import com.bada.cali.entity.FileInfo;
 import com.bada.cali.entity.Log;
 import com.bada.cali.entity.Report;
 import com.bada.cali.entity.ReportJobBatch;
 import com.bada.cali.entity.ReportJobItem;
+import com.bada.cali.repository.FileInfoRepository;
 import com.bada.cali.repository.LogRepository;
 import com.bada.cali.repository.ReportJobBatchRepository;
 import com.bada.cali.repository.ReportJobItemRepository;
@@ -39,6 +41,7 @@ public class ReportJobBatchServiceImpl {
     private final ReportJobBatchRepository    batchRepository;
     private final ReportJobItemRepository     itemRepository;
     private final LogRepository               logRepository;
+    private final FileInfoRepository          fileInfoRepository;
 
     // ── 작업서버 연동 설정 (@Value 주입) ──────────────────────────────────────
 
@@ -302,6 +305,35 @@ public class ReportJobBatchServiceImpl {
                 report.setWriteMemberId(batch.getRequestMemberId());  // 작업 요청자가 작성자
                 report.setWriteDatetime(now);
                 batch.setSuccessCount(batch.getSuccessCount() + 1);
+
+                // 성적서 원본 파일 file_info 등록
+                // S3 고정 objectKey: {rootDir}/report/{reportId}/origin.xlsx
+                // → 파일 다운로드는 file_info.id 가 아닌 report.id 기반 고정 경로로 처리되므로
+                //   file_info 는 "파일 존재 여부" 표시 용도로만 사용됨 (아이콘 표시 조건)
+                // 기존 원본 file_info가 있으면 먼저 소프트삭제 (재작성 시 중복 방지)
+                String reportDir = "report/" + item.getReportId() + "/";
+                fileInfoRepository.softDeleteVisibleByRefAndDir(
+                        "report",
+                        item.getReportId(),
+                        reportDir,
+                        YnType.n,
+                        now,
+                        batch.getRequestMemberId()
+                );
+                FileInfo reportFile = FileInfo.builder()
+                        .refTableName("report")
+                        .refTableId(item.getReportId())
+                        .originName("origin.xlsx")
+                        .name("origin")
+                        .extension("xlsx")
+                        .fileSize(0L)          // 워커가 파일 크기를 콜백으로 전달하지 않으므로 0으로 기록
+                        .contentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                        .dir(reportDir)
+                        .createMemberId(batch.getRequestMemberId())
+                        .createDatetime(now)
+                        .build();
+                fileInfoRepository.save(reportFile);
+                log.debug("성적서 원본 file_info 생성 완료 — reportId: {}, dir: {}", item.getReportId(), reportDir);
             }
             case FAIL -> {
                 item.setEndDatetime(now);
@@ -325,6 +357,10 @@ public class ReportJobBatchServiceImpl {
                 log.info("배치 처리 완료 — batchId: {}, success: {}, fail: {}",
                         batch.getId(), batch.getSuccessCount(), batch.getFailCount());
             }
+            // SUCCESS 케이스에서 softDeleteVisibleByRefAndDir(clearAutomatically=true)가 실행되면
+            // EntityManager 캐시가 클리어되어 batch 가 detached 상태가 된다.
+            // dirty-checking 으로 변경사항이 반영되지 않을 수 있으므로 명시적으로 save(merge) 호출.
+            batchRepository.save(batch);
         }
 
         log.info("item 콜백 처리 완료 — itemId: {}, status: {}, step: {}, batchId: {}",

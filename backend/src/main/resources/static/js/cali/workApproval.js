@@ -28,6 +28,100 @@ $(function () {
 	}
 
 	// =====================================================================
+	// 성적서 파일 다운로드 (원본/EXCEL/PDF)
+	// fetch + blob 방식: 다운로드 응답을 받은 뒤 a 태그 클릭으로 저장 유도
+	// gLoadingMessage 로 연속클릭 방지 → 다운로드 준비 완료 후 닫기
+	// =====================================================================
+	async function downloadReportFile(reportId, fileType) {
+		gLoadingMessage('다운로드 중...');
+		try {
+			const res = await fetch(`/api/file/report/${reportId}/${fileType}`);
+			if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+			const blob = await res.blob();
+
+			// Content-Disposition 에서 파일명 추출
+			const cd = res.headers.get('Content-Disposition') || '';
+			let filename = fileType === 'signed_pdf' ? 'signed.pdf' : (fileType === 'signed_xlsx' ? 'signed.xlsx' : 'origin.xlsx');
+			// RFC 5987 (filename*=UTF-8'') 우선, 없으면 filename= 사용
+			const mStar = cd.match(/filename\*=UTF-8''([^;\n]+)/i);
+			const mPlain = cd.match(/filename="?([^";\n]+)"?/i);
+			if (mStar)  filename = decodeURIComponent(mStar[1].trim());
+			else if (mPlain) filename = mPlain[1].trim();
+
+			const url = URL.createObjectURL(blob);
+			const a   = document.createElement('a');
+			a.href     = url;
+			a.download = filename;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(url);
+
+			swal.close();
+		} catch (e) {
+			swal.close();
+			console.error('[workApproval] 파일 다운로드 오류:', e);
+			gToast('파일 다운로드 중 오류가 발생했습니다.', 'error');
+		}
+	}
+
+	// =====================================================================
+	// 성적서 파일 다운로드 아이콘 셀 렌더러
+	// originFileId / excelFileId / pdfFileId 컬럼에 공통 사용
+	// value(fileId)가 있을 때만 아이콘 버튼 표시, 없으면 빈 셀
+	// =====================================================================
+	class ReportFileDownloadRenderer {
+		constructor(props) {
+			// UploadCellRenderer 와 동일하게 flex + 100% 사이즈 적용
+			// → rowHeight:'auto' 환경에서 다른 셀이 개행돼도 상하 여백 없이 수직 중앙 정렬
+			this.el = document.createElement('div');
+			this.el.style.cssText = 'display:flex; align-items:center; justify-content:center; width:100%; height:100%; min-height:28px;';
+			this.render(props);
+		}
+
+		render(props) {
+			// props.value: file_info.id (null이면 파일 없음 → 아이콘 미표시)
+			// Toast UI Grid 렌더러에는 props.row 가 없음 → props.grid.getRow(props.rowKey) 사용
+			const hasFile = !!props.value;
+			const colName = props.columnInfo.name; // 'originFileId' | 'excelFileId' | 'pdfFileId'
+
+			if (!hasFile) {
+				this.el.innerHTML = '';
+				return;
+			}
+
+			// 컬럼명 → fileType (서버 API 경로: /api/file/report/{reportId}/{fileType})
+			const fileTypeMap = {
+				originFileId: 'origin',
+				excelFileId:  'signed_xlsx',
+				pdfFileId:    'signed_pdf',
+			};
+			const fileType = fileTypeMap[colName] ?? 'origin';
+			// props.grid.getRow()로 행 데이터 조회 후 report.id 추출
+			const reportId = props.grid.getRow(props.rowKey).id;
+
+			// PDF 컬럼은 빨간 배경, 그 외(원본·EXCEL)는 녹색
+			const isPdf  = colName === 'pdfFileId';
+			const btnCls = isPdf ? 'btn-danger' : 'btn-success';
+			const icon   = isPdf ? 'bi-file-earmark-pdf-fill' : 'bi-file-earmark-excel-fill';
+
+			// 버튼을 셀 가로 전체로 채워 업로드 열과 동일한 시각적 비중 유지
+			this.el.innerHTML =
+				`<button class="btn btn-sm ${btnCls} w-100" style="height:100%; min-height:28px;" title="다운로드">` +
+				`<i class="bi ${icon}"></i></button>`;
+
+			// 버튼 클릭 → 다운로드 (그리드 row 클릭 이벤트로 전파 차단)
+			this.el.querySelector('button').addEventListener('click', (e) => {
+				e.stopPropagation();
+				downloadReportFile(reportId, fileType);
+			});
+		}
+
+		getElement() { return this.el; }
+	}
+
+	// =====================================================================
 	// 파일 검증 → 결재 확인창 → 처리 (현재: 구현 준비중)
 	// gridClass.js의 UploadCellRenderer에서 호출
 	// =====================================================================
@@ -258,6 +352,16 @@ $(function () {
 				className: 'cursor_pointer',
 			},
 			{
+				// 원본 성적서 엑셀 다운로드 (file_info name='report_origin')
+				// 업로드 컬럼 바로 앞 — 성적서작성 완료 시 표시
+				header: '원본',
+				name: 'originFileId',
+				width: 80,
+				align: 'center',
+				sortable: false,
+				renderer: { type: ReportFileDownloadRenderer },
+			},
+			{
 				// 업로드 컬럼: gridClass.js의 UploadCellRenderer 사용
 				// 버튼 클릭 및 드래그앤드롭 이벤트는 렌더러 내부에서 window 함수로 위임
 				// cursor_pointer 미적용 — 버튼 자체 커서가 있음
@@ -269,6 +373,26 @@ $(function () {
 				renderer: {
 					type: UploadCellRenderer,
 				},
+			},
+			{
+				// 결재 완료 후 생성되는 EXCEL 출력 다운로드 (file_info name='report_excel')
+				// 업로드 컬럼 오른쪽
+				header: 'EXCEL',
+				name: 'excelFileId',
+				width: 60,
+				align: 'center',
+				sortable: false,
+				renderer: { type: ReportFileDownloadRenderer },
+			},
+			{
+				// 결재 완료 후 생성되는 PDF 출력 다운로드 (file_info name='report_pdf')
+				// 업로드 컬럼 오른쪽
+				header: 'PDF',
+				name: 'pdfFileId',
+				width: 55,
+				align: 'center',
+				sortable: false,
+				renderer: { type: ReportFileDownloadRenderer },
 			},
 		],
 		pageOptions: {
@@ -289,8 +413,9 @@ $(function () {
 	// =====================================================================
 	$modal.grid.on('click', async function (ev) {
 		const { columnName, rowKey } = ev;
-		// 체크박스 rowHeader 및 업로드 컬럼 클릭 무시
-		if (columnName === '_checked' || columnName === 'uploadBtn') return;
+		// 체크박스 rowHeader, 업로드 컬럼, 파일 다운로드 컬럼 클릭 무시
+		if (columnName === '_checked' || columnName === 'uploadBtn'
+			|| columnName === 'originFileId' || columnName === 'excelFileId' || columnName === 'pdfFileId') return;
 
 		const row = $modal.grid.getRow(rowKey);
 		if (!row || !row.id) return;
@@ -394,14 +519,48 @@ $(function () {
 		.on('click', '.btnWaitChange', function () {
 			gToast('구현 준비중입니다.', 'info');
 		})
-		// 버튼: 통합수정 (준비중)
-		.on('click', '.btnBulkEdit', function () {
-			gToast('구현 준비중입니다.', 'info');
+		// 버튼: 통합수정
+		// 1) 체크된 항목 없으면 warning
+		// 2) selfReportMultiUpdate 모달 호출
+		// 3) 모달 닫힘 후 현재 페이지 유지하며 그리드 재조회
+		.on('click', '.btnBulkEdit', async function () {
+			const checkedRows = $modal.grid.getCheckedRows();
+			if (!checkedRows || checkedRows.length === 0) {
+				gToast('리스트에서 항목을 선택해 주세요.', 'warning');
+				return;
+			}
+
+			const reportIds = checkedRows.map(row => row.id);
+
+			await gModal(
+				'/cali/selfReportMultiUpdate',
+				{ reportIds },
+				{
+					title: `통합수정 [${reportIds.length}건 선택]`,
+					size: 'xl',
+					show_close_button: true,
+					show_confirm_button: true,
+					confirm_button_text: '저장',
+				}
+			);
+
+			// 모달 닫힘 후 현재 페이지 유지하며 그리드 재조회
+			const currentPage = $modal.grid.getPagination()?.getCurrentPage() ?? 1;
+			$modal.grid.getPagination().movePageTo(currentPage);
 		})
 		// 버튼: 성적서 다중결재 (준비중)
 		.on('click', '.btnMultiApproval', function () {
 			gToast('구현 준비중입니다.', 'info');
 		});
+
+	// =====================================================================
+	// reportWrite 완료 이벤트 수신 → 현재 페이지 유지하며 그리드 리로드
+	// reportWrite.js 에서 배치 완료 후 확인 버튼을 눌렀을 때 trigger 됨
+	// =====================================================================
+	$(document).on('reportWriteCompleted.workApproval', function () {
+		const currentPage = $modal.grid.getPagination()?.getCurrentPage() ?? 1;
+		$modal.grid.getPagination().movePageTo(currentPage);
+	});
 
 	// =====================================================================
 	// 페이지 마운트 처리 (common.js 규약)

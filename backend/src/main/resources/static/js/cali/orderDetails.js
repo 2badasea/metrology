@@ -374,6 +374,41 @@
 			// 2. api를 두 번 탈 것(서버차원에서 검증)
 			// 3. 검증이 완료되었다면, 대상 id들만 삭제api로 보낼 것 (deletemapping 활용?)
 		})
+	// 버튼: 통합수정
+	// 1) 체크된 항목 없으면 warning
+	// 2) 자체성적서(SELF)만 대상 (대행 포함 시 경고)
+	// 3) 검증 통과 시 selfReportMultiUpdate 모달 호출
+	.on('click', '.btnBulkEdit', async function () {
+		const checkedRows = $modal.grid.getCheckedRows();
+		if (!checkedRows || checkedRows.length === 0) {
+			gToast('리스트에서 항목을 선택해 주세요.', 'warning');
+			return;
+		}
+
+		// 대행 성적서 포함 여부 확인
+		const hasAgcy = checkedRows.some(row => row.reportType !== 'SELF');
+		if (hasAgcy) {
+			gToast('자체성적서(SELF)만 통합수정 가능합니다.', 'warning');
+			return;
+		}
+
+		const reportIds = checkedRows.map(row => row.id);
+
+		await gModal(
+			'/cali/selfReportMultiUpdate',
+			{ reportIds },
+			{
+				title: `통합수정 [${reportIds.length}건 선택]`,
+				size: 'xl',
+				show_close_button: true,
+				show_confirm_button: true,
+				confirm_button_text: '저장',
+			}
+		);
+
+		// 모달 닫힘 후 그리드 재조회
+		$modal.grid.reloadData();
+	})
 		// 중분류 변경
 		.on('change', '.middleCodeSelect', function () {
 			const middleCodeId = $(this).val();

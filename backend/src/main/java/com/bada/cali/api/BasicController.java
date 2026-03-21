@@ -405,6 +405,21 @@ public class BasicController {
 		return ResponseEntity.ok(basicService.getMembersByMiddleCode(middleItemCodeId));
 	}
 
+	// 통합수정 모달 - 중분류 미선택 시 전체 실무자/기술책임자 목록 조회
+	@Operation(
+			summary = "전체 실무자/기술책임자 목록 조회",
+			description = "중분류코드 제한 없이 실무자(authBitmask & 1 > 0)·기술책임자(authBitmask & 6 > 0) 권한 보유 전체 사내 직원 목록 반환. " +
+					"통합수정 모달 최초 진입 시(중분류 미선택 상태) 사용."
+	)
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "500", description = "서버 오류"),
+	})
+	@GetMapping(value = "/getAllRoleMembers")
+	public ResponseEntity<ResMessage<BasicDTO.MembersByMiddleCodeRes>> getAllRoleMembers() {
+		return ResponseEntity.ok(basicService.getAllRoleMembers());
+	}
+
 	// 부서관리, 직급관리, 사용중인 중분류코드 정보를 가져온다 (직원등록/수정 세팅)
 	@Operation(summary = "직원 등록/수정용 기본 옵션 조회", description = "직원 등록·수정 화면에서 사용하는 부서·직급·중분류코드 정보 일괄 조회")
 	@ApiResponses({

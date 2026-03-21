@@ -169,6 +169,27 @@ public class ReportController {
 		return ResponseEntity.ok(resMessage);
 	}
 
+	// 성적서 통합수정
+	@Operation(
+			summary = "성적서 통합수정",
+			description = "선택된 복수의 성적서에 완료예정일·교정일자·환경정보·중/소분류코드·실무자·기술책임자·표준장비를 일괄 수정함. " +
+					"null(또는 0)인 항목은 수정하지 않음. " +
+					"실무자/기술책임자는 updateMemberInfo=true 이고 각 성적서의 원래 중분류코드에 속한 직원일 때만 반영됨."
+	)
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "수정 성공"),
+			@ApiResponse(responseCode = "400", description = "요청 형식 오류"),
+			@ApiResponse(responseCode = "500", description = "서버 오류"),
+	})
+	@PatchMapping("/selfReportMultiUpdate")
+	public ResponseEntity<ResMessage<?>> selfReportMultiUpdate(
+			@Valid @RequestBody ReportDTO.SelfReportMultiUpdateReq req,
+			@AuthenticationPrincipal CustomUserDetails user
+	) {
+		ResMessage<?> res = reportService.selfReportMultiUpdate(req, user);
+		return ResponseEntity.ok(res);
+	}
+
 	/**
 	 * 성적서작성 전 필수항목 일괄 검증 API
 	 *

@@ -79,4 +79,10 @@ public class CaliController {
 	public String reportWrite() {
 		return "cali/reportWrite";
 	}
+
+	// 통합수정 모달 (workApproval, orderDetails 페이지에서 호출)
+	@PostMapping(value = "/selfReportMultiUpdate")
+	public String selfReportMultiUpdate() {
+		return "cali/selfReportMultiUpdate";
+	}
 }

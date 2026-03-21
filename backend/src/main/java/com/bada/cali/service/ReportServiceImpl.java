@@ -13,6 +13,7 @@ import com.bada.cali.repository.CaliOrderRepository;
 import com.bada.cali.repository.EquipmentRefRepository;
 import com.bada.cali.repository.FileInfoRepository;
 import com.bada.cali.repository.LogRepository;
+import com.bada.cali.repository.MemberRepository;
 import com.bada.cali.repository.ReportRepository;
 import com.bada.cali.repository.projection.OrderDetailsList;
 import com.bada.cali.repository.projection.WorkApprovalListRow;
@@ -45,6 +46,7 @@ public class ReportServiceImpl {
 	private final StandardEquipmentRefMapper standardEquipmentRefMapper;
 	private final NumberSequenceService numberSequenceService;
 	private final FileInfoRepository fileInfoRepository;
+	private final MemberRepository memberRepository;
 	
 	/**
 	 * 성적서 등록
@@ -681,6 +683,149 @@ public class ReportServiceImpl {
 		return new ResMessage<>(resCode, resMessage, null);
 	}
 
+
+	// ── 성적서 통합수정 ────────────────────────────────────────────────────────
+
+	/**
+	 * 선택된 복수의 성적서에 완료예정일·교정일자·환경정보·중/소분류코드·실무자·기술책임자·표준장비를 일괄 수정.
+	 *
+	 * - null(또는 0)인 항목은 변경하지 않음 (partial update 방식)
+	 * - 실무자/기술책임자 변경: updateMemberInfo=true 이고 체크박스가 선택되어 있어야 서버로 값이 전달됨.
+	 *   서버에서는 각 성적서의 업데이트 전(원래) middleItemCodeId 기준으로 유효성 검사 후 반영.
+	 *   해당 중분류에 속하지 않는 직원을 선택한 경우 그 성적서의 기존 담당자가 유지됨.
+	 * - 표준장비: equipmentIds 목록이 비어있지 않을 때만 대상 성적서 전체에 동일 장비 목록을 일괄 적용
+	 */
+	@Transactional
+	public ResMessage<Object> selfReportMultiUpdate(ReportDTO.SelfReportMultiUpdateReq req, CustomUserDetails user) {
+		List<Long> reportIds = req.getReportIds();
+		List<Report> reports = reportRepository.findAllById(reportIds);
+
+		if (reports.size() != reportIds.size()) {
+			return new ResMessage<>(-1, "일부 성적서를 찾을 수 없습니다.", null);
+		}
+
+		Long userId    = user.getId();
+		String userName = user.getName();
+		LocalDateTime now = LocalDateTime.now();
+
+		List<Long> updatedIds = new ArrayList<>();
+
+		for (Report report : reports) {
+			// 실무자/기술책임자 유효성 검사 기준: 업데이트 전(원래) 중분류코드
+			Long originalMiddleItemCodeId = report.getMiddleItemCodeId();
+
+			// 완료예정일
+			if (req.getExpectCompleteDate() != null) {
+				report.setExpectCompleteDate(req.getExpectCompleteDate());
+			}
+			// 교정일자
+			if (req.getCaliDate() != null) {
+				report.setCaliDate(req.getCaliDate());
+			}
+			// 환경정보 (JSON 문자열): 입력된 항목만 기존 JSON에 merge (미입력 항목은 기존 값 유지)
+			if (req.getEnvironmentInfo() != null && !req.getEnvironmentInfo().isBlank()) {
+				report.setEnvironmentInfo(mergeEnvironmentInfo(report.getEnvironmentInfo(), req.getEnvironmentInfo()));
+			}
+			// 중분류코드
+			if (req.getMiddleItemCodeId() != null && req.getMiddleItemCodeId() > 0) {
+				report.setMiddleItemCodeId(req.getMiddleItemCodeId());
+			}
+			// 소분류코드
+			if (req.getSmallItemCodeId() != null && req.getSmallItemCodeId() > 0) {
+				report.setSmallItemCodeId(req.getSmallItemCodeId());
+			}
+
+			// 실무자: originalMiddleItemCodeId 기준으로 유효한 실무자인지 확인 후 반영
+			if (req.isUpdateMemberInfo() && req.getWorkMemberId() != null && req.getWorkMemberId() > 0) {
+				if (isMemberValidForCode(originalMiddleItemCodeId, req.getWorkMemberId(), 1)) {
+					report.setWorkMemberId(req.getWorkMemberId());
+				}
+			}
+			// 기술책임자: originalMiddleItemCodeId 기준으로 유효한 기술책임자인지 확인 후 반영
+			if (req.isUpdateMemberInfo() && req.getApprovalMemberId() != null && req.getApprovalMemberId() > 0) {
+				if (isMemberValidForCode(originalMiddleItemCodeId, req.getApprovalMemberId(), 6)) {
+					report.setApprovalMemberId(req.getApprovalMemberId());
+				}
+			}
+
+			report.setUpdateMemberId(userId);
+			updatedIds.add(report.getId());
+		}
+
+		// 표준장비 일괄 적용 (값이 있을 때만 기존 데이터 교체)
+		List<Long> equipmentIds = req.getEquipmentIds();
+		if (equipmentIds != null && !equipmentIds.isEmpty()) {
+			for (Long reportId : updatedIds) {
+				// 기존 표준장비 참조 데이터 삭제 후 신규 삽입
+				equipmentRefRepository.deleteUsedEquipData("report", reportId);
+				List<StandardEquipmentRef> equipList = new ArrayList<>();
+				for (int i = 0; i < equipmentIds.size(); i++) {
+					EquipmentDTO.UsedEquipment usage = new EquipmentDTO.UsedEquipment("report", reportId, equipmentIds.get(i), i);
+					equipList.add(standardEquipmentRefMapper.toEntityFromRecord(usage));
+				}
+				equipmentRefRepository.saveAll(equipList);
+			}
+		}
+
+		// 로그 (고유번호 목록 포함)
+		Log updateLog = Log.builder()
+				.logType("u")
+				.createMemberId(userId)
+				.createDatetime(now)
+				.workerName(userName)
+				.refTableId(updatedIds.get(0))
+				.refTable("report")
+				.logContent(String.format("[성적서 통합수정] 고유번호 - %s", updatedIds))
+				.build();
+		logRepository.save(updateLog);
+
+		return new ResMessage<>(1, String.format("%d건 수정되었습니다.", reports.size()), null);
+	}
+
+	/**
+	 * 선택된 멤버(memberId)가 지정 중분류코드(middleItemCodeId)에 대해 bitmask 권한을 보유했는지 확인.
+	 * - middleItemCodeId가 null 또는 0이면 중분류 제한이 없으므로 항상 유효로 처리.
+	 */
+	private boolean isMemberValidForCode(Long middleItemCodeId, Long memberId, int bitmask) {
+		if (middleItemCodeId == null || middleItemCodeId == 0) {
+			return true;
+		}
+		return memberRepository.findMembersByMiddleCodeAndBitmask(middleItemCodeId, bitmask)
+				.stream()
+				.anyMatch(m -> m.getId().equals(memberId));
+	}
+
+	/**
+	 * 기존 environmentInfo JSON에 신규 값을 merge.
+	 * 신규 JSON에 존재하는 키만 덮어쓰고, 나머지 키는 기존 값을 그대로 유지.
+	 *
+	 * <p>예시: 기존 {"tempMin":"10","tempMax":"20","humMin":"40","humMax":"60"} 에
+	 * 신규 {"tempMax":"25"} 를 merge하면 → {"tempMin":"10","tempMax":"25","humMin":"40","humMax":"60"}
+	 *
+	 * <p>파싱 실패 시(기존값 또는 신규값이 유효한 JSON이 아닌 경우) 신규 JSON을 그대로 반환.
+	 *
+	 * @param existingJson 성적서에 저장된 기존 environmentInfo (null 가능)
+	 * @param newJson      클라이언트에서 전달된 신규 environmentInfo (비어있지 않은 값이 보장됨)
+	 * @return merge된 JSON 문자열
+	 */
+	private String mergeEnvironmentInfo(String existingJson, String newJson) {
+		ObjectMapper objectMapper = new ObjectMapper();
+		try {
+			// 기존 JSON이 없거나 비어 있으면 신규 JSON을 그대로 사용
+			if (existingJson == null || existingJson.isBlank()) {
+				return newJson;
+			}
+			Map<String, Object> existingMap = objectMapper.readValue(existingJson, new TypeReference<>() {});
+			Map<String, Object> newMap      = objectMapper.readValue(newJson,      new TypeReference<>() {});
+			// 신규 JSON의 항목만 기존 map에 덮어쓰기 (미입력 항목은 기존 값 유지)
+			existingMap.putAll(newMap);
+			return objectMapper.writeValueAsString(existingMap);
+		} catch (Exception e) {
+			// JSON 파싱 실패 시 신규 JSON 그대로 반환
+			log.warn("mergeEnvironmentInfo 파싱 실패 — 신규 JSON으로 덮어씁니다. existingJson={}", existingJson, e);
+			return newJson;
+		}
+	}
 
 	// ── 성적서작성 필수항목 검증 ──────────────────────────────────────────────
 

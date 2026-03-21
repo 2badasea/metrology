@@ -233,4 +233,15 @@ public class BasicServiceImpl {
 		return new ResMessage<>(1, null, new BasicDTO.MembersByMiddleCodeRes(workers, approvers));
 	}
 
+	/**
+	 * 중분류코드 제한 없이 실무자/기술책임자 권한을 보유한 전체 사내 직원 목록 조회.
+	 * 통합수정 모달 최초 진입 시(중분류 미선택 상태)에 호출.
+	 */
+	@Transactional(readOnly = true)
+	public ResMessage<BasicDTO.MembersByMiddleCodeRes> getAllRoleMembers() {
+		List<MemberSelectRow> workers  = memberRepository.findMembersByBitmask(1);
+		List<MemberSelectRow> approvers = memberRepository.findMembersByBitmask(6);
+		return new ResMessage<>(1, null, new BasicDTO.MembersByMiddleCodeRes(workers, approvers));
+	}
+
 }

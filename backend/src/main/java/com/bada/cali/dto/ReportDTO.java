@@ -254,6 +254,49 @@ public class ReportDTO {
 	) {
 	}
 	
+	// 통합수정 요청 DTO
+	// - 각 필드가 null(또는 0)이면 해당 항목을 변경하지 않음 (partial update)
+	// - updateMemberInfo=true 일 때만 실무자/기술책임자 변경을 시도하며,
+	//   서버에서 각 성적서의 원래 middleItemCodeId 기준으로 유효성 검사 후 반영
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@Schema(description = "성적서 통합수정 요청")
+	public static class SelfReportMultiUpdateReq {
+
+		@NotEmpty(message = "대상 성적서를 1건 이상 선택해야 합니다.")
+		@Schema(description = "대상 성적서 id 목록")
+		private List<Long> reportIds;
+
+		@Schema(description = "완료예정일 (null = 변경 안 함)")
+		private LocalDate expectCompleteDate;
+
+		@Schema(description = "교정일자 (null = 변경 안 함)")
+		private LocalDate caliDate;
+
+		@Schema(description = "환경정보 JSON 문자열 (null 또는 빈 문자열 = 변경 안 함)")
+		private String environmentInfo;
+
+		@Schema(description = "중분류코드 id (null 또는 0 = 변경 안 함)")
+		private Long middleItemCodeId;
+
+		@Schema(description = "소분류코드 id (null 또는 0 = 변경 안 함)")
+		private Long smallItemCodeId;
+
+		@Schema(description = "실무자/기술책임자 정보 업데이트 여부")
+		private boolean updateMemberInfo;
+
+		@Schema(description = "실무자 id (updateMemberInfo=true 일 때만 유효, 각 성적서 원래 중분류코드 기준 유효성 검사)")
+		private Long workMemberId;
+
+		@Schema(description = "기술책임자 id (updateMemberInfo=true 일 때만 유효, 각 성적서 원래 중분류코드 기준 유효성 검사)")
+		private Long approvalMemberId;
+
+		@Schema(description = "적용할 표준장비 id 목록 (null 또는 빈 목록 = 변경 안 함, 값이 있으면 모든 대상 성적서에 일괄 적용)")
+		private List<Long> equipmentIds;
+	}
+
 	// 성적서 수정 요청 데이터
 	public record ReportUpdateReq(
 			Long id,

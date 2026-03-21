@@ -47,4 +47,14 @@ public interface WorkApprovalListRow {
 
 	String getApprovalMemberName();  // 기술책임자 이름 (member.name JOIN)
 
+	// ── 파일 다운로드 컬럼 (file_info 서브쿼리 — 없으면 null) ─────────────────
+	/** 원본 성적서 엑셀 file_info.id (name='report_origin') */
+	Long getOriginFileId();
+
+	/** 결재 완료 후 생성되는 Excel 출력 file_info.id (name='report_excel') */
+	Long getExcelFileId();
+
+	/** 결재 완료 후 생성되는 PDF 출력 file_info.id (name='report_pdf') */
+	Long getPdfFileId();
+
 }

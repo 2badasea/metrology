@@ -27,6 +27,21 @@ public class FileController {
 		return fileService.downloadFile(fileId);
 	}
 
+	/**
+	 * 성적서 파일 전용 다운로드
+	 *
+	 * 성적서 파일은 file_info.id 가 아닌 report.id + 고정 파일명으로 S3 에 저장된다.
+	 * fileType: "origin"(원본), "signed_xlsx"(결재 EXCEL), "signed_pdf"(결재 PDF)
+	 *
+	 * 호출 예: GET /api/file/report/43/origin
+	 */
+	@GetMapping("/report/{reportId}/{fileType}")
+	public ResponseEntity<Resource> reportFileDownload(
+			@PathVariable Long reportId,
+			@PathVariable String fileType) {
+		return fileService.downloadReportFile(reportId, fileType);
+	}
+
 	@DeleteMapping("/fileDelete/{fileId}")
 	public ResponseEntity<ResMessage<?>> fileDelete(@PathVariable Long fileId, @AuthenticationPrincipal CustomUserDetails user) {
 		int resCode = fileService.deleteFile(fileId, user);

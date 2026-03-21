@@ -25,7 +25,14 @@
       "Bash(mkdir -p C:/BadaDev/cali/docs/claude && mv C:/BadaDev/cali/claudeReqOrderDown.md C:/BadaDev/cali/docs/claude/ && mv C:/BadaDev/cali/claudeReqSample.md C:/BadaDev/cali/docs/claude/ && mv C:/BadaDev/cali/CLAUDE.md C:/BadaDev/cali/docs/claude/)",
       "Bash(ls C:/BadaDev/cali/frontend/.env*)",
       "Bash(grep -rn modal_deferreds*= C:/BadaDev/cali/backend/src/main/resources/static/)",
-      "Bash(powershell.exe -Command '$env:JAVA_HOME=\"C:\\\\Users\\\\gnjqt\\\\.jdks\\\\corretto-17.0.16\"; $env:PATH=\"$env:JAVA_HOME\\\\bin;$env:PATH\"; cd C:\\\\BadaDev\\\\cali\\\\backend; .\\\\gradlew.bat compileJava 2>&1 | Select-Object -Last 25' 2>&1)"
+      "Bash(powershell.exe -Command '$env:JAVA_HOME=\"C:\\\\Users\\\\gnjqt\\\\.jdks\\\\corretto-17.0.16\"; $env:PATH=\"$env:JAVA_HOME\\\\bin;$env:PATH\"; cd C:\\\\BadaDev\\\\cali\\\\backend; .\\\\gradlew.bat compileJava 2>&1 | Select-Object -Last 25' 2>&1)",
+      "Read(//c/BadaDev//**)",
+      "Read(//c/BadaDev/**)",
+      "Bash(cp /c/BadaDev/cali/backend/gradlew /c/BadaDev/cali-worker-dev/gradlew)",
+      "Bash(cp /c/BadaDev/cali/backend/gradlew.bat /c/BadaDev/cali-worker-dev/gradlew.bat)",
+      "Bash(cp /c/BadaDev/cali/backend/gradle/wrapper/gradle-wrapper.jar /c/BadaDev/cali-worker-dev/gradle/wrapper/gradle-wrapper.jar)",
+      "Bash(find /c/BadaDev/cali/backend/src/main/resources/static/css -type f -name *workApproval* -o -type f -name *work*approval*)",
+      "Bash(find /c/BadaDev/cali/backend/src/main/resources/static -type f \\\\\\(-name *.css -o -name *.scss \\\\\\) -newer /c/BadaDev/cali/backend/src/main/resources/templates/cali/workApproval.html)"
     ]
   }
 }
