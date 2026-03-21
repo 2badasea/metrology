@@ -225,6 +225,9 @@ $(function () {
 	// 그리드 정의
 	// =====================================================================
 	$modal.grid = gGrid('.workApprovalList', {
+		scrollX: true,
+		// 구분/관리번호/소분류/접수일/성적서번호 5개 컬럼 고정 (rowHeader checkbox는 frozenCount 미포함)
+		frozenCount: 5,
 		columns: [
 			{
 				// 접수구분: ACCREDDIT=공인, UNACCREDDIT=비공인, TESTING=시험
@@ -255,13 +258,6 @@ $(function () {
 			{
 				header: '접수일',
 				name: 'orderDate',
-				width: 85,
-				align: 'center',
-				className: 'cursor_pointer',
-			},
-			{
-				header: '완료예정일',
-				name: 'expectCompleteDate',
 				width: 85,
 				align: 'center',
 				className: 'cursor_pointer',
