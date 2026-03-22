@@ -149,6 +149,11 @@ public class WorkerDataDTO {
         private String traceStatementEn2;
         private String traceStatementEn3;
 
+        // ── 성적서 언어 설정 (PDF 변환 시 대상 시트 결정에 사용) ─────────────
+        // KR: 국문 시트만, EN: 영문 시트만, BOTH: 국문+영문 모두
+        @Schema(description = "성적서 언어 설정 (KR / EN / BOTH)")
+        private String reportLang;
+
         // ── 샘플 파일 정보 (file_info — 워커가 스토리지에서 다운로드 시 사용) ─
         // 워커가 S3 objectKey 구성 방법:
         //   if (sampleFileDir.endsWith("/")) -> {storageRootDir}/{sampleFileDir}{sampleFileId}.{sampleFileExtension}

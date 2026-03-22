@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController("ApiFileController")
@@ -33,13 +34,17 @@ public class FileController {
 	 * 성적서 파일은 file_info.id 가 아닌 report.id + 고정 파일명으로 S3 에 저장된다.
 	 * fileType: "origin"(원본), "signed_xlsx"(결재 EXCEL), "signed_pdf"(결재 PDF)
 	 *
-	 * 호출 예: GET /api/file/report/43/origin
+	 * reportNum(선택): 쿼리파라미터로 전달 시 다운로드 파일명을 "{reportNum}.xlsx" 등으로 변경.
+	 * 미전달 또는 빈값이면 기존 고정명(origin.xlsx / signed.xlsx / signed.pdf)으로 fallback.
+	 *
+	 * 호출 예: GET /api/file/report/43/origin?reportNum=2024-001
 	 */
 	@GetMapping("/report/{reportId}/{fileType}")
 	public ResponseEntity<Resource> reportFileDownload(
 			@PathVariable Long reportId,
-			@PathVariable String fileType) {
-		return fileService.downloadReportFile(reportId, fileType);
+			@PathVariable String fileType,
+			@RequestParam(required = false) String reportNum) {
+		return fileService.downloadReportFile(reportId, fileType, reportNum);
 	}
 
 	@DeleteMapping("/fileDelete/{fileId}")

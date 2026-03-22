@@ -43,6 +43,8 @@ public interface WorkApprovalListRow {
 
 	String getWriteMemberName();     // 작성자 이름 (member.name JOIN)
 
+	Long getWorkMemberId();          // 실무자 member.id (다중결재 시 그룹화 기준)
+
 	String getWorkMemberName();      // 실무자 이름 (member.name JOIN)
 
 	String getApprovalMemberName();  // 기술책임자 이름 (member.name JOIN)

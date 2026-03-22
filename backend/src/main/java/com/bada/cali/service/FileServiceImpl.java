@@ -229,37 +229,50 @@ public class FileServiceImpl {
 	 *   - 결재 PDF:  {rootDir}/report/{reportId}/signed.pdf
 	 *
 	 * fileType 허용값: "origin" | "signed_xlsx" | "signed_pdf"
+	 * reportNum(선택): 전달 시 다운로드 파일명을 "{reportNum}.xlsx" 등으로 변경.
+	 *                  null/빈값이면 기존 고정명으로 fallback.
 	 *
 	 * @param reportId  성적서 id
 	 * @param fileType  파일 종류 ("origin", "signed_xlsx", "signed_pdf")
+	 * @param reportNum 다운로드 파일명에 사용할 성적서 번호 (선택)
 	 * @return 파일 다운로드 응답
 	 * @throws IllegalArgumentException 파일을 스토리지에서 찾을 수 없을 때
 	 */
 	@Transactional(readOnly = true)
-	public ResponseEntity<Resource> downloadReportFile(Long reportId, String fileType) {
+	public ResponseEntity<Resource> downloadReportFile(Long reportId, String fileType, String reportNum) {
 
-		// fileType → 실제 파일명 + contentType 매핑
-		final String fileName;
+		// fileType → 스토리지 파일명 + contentType + 확장자 매핑
+		final String storedFileName; // 스토리지 상의 실제 파일명
 		final String contentType;
+		final String extension;
 		switch (fileType) {
 			case "origin" -> {
-				fileName    = "origin.xlsx";
-				contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+				storedFileName = "origin.xlsx";
+				contentType    = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+				extension      = "xlsx";
 			}
 			case "signed_xlsx" -> {
-				fileName    = "signed.xlsx";
-				contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+				storedFileName = "signed.xlsx";
+				contentType    = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+				extension      = "xlsx";
 			}
 			case "signed_pdf" -> {
-				fileName    = "signed.pdf";
-				contentType = "application/pdf";
+				storedFileName = "signed.pdf";
+				contentType    = "application/pdf";
+				extension      = "pdf";
 			}
 			default -> throw new IllegalArgumentException("유효하지 않은 fileType: " + fileType
 					+ " (허용값: origin | signed_xlsx | signed_pdf)");
 		}
 
-		// 성적서 파일 고정 objectKey: {rootDir}/report/{reportId}/{fileName}
-		final String objectKey = storageProps.getRootDir() + "/report/" + reportId + "/" + fileName;
+		// 다운로드 파일명 결정:
+		//   reportNum 이 전달되면 "{reportNum}.{ext}", 없으면 storedFileName 그대로
+		final String downloadFileName = (reportNum != null && !reportNum.isBlank())
+				? reportNum + "." + extension
+				: storedFileName;
+
+		// 성적서 파일 고정 objectKey: {rootDir}/report/{reportId}/{storedFileName}
+		final String objectKey = storageProps.getRootDir() + "/report/" + reportId + "/" + storedFileName;
 
 		try {
 			ResponseInputStream<GetObjectResponse> s3is = ncloudS3Client.getObject(
@@ -270,7 +283,7 @@ public class FileServiceImpl {
 			);
 			long contentLength = s3is.response().contentLength();
 
-			String encodedName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)
+			String encodedName = URLEncoder.encode(downloadFileName, StandardCharsets.UTF_8)
 					.replaceAll("\\+", "%20");
 
 			return ResponseEntity.ok()

@@ -348,6 +348,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			    r.work_status                                         AS workStatus,
 			    r.order_type                                          AS orderType,
 			    wr.name                                               AS writeMemberName,
+			    r.work_member_id                                     AS workMemberId,
 			    wm.name                                               AS workMemberName,
 			    am.name                                               AS approvalMemberName,
 			    (SELECT fi.id FROM file_info fi

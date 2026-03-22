@@ -196,6 +196,9 @@ public class WorkerDataServiceImpl {
                 .traceStatementEn2(traceMap.get("traceStatementEn2"))
                 .traceStatementEn3(traceMap.get("traceStatementEn3"))
 
+                // 성적서 언어 설정 (PDF 변환 시 대상 시트 결정)
+                .reportLang(report.getReportLang() != null ? report.getReportLang().name() : null)
+
                 // 샘플 파일 정보 (file_info — 워커 S3 다운로드용)
                 .sampleFileId(sampleFile != null ? sampleFile.getId() : null)
                 .sampleFileDir(sampleFile != null ? sampleFile.getDir() : null)

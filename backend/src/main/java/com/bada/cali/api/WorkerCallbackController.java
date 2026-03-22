@@ -185,7 +185,8 @@ public class WorkerCallbackController {
     @GetMapping("/reports/{reportId}/fill-data")
     public ResponseEntity<ResMessage<WorkerDataDTO.ReportFillDataRes>> getReportFillData(
             @Parameter(description = "성적서 id", example = "100") @PathVariable Long reportId,
-            @Parameter(description = "샘플 파일의 file_info.id", example = "55") @RequestParam Long sampleId,
+            @Parameter(description = "샘플 파일의 file_info.id (WRITE 전용, WORK_APPROVAL 시 생략 가능)", example = "55")
+            @RequestParam(required = false) Long sampleId,
             @RequestHeader(value = "X-Worker-Api-Key", defaultValue = "") String apiKey
     ) {
         if (!isValidApiKey(apiKey)) {

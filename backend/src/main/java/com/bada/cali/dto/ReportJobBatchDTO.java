@@ -47,12 +47,33 @@ public class ReportJobBatchDTO {
     }
 
     /**
-     * 성적서작성 배치 생성 응답 DTO
-     * 생성된 배치 id와 대상 건수를 반환한다.
+     * 실무자결재 배치 생성 요청 DTO (WORK_APPROVAL 타입 전용)
+     *
+     * workApproval 페이지에서 결재 아이콘 클릭 시(단건) 또는 다중 선택 후 결재 시
+     * POST /api/report/jobs/batches/work-approval 로 전송한다.
+     */
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "실무자결재 배치 생성 요청")
+    public static class CreateWorkApprovalBatchReq {
+
+        /**
+         * 실무자결재 대상 성적서 id 목록 (1건 이상).
+         * 단건 결재 아이콘 클릭 시 1개 원소 리스트, 다중 선택 시 N개.
+         */
+        @NotEmpty(message = "대상 성적서를 1건 이상 선택해야 합니다.")
+        @Schema(description = "대상 성적서 id 목록", example = "[1, 2, 3]")
+        private List<Long> reportIds;
+    }
+
+    /**
+     * 성적서 작업 배치 생성 응답 DTO (WRITE / WORK_APPROVAL 공용)
+     * 생성된 배치 id, 대상 건수, 그리고 작업서버 트리거에 사용되는 부가 정보를 반환한다.
      */
     @Getter
     @AllArgsConstructor
-    @Schema(description = "성적서작성 배치 생성 응답")
+    @Schema(description = "성적서 작업 배치 생성 응답")
     public static class CreateBatchRes {
 
         @Schema(description = "생성된 배치 id", example = "123")
@@ -60,6 +81,14 @@ public class ReportJobBatchDTO {
 
         @Schema(description = "대상 성적서 건수", example = "3")
         private Integer totalCount;
+
+        /**
+         * WORK_APPROVAL 전용: 실무자 서명 이미지 스토리지 objectKey.
+         * 트리거 요청에 포함하여 워커가 서명 이미지를 다운로드하는 데 사용.
+         * WRITE 타입에서는 null.
+         */
+        @Schema(description = "실무자 서명 이미지 objectKey (WORK_APPROVAL 전용)", nullable = true)
+        private String workerSignImgKey;
     }
 
     // ── Polling / 작업서버 배치 조회 응답 ────────────────────────────────────
@@ -203,5 +232,13 @@ public class ReportJobBatchDTO {
 
         @Schema(description = "스토리지 시크릿 키")
         private String storageSecretKey;
+
+        /**
+         * WORK_APPROVAL 전용: 실무자 서명 이미지 스토리지 objectKey.
+         * 워커가 이 key로 스토리지에서 서명 이미지를 다운로드하여 엑셀에 삽입한다.
+         * WRITE 타입에서는 null.
+         */
+        @Schema(description = "실무자 서명 이미지 objectKey (WORK_APPROVAL 전용)", nullable = true)
+        private String workerSignImgKey;
     }
 }
