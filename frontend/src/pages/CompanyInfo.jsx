@@ -52,6 +52,7 @@ const initImageState = () => ({
 export default function CompanyInfo() {
   const [form,        setForm]        = useState({});
   const [loading,     setLoading]     = useState(true);
+  const [isAdmin,     setIsAdmin]     = useState(false);   // ADMIN 권한 여부
   const [imageStates, setImageStates] = useState(initImageState);
   const fileInputRefs = useRef({ kolas: null, ilac: null, company: null });
 
@@ -65,7 +66,17 @@ export default function CompanyInfo() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchEnv(); }, []);
+  // 현재 로그인 사용자의 ADMIN 권한 여부 조회
+  const fetchMe = () => {
+    return adminFetch('/api/member/me')
+      .then((res) => setIsAdmin(res?.data?.isAdmin ?? false))
+      .catch(() => setIsAdmin(false));
+  };
+
+  useEffect(() => {
+    fetchEnv();
+    fetchMe();
+  }, []);
 
   // ── 입력폼 핸들러 ─────────────────────────────────────────────────────────────
 
@@ -200,7 +211,10 @@ export default function CompanyInfo() {
       <div className="card panel" style={{ marginBottom: '16px' }}>
         <div className="env-card-header">
           <span className="panel-title">기본 정보</span>
-          <button className="env-btn env-btn-primary" onClick={handleSave}>저장</button>
+          {/* ADMIN 계정만 저장 가능 */}
+          {isAdmin && (
+            <button className="env-btn env-btn-primary" onClick={handleSave}>저장</button>
+          )}
         </div>
         <table className="env-table">
           <colgroup>
@@ -221,7 +235,8 @@ export default function CompanyInfo() {
                         type="text"
                         name={key}
                         value={form[key] ?? ''}
-                        onChange={handleChange}
+                        onChange={isAdmin ? handleChange : undefined}
+                        readOnly={!isAdmin}
                         autoComplete="off"
                       />
                     </td>
@@ -251,20 +266,23 @@ export default function CompanyInfo() {
                     onError={(e) => { e.target.src = PLACEHOLDER_IMG; }}
                   />
                 </div>
-                <div className="env-image-actions">
-                  <label className="env-btn env-btn-secondary" style={{ cursor: 'pointer' }}>
-                    이미지선택
-                    <input
-                      type="file"
-                      accept="image/*"
-                      style={{ display: 'none' }}
-                      ref={(el) => { fileInputRefs.current[fieldKey] = el; }}
-                      onChange={(e) => handleFileChange(fieldKey, e.target.files[0] || null)}
-                    />
-                  </label>
-                  <button className="env-btn env-btn-primary" onClick={() => handleImageSave(fieldKey)}>저장</button>
-                  <button className="env-btn env-btn-danger"  onClick={() => handleImageDelete(fieldKey)}>삭제</button>
-                </div>
+                {/* ADMIN 계정만 이미지 변경/삭제 가능 */}
+                {isAdmin && (
+                  <div className="env-image-actions">
+                    <label className="env-btn env-btn-secondary" style={{ cursor: 'pointer' }}>
+                      이미지선택
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        ref={(el) => { fileInputRefs.current[fieldKey] = el; }}
+                        onChange={(e) => handleFileChange(fieldKey, e.target.files[0] || null)}
+                      />
+                    </label>
+                    <button className="env-btn env-btn-primary" onClick={() => handleImageSave(fieldKey)}>저장</button>
+                    <button className="env-btn env-btn-danger"  onClick={() => handleImageDelete(fieldKey)}>삭제</button>
+                  </div>
+                )}
               </div>
             );
           })}

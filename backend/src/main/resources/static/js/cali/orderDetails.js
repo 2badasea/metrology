@@ -143,12 +143,11 @@
 						return reportStatusLabel(data.value);
 					},
 				},
-			],
-			pageOptions: {
+		],
+		pageOptions: {
 				useClient: false, // 서버 페이징
 				perPage: 20, // 기본 20. 선택한 '행 수'에 따라 유동적으로 변경	=> change 이벤트를 통해 setPerPage() 함수 호출
 			},
-			rowHeaders: ['checkbox'],
 			minBodyHeight: 663,
 			bodyHeight: 663,
 			data: $modal.data_source, // 그리드의 데이터를 초기화하는 과정에서 api 호출
@@ -179,6 +178,10 @@
 							show_close_button: true,
 							show_confirm_button: isModifiable,
 							confirm_button_text: '저장',
+							// 성적서작성 버튼: footer 왼쪽 끝에 배치
+							custom_btn_html_arr: [
+								'<button type="button" class="btn btn-primary btn-sm modal-btn-write-report mr-auto"><i class="bi bi-pencil-square"></i> 성적서작성</button>',
+							],
 						},
 					);
 
@@ -219,9 +222,7 @@
 					show_confirm_button: true,
 					confirm_button_text: '저장',
 					// FIX 엑셀등록 기능 구현할 것
-					// custom_btn_html_arr: [
 					// 	`<button type="button" class="btn btn-success addReportExcel btn-sm"><i class="bi bi-file-excel"></i>EXCEL 등록</button>`,
-					// ],
 				},
 			);
 			if (resModal) {
@@ -373,6 +374,41 @@
 			// 2. api를 두 번 탈 것(서버차원에서 검증)
 			// 3. 검증이 완료되었다면, 대상 id들만 삭제api로 보낼 것 (deletemapping 활용?)
 		})
+	// 버튼: 통합수정
+	// 1) 체크된 항목 없으면 warning
+	// 2) 자체성적서(SELF)만 대상 (대행 포함 시 경고)
+	// 3) 검증 통과 시 selfReportMultiUpdate 모달 호출
+	.on('click', '.btnBulkEdit', async function () {
+		const checkedRows = $modal.grid.getCheckedRows();
+		if (!checkedRows || checkedRows.length === 0) {
+			gToast('리스트에서 항목을 선택해 주세요.', 'warning');
+			return;
+		}
+
+		// 대행 성적서 포함 여부 확인
+		const hasAgcy = checkedRows.some(row => row.reportType !== 'SELF');
+		if (hasAgcy) {
+			gToast('자체성적서(SELF)만 통합수정 가능합니다.', 'warning');
+			return;
+		}
+
+		const reportIds = checkedRows.map(row => row.id);
+
+		await gModal(
+			'/cali/selfReportMultiUpdate',
+			{ reportIds },
+			{
+				title: `통합수정 [${reportIds.length}건 선택]`,
+				size: 'xl',
+				show_close_button: true,
+				show_confirm_button: true,
+				confirm_button_text: '저장',
+			}
+		);
+
+		// 모달 닫힘 후 그리드 재조회
+		$modal.grid.reloadData();
+	})
 		// 중분류 변경
 		.on('change', '.middleCodeSelect', function () {
 			const middleCodeId = $(this).val();

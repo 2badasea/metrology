@@ -1,0 +1,6 @@
+/* selfReportMultiUpdate 통합수정 모달 전용 스타일 */
+
+/* 실무자/기술책임자 입력행: 초기 숨김 */
+.memberRow {
+    display: none;
+}

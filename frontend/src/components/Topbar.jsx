@@ -36,18 +36,16 @@ async function handleLogout() {
 export default function Topbar() {
   return (
     <div className="topbar">
-      <div className="topbar-left">
-        <div className="topbar-title">Dashboard</div>
-
-        <div className="topbar-search">
-          <input placeholder="Search" />
-        </div>
-      </div>
-
+      <div className="topbar-left" />
       <div className="topbar-right">
-        <button className="topbar-btn" type="button">Account</button>
-        <button className="topbar-btn" type="button">Dropdown</button>
-        <button className="topbar-btn primary" type="button" onClick={handleLogout}>로그아웃</button>
+        {/* 알림 — 이벤트 미구현 */}
+        <button className="topbar-icon-btn" type="button" title="알림" aria-label="알림">
+          <i className="bi bi-bell" />
+        </button>
+        {/* 로그아웃 */}
+        <button className="topbar-icon-btn" type="button" title="로그아웃" aria-label="로그아웃" onClick={handleLogout}>
+          <i className="bi bi-box-arrow-right" />
+        </button>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-$(function () {
+﻿$(function () {
 	console.log('++ cali/reportModify.js');
 
 	const $candidates = $('.modal-view:not(.modal-view-applied)');
@@ -77,6 +77,12 @@ $(function () {
 						// 중소분류 세팅
 						await $modal.setItemCode(parentInfo.middleItemCodeId, parentInfo.smallItemCodeId);
 
+						// 성적서작성 모달 호출을 위해 소분류 정보를 $modal에 저장
+						// smallItemCodeSet은 middleItemCodeId 키로 소분류 배열을 담고 있음
+						$modal.smallItemCodeId = parentInfo.smallItemCodeId;
+						const smallCodeList = smallItemCodeSet[parentInfo.middleItemCodeId] ?? [];
+						const matchedCode = smallCodeList.find((s) => s.id == parentInfo.smallItemCodeId);
+						$modal.smallCodeNum = matchedCode?.codeNum ?? '';
 						// 중분류코드 기준으로 실무자/기술책임자 option 세팅 및 기존 선택값 복원
 						await $modal.loadMemberOptions(
 							parentInfo.middleItemCodeId,
@@ -377,6 +383,26 @@ $(function () {
 				}
 			}
 		});
+
+	// 성적서작성 버튼 클릭 — footer에 삽입된 .modal-btn-write-report 처리
+	// 소분류가 지정되어 있어야 호출 가능 (init_modal에서 .smallItemCodeId에 저장됨)
+	$modal_root.on('click', '.modal-btn-write-report', async function () {
+		const smallItemCodeId = $modal.smallItemCodeId;
+		const smallCodeNum    = $modal.smallCodeNum ?? '';
+		if (!smallItemCodeId) {
+			gToast('소분류 정보가 없습니다. 성적서에 소분류를 먼저 저장해 주세요.', 'warning');
+			return;
+		}
+		await gModal(
+			'/cali/reportWrite',
+			{ smallItemCodeId, smallCodeNum, reportIds: [id] },  // id: init_modal에서 설정된 현재 성적서 id
+			{
+				title: `성적서 작성 [소분류코드 - ${smallCodeNum}]`,
+				size: 'xl',
+				show_close_button: true,
+			},
+		);
+	});
 
 	// 저장
 	$modal.confirm_modal = async function (e) {

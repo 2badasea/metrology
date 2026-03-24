@@ -198,6 +198,20 @@ public class MemberController {
 		return ResponseEntity.ok(res);
 	}
 
+	@Operation(summary = "현재 로그인 사용자 정보 조회", description = "현재 세션의 로그인 사용자 이름 및 ADMIN 여부 반환")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "500", description = "서버 오류",
+					content = @Content(schema = @Schema(implementation = ResMessage.class)))
+	})
+	@GetMapping("/me")
+	public ResponseEntity<ResMessage<MemberDTO.MeRes>> getMe(@AuthenticationPrincipal CustomUserDetails user) {
+		// ROLE_ADMIN 권한 보유 여부 확인
+		boolean isAdmin = user.getAuthorities().stream()
+				.anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+		return ResponseEntity.ok(new ResMessage<>(1, null, new MemberDTO.MeRes(user.getName(), isAdmin)));
+	}
+
 	@Operation(summary = "직원 상세 조회", description = "직원 고유 id로 상세 정보(기본 정보 + 서명 이미지 + 권한)를 조회합니다.")
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "조회 성공"),

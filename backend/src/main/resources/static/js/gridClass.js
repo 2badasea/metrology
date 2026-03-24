@@ -384,8 +384,10 @@ class UploadCellRenderer {
 
 		const btn = document.createElement('button');
 		btn.type = 'button';
-		btn.className = 'btn btn-sm btn-outline-secondary';
-		btn.textContent = '업로드';
+		btn.className = 'btn btn-sm btn-success';
+		// 엑셀 파일 아이콘(Bootstrap Icons) + EXCEL 텍스트
+		const excelIconHtml = '<i class="bi bi-file-earmark-excel" style="font-size:13px; margin-right:3px; vertical-align:-1px;"></i>EXCEL';
+		btn.innerHTML = excelIconHtml;
 
 		// 버튼 클릭 → 파일 선택 창 열기 (workApproval.js에 정의된 함수 호출)
 		btn.addEventListener('click', (e) => {
@@ -402,13 +404,13 @@ class UploadCellRenderer {
 			e.preventDefault();
 			e.stopPropagation();
 			el.style.background = '#e8f0fe';
-			btn.textContent = '드롭';
+			btn.innerHTML = '<i class="bi bi-box-arrow-in-down" style="font-size:13px;"></i>';
 		});
 
 		// 드래그 이탈: 초기화
 		el.addEventListener('dragleave', () => {
 			el.style.background = '';
-			btn.textContent = '업로드';
+			btn.innerHTML = excelIconHtml;
 		});
 
 		// 드롭: 파일 처리 (workApproval.js에 정의된 함수 호출)
@@ -416,7 +418,7 @@ class UploadCellRenderer {
 			e.preventDefault();
 			e.stopPropagation();
 			el.style.background = '';
-			btn.textContent = '업로드';
+			btn.innerHTML = excelIconHtml;
 			if (typeof handleWorkApprovalUploadFile === 'function') {
 				handleWorkApprovalUploadFile(e.dataTransfer.files[0], props.rowKey);
 			}

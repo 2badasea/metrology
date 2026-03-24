@@ -333,6 +333,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			SELECT
 			    r.id                                                  AS id,
 			    r.manage_no                                           AS manageNo,
+			    r.small_item_code_id                                  AS smallItemCodeId,
 			    sic.code_num                                          AS smallCodeNum,
 			    o.order_date                                          AS orderDate,
 			    r.expect_complete_date                                AS expectCompleteDate,
@@ -347,8 +348,27 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			    r.work_status                                         AS workStatus,
 			    r.order_type                                          AS orderType,
 			    wr.name                                               AS writeMemberName,
+			    r.work_member_id                                     AS workMemberId,
 			    wm.name                                               AS workMemberName,
-			    am.name                                               AS approvalMemberName
+			    am.name                                               AS approvalMemberName,
+			    (SELECT fi.id FROM file_info fi
+			         WHERE fi.ref_table_name = 'report'
+			           AND fi.ref_table_id   = r.id
+			           AND fi.name           = 'origin'
+			           AND fi.is_visible     = 'y'
+			         LIMIT 1)                                         AS originFileId,
+			    (SELECT fi.id FROM file_info fi
+			         WHERE fi.ref_table_name = 'report'
+			           AND fi.ref_table_id   = r.id
+			           AND fi.name           = 'signed_xlsx'
+			           AND fi.is_visible     = 'y'
+			         LIMIT 1)                                         AS excelFileId,
+			    (SELECT fi.id FROM file_info fi
+			         WHERE fi.ref_table_name = 'report'
+			           AND fi.ref_table_id   = r.id
+			           AND fi.name           = 'signed_pdf'
+			           AND fi.is_visible     = 'y'
+			         LIMIT 1)                                         AS pdfFileId
 			FROM report r
 			LEFT JOIN cali_order o  ON o.id  = r.cali_order_id
 			LEFT JOIN item_code sic ON sic.id = r.small_item_code_id

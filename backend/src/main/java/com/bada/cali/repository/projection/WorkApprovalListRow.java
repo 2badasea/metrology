@@ -13,6 +13,8 @@ public interface WorkApprovalListRow {
 
 	String getManageNo();            // 관리번호
 
+	Long getSmallItemCodeId();       // 소분류코드 id (성적서작성 모달 호출 시 전달용)
+
 	String getSmallCodeNum();        // 소분류코드
 
 	LocalDate getOrderDate();        // 접수일 (cali_order.order_date)
@@ -41,8 +43,20 @@ public interface WorkApprovalListRow {
 
 	String getWriteMemberName();     // 작성자 이름 (member.name JOIN)
 
+	Long getWorkMemberId();          // 실무자 member.id (다중결재 시 그룹화 기준)
+
 	String getWorkMemberName();      // 실무자 이름 (member.name JOIN)
 
 	String getApprovalMemberName();  // 기술책임자 이름 (member.name JOIN)
+
+	// ── 파일 다운로드 컬럼 (file_info 서브쿼리 — 없으면 null) ─────────────────
+	/** 원본 성적서 엑셀 file_info.id (name='report_origin') */
+	Long getOriginFileId();
+
+	/** 결재 완료 후 생성되는 Excel 출력 file_info.id (name='report_excel') */
+	Long getExcelFileId();
+
+	/** 결재 완료 후 생성되는 PDF 출력 file_info.id (name='report_pdf') */
+	Long getPdfFileId();
 
 }

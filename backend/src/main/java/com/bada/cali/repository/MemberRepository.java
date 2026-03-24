@@ -169,6 +169,28 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 			@Param("middleItemCodeId") Long middleItemCodeId,
 			@Param("bitmask") int bitmask);
 
+	/**
+	 * 중분류코드 제한 없이 지정한 권한 비트마스크를 보유한 모든 사내 직원 조회.
+	 * 통합수정 모달 최초 진입 시(중분류 미선택) 전체 실무자/기술책임자 목록을 반환할 때 사용.
+	 * DISTINCT: 동일 직원이 여러 중분류에 등록된 경우 중복 제거.
+	 *
+	 * @param bitmask 권한 비트마스크 (1=실무자, 6=기술책임자 부/정 통합)
+	 * @return 조건에 맞는 직원 id·name 목록 (중복 없음)
+	 */
+	@Query(value = """
+			SELECT DISTINCT m.id AS id, m.name AS name
+			FROM member m
+			JOIN member_code_auth mca ON mca.member_id = m.id
+			WHERE (mca.auth_bitmask & :bitmask) > 0
+			  AND m.agent_id = 0
+			  AND m.is_active = 'y'
+			  AND m.is_visible = 'y'
+			  AND (m.leave_date IS NULL OR m.leave_date > CURDATE())
+			  AND m.login_id != 'bada'
+			ORDER BY m.id ASC
+			""", nativeQuery = true)
+	List<MemberSelectRow> findMembersByBitmask(@Param("bitmask") int bitmask);
+
 	// FileInfo가 복수 존재할 경우 NonUniqueResultException 방어 → List 반환 후 서비스에서 첫 번째 사용
 	@Query("""
 			   select

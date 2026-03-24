@@ -1028,6 +1028,10 @@ function gGrid(selector, options) {
 		},
 		options,
 	);
+	// pageOptions: false 전달 시 페이지네이션 완전 비활성화 (기본값 주입 제거)
+	if (options.pageOptions === false) {
+		delete settings.pageOptions;
+	}
 	Grid.setLanguage('ko', {
 		display: {
 			noData: options.noData ? options.noData : '데이터가 존재하지 않습니다.',

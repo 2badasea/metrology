@@ -2,9 +2,9 @@
 import { NavLink } from "react-router-dom";
 
 const menus = [
-  { to: "/dashboard", label: "대시보드" },
-  { to: "/monitoring-calibration", label: "모니터링(교정)" },
-  { to: "/monitoring-estimate", label: "모니터링(견적)" },
+  // { to: "/dashboard", label: "대시보드" },          // TODO: 추후 구현 예정
+  // { to: "/monitoring-calibration", label: "모니터링(교정)" },  // TODO: 추후 구현 예정
+  // { to: "/monitoring-estimate", label: "모니터링(견적)" },     // TODO: 추후 구현 예정
   { to: "/notices", label: "업데이트공지" },
   { to: "/company-info", label: "회사정보" },
 ];
