@@ -34,7 +34,8 @@
       "Bash(find /c/BadaDev/cali/backend/src/main/resources/static/css -type f -name *workApproval* -o -type f -name *work*approval*)",
       "Bash(find /c/BadaDev/cali/backend/src/main/resources/static -type f \\\\\\(-name *.css -o -name *.scss \\\\\\) -newer /c/BadaDev/cali/backend/src/main/resources/templates/cali/workApproval.html)",
       "Bash(xargs grep:*)",
-      "Bash(grep -r \"sign\\\\|서명\\\\|signature\" C:BadaDevcalibackendsrcmainresourcesstaticjs --include=*.js -l)"
+      "Bash(grep -r \"sign\\\\|서명\\\\|signature\" C:BadaDevcalibackendsrcmainresourcesstaticjs --include=*.js -l)",
+      "Bash(./gradlew compileJava)"
     ]
   }
 }

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -142,6 +143,7 @@ public interface FileInfoRepository extends JpaRepository<FileInfo, Long> {
 			@Param("isVisible") YnType isVisible
 	);
 
+	@Transactional
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query("""
         update FileInfo f
@@ -166,6 +168,7 @@ public interface FileInfoRepository extends JpaRepository<FileInfo, Long> {
 	 * WORK_APPROVAL 콜백 SUCCESS 시 signed_xlsx / signed_pdf 파일만 삭제하고
 	 * origin 파일 file_info는 보존하기 위해 사용한다.
 	 */
+	@Transactional
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query("""
         update FileInfo f

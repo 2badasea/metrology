@@ -42,6 +42,7 @@ public class ReportJobBatchServiceImpl {
     private final ReportJobItemRepository     itemRepository;
     private final LogRepository               logRepository;
     private final FileInfoRepository          fileInfoRepository;
+    private final DemoJobProcessorService     demoProcessor;
 
     // ── 작업서버 연동 설정 (@Value 주입) ──────────────────────────────────────
 
@@ -121,11 +122,22 @@ public class ReportJobBatchServiceImpl {
                 throw new IllegalArgumentException(
                         String.format("소분류가 설정되지 않은 성적서가 포함되어 있습니다. (id: %d)", report.getId()));
             }
-            // 이미 성적서작성 진행 중인 경우 중복 실행 방지
+            // 이미 성적서작성 진행 중인 경우 처리
             if (report.getWriteStatus() == AppStatus.PROGRESS) {
-                throw new IllegalArgumentException(
-                        String.format("이미 성적서작성이 진행 중인 성적서가 포함되어 있습니다. (id: %d, 성적서번호: %s)",
-                                report.getId(), report.getReportNum()));
+                // 실제 활성 배치(READY/PROGRESS)가 존재하는지 확인 ─────────────────
+                // 존재하면: 실제 처리 중 → 중복 실행 차단
+                // 없으면: 서버 재시작·치명적 오류 등으로 고착 상태 → 자동 FAIL 리셋 후 재작업 허용
+                boolean hasActiveBatch = itemRepository.existsActiveBatchForReport(
+                        report.getId(), "WRITE");
+                if (hasActiveBatch) {
+                    throw new IllegalArgumentException(
+                            String.format("이미 성적서작성이 진행 중인 성적서가 포함되어 있습니다. (id: %d, 성적서번호: %s)",
+                                    report.getId(), report.getReportNum()));
+                }
+                // 활성 배치 없음 → 고착 상태 자동 리셋
+                log.warn("성적서 write_status=PROGRESS 이지만 활성 배치 없음 — FAIL로 자동 리셋 (reportId: {}, reportNum: {})",
+                        report.getId(), report.getReportNum());
+                report.setWriteStatus(AppStatus.FAIL);
             }
             // 실무자결재가 대기(READY) 또는 진행 중(PROGRESS)인 경우 성적서작성 차단
             // (결재 진행 중 원본 파일 교체 방지)
@@ -468,11 +480,20 @@ public class ReportJobBatchServiceImpl {
                         String.format("성적서작성이 완료되지 않은 성적서가 포함되어 있습니다. (id: %d, 성적서번호: %s)",
                                 report.getId(), report.getReportNum()));
             }
-            // 이미 실무자결재 진행 중인 경우 중복 실행 방지
+            // 이미 실무자결재 진행 중인 경우 처리
             if (report.getWorkStatus() == AppStatus.PROGRESS) {
-                throw new IllegalArgumentException(
-                        String.format("이미 실무자결재가 진행 중인 성적서가 포함되어 있습니다. (id: %d, 성적서번호: %s)",
-                                report.getId(), report.getReportNum()));
+                // 실제 활성 배치(READY/PROGRESS)가 존재하는지 확인 ─────────────────
+                boolean hasActiveBatch = itemRepository.existsActiveBatchForReport(
+                        report.getId(), "WORK_APPROVAL");
+                if (hasActiveBatch) {
+                    throw new IllegalArgumentException(
+                            String.format("이미 실무자결재가 진행 중인 성적서가 포함되어 있습니다. (id: %d, 성적서번호: %s)",
+                                    report.getId(), report.getReportNum()));
+                }
+                // 활성 배치 없음 → 고착 상태 자동 리셋
+                log.warn("성적서 work_status=PROGRESS 이지만 활성 배치 없음 — FAIL로 자동 리셋 (reportId: {}, reportNum: {})",
+                        report.getId(), report.getReportNum());
+                report.setWorkStatus(AppStatus.FAIL);
             }
             // 기술책임자결재가 진행 중인 경우 차단
             if (report.getApprovalStatus() == AppStatus.READY || report.getApprovalStatus() == AppStatus.PROGRESS) {
@@ -496,24 +517,32 @@ public class ReportJobBatchServiceImpl {
         }
 
         // ── 2. 실무자 서명 이미지 objectKey 조회 ──────────────────────────────
-        // 배치 내 성적서에 지정된 실무자(workMemberId) 기준으로 서명 이미지를 조회한다.
-        // file_info: ref_table_name='member', ref_table_id=workMemberId, is_visible='y'
-        // objectKey 규칙: {rootDir}/{dir}{fileId}.{extension}
-        log.debug("[createWorkApprovalBatch] 서명 이미지 조회. workMemberId={}", batchWorkMemberId);
-        List<FileInfo> signFiles = fileInfoRepository.findByRefTableNameAndRefTableIdAndIsVisible(
-                "member", batchWorkMemberId, YnType.y);
-        if (signFiles.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "실무자 서명 이미지가 등록되어 있지 않습니다. 해당 실무자의 서명 이미지를 먼저 등록해 주세요. (workMemberId=" + batchWorkMemberId + ")");
-        }
-        FileInfo signFile = signFiles.get(0);
-        // objectKey 조합 (FileServiceImpl.downloadFile() 과 동일한 규칙)
-        final String dir = signFile.getDir();
+        // 데모 모드(workerUrl 미설정)에서는 서명 이미지 조회를 생략한다.
+        // 데모 프로세서가 서명 삽입 없이 샘플 파일을 그대로 업로드하므로 objectKey 불필요.
         final String signObjectKey;
-        if (dir.endsWith("/")) {
-            signObjectKey = storageRootDir + "/" + dir + signFile.getId() + "." + signFile.getExtension();
+        if (workerUrl == null || workerUrl.isBlank()) {
+            // 데모 모드: 서명 이미지 조회 생략
+            signObjectKey = null;
+            log.info("[createWorkApprovalBatch] 데모 모드 — 서명 이미지 조회 생략. workMemberId={}", batchWorkMemberId);
         } else {
-            signObjectKey = storageRootDir + "/" + dir + "/" + signFile.getId() + "." + signFile.getExtension();
+            // 실제 모드: 배치 내 성적서에 지정된 실무자(workMemberId) 기준으로 서명 이미지 조회
+            // file_info: ref_table_name='member', ref_table_id=workMemberId, is_visible='y'
+            // objectKey 규칙: {rootDir}/{dir}{fileId}.{extension}
+            log.debug("[createWorkApprovalBatch] 서명 이미지 조회. workMemberId={}", batchWorkMemberId);
+            List<FileInfo> signFiles = fileInfoRepository.findByRefTableNameAndRefTableIdAndIsVisible(
+                    "member", batchWorkMemberId, YnType.y);
+            if (signFiles.isEmpty()) {
+                throw new IllegalArgumentException(
+                        "실무자 서명 이미지가 등록되어 있지 않습니다. 해당 실무자의 서명 이미지를 먼저 등록해 주세요. (workMemberId=" + batchWorkMemberId + ")");
+            }
+            FileInfo signFile = signFiles.get(0);
+            // objectKey 조합 (FileServiceImpl.downloadFile() 과 동일한 규칙)
+            final String signDir = signFile.getDir();
+            if (signDir.endsWith("/")) {
+                signObjectKey = storageRootDir + "/" + signDir + signFile.getId() + "." + signFile.getExtension();
+            } else {
+                signObjectKey = storageRootDir + "/" + signDir + "/" + signFile.getId() + "." + signFile.getExtension();
+            }
         }
 
         // ── 3. ReportJobBatch 생성 ────────────────────────────────────────────
@@ -579,9 +608,13 @@ public class ReportJobBatchServiceImpl {
      */
     @Transactional
     public void triggerWorkerServer(Long batchId, String workerSignImgKey) {
-        // ── 개발 모드: 작업서버 URL 미설정 시 트리거 생략 ────────────────────
+        // ── 데모 모드: app.worker.url 미설정 시 cali-worker 대신 데모 프로세서 실행 ─
+        // 데모 프로세서는 etc/ 경로의 고정 샘플 파일을 스토리지에 업로드하여
+        // 실제 처리된 것처럼 동작한다. 폴링 UI는 그대로 동작한다.
+        // 실제 cali-worker 전환: app.worker.url=http://localhost:8060 설정
         if (workerUrl == null || workerUrl.isBlank()) {
-            log.info("app.worker.url 미설정 — 작업서버 트리거 생략 (개발 모드, batchId: {})", batchId);
+            log.info("app.worker.url 미설정 — 데모 모드로 처리 (batchId: {})", batchId);
+            demoProcessor.process(batchId);
             return;
         }
 

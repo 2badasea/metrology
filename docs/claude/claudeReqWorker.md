@@ -436,6 +436,75 @@ cali-worker 소스는 삭제하지 않고 보존.
 
 ---
 
+## 13. 데모 모드 구현 — cali-worker 미구동 시 샘플 파일 직접 업로드 (2026-03-24)
+
+### 13-1. 배경
+
+이력서 포트폴리오 시연 목적으로, cali-worker를 구동하지 않아도 성적서작성·실무자결재 워크플로우를 완전히 시연할 수 있도록 데모 모드를 구현.
+
+### 13-2. 설계 원칙
+
+- **인터페이스 보존**: cali-worker 관련 소스(triggerWorkerServer, WorkerCallbackController 등) 는 그대로 유지
+- **모드 전환**: `application.properties`의 `app.worker.url` 하나로 전환
+  - 비워두면 → 데모 모드 (`DemoJobProcessorService`)
+  - URL 설정 시 → 실제 cali-worker 호출 (기존 동작)
+- **폴링 UI 그대로 동작**: 데모 프로세서가 단계별 딜레이 + 상태 업데이트를 직접 수행하므로 프론트엔드 변경 없음
+
+### 13-3. 추가/변경된 파일 (CALI backend)
+
+| 파일 | 변경 내용 |
+|---|---|
+| `config/AsyncConfig.java` | 신규 — `@EnableAsync` + 스레드풀(core=2, max=5) |
+| `service/DemoJobProcessorService.java` | 신규 — 비동기 데모 처리 서비스 |
+| `service/ReportJobBatchServiceImpl.java` | `triggerWorkerServer()` 분기 추가 / `createWorkApprovalBatch()` 서명이미지 스킵 조건 추가 |
+| `repository/FileInfoRepository.java` | `@Modifying` 메서드 2개에 `@Transactional` 추가 (데모 서비스의 외부 트랜잭션 없는 호출 대응) |
+| `application.properties` | `app.worker.url=` (비움), `app.demo.file-dir=C:/BadaDev/cali/etc` 추가 |
+
+### 13-4. 데모 파일 위치
+
+```
+C:\BadaDev\cali\etc\
+├── BD26-0004-0001.xlsx    ← WRITE 시 origin.xlsx / WORK_APPROVAL 시 signed.xlsx 로 업로드
+└── BD26-0004-0001.pdf     ← WORK_APPROVAL 시 signed.pdf 로 업로드
+```
+
+### 13-5. S3 업로드 경로 규칙 (데모 모드 동일)
+
+| 작업 | S3 objectKey |
+|---|---|
+| WRITE 완료 | `{rootDir}/report/{reportId}/origin.xlsx` |
+| WORK_APPROVAL 완료 (엑셀) | `{rootDir}/report/{reportId}/signed.xlsx` |
+| WORK_APPROVAL 완료 (PDF) | `{rootDir}/report/{reportId}/signed.pdf` |
+
+### 13-6. 단계별 딜레이 (폴링 UI 표시용)
+
+**WRITE**
+```
+DOWNLOADING_TEMPLATE (1.5s) → FILLING_DATA (2s) → UPLOADING_ORIGIN (0.8s) → DONE
+```
+
+**WORK_APPROVAL**
+```
+DOWNLOADING_ORIGIN (1.5s) → INSERTING_SIGN (2s) → CONVERTING_PDF (2s) → UPLOADING_SIGNED (0.8s) → DONE
+```
+
+### 13-7. 데모 모드에서의 서명이미지 처리
+
+`createWorkApprovalBatch()` 에서 `workerUrl` 이 비어있으면 서명이미지 DB 조회를 생략.
+데모 프로세서는 서명 삽입 없이 샘플 파일을 그대로 업로드하므로 `workerSignImgKey = null` 로 처리됨.
+
+### 13-8. 모드 전환 방법
+
+```properties
+# 데모 모드 (cali-worker 미구동)
+app.worker.url=
+
+# 실제 cali-worker 전환 시
+app.worker.url=http://localhost:8060
+```
+
+---
+
 ## 10. 참고 문서
 
 | 경로 | 내용 |

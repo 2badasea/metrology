@@ -231,6 +231,9 @@ public class MemberDTO {
 	// 메뉴 권한 저장 요청
 	public record SaveMenuPermissionsReq(List<Long> menuIds) {}
 
+	// 현재 로그인 사용자 기본 정보
+	public record MeRes(String name, boolean isAdmin) {}
+
 	// 조합( record + class)
 	public record GetMemberInfoSet(
 			GetMemberInfoPr basicMemberInfo,
