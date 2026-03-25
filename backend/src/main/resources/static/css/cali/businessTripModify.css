@@ -1,0 +1,46 @@
+/* ============================================================
+   출장일정 등록/수정 모달
+   경로: static/css/cali/businessTripModify.css
+   ============================================================ */
+
+/* 테이블 th 정렬 */
+.btripModifyForm th {
+    vertical-align: middle;
+    text-align: center;
+    background-color: #f8f9fa;
+    font-size: .85rem;
+}
+
+.btripModifyForm td {
+    vertical-align: middle;
+    padding: 4px 6px;
+}
+
+/* 필수 항목 표시 */
+.btripModifyForm th.required::after {
+    content: ' *';
+    color: #dc3545;
+}
+
+/* selectpicker 너비 보정 */
+.bootstrap-select {
+    width: 100% !important;
+}
+
+/* 비고 textarea — 세로 리사이즈 비활성화 */
+.btripModifyForm textarea[name=remark] {
+    resize: none;
+}
+
+/* 카드 헤더 */
+.card-header {
+    background-color: #f8f9fa;
+}
+
+/* 그리드 삭제 버튼 컬럼 — cell padding 제거하여 버튼이 셀 전체를 채우도록 */
+.tui-grid-cell.delete-col .tui-grid-cell-content {
+    padding: 0;
+    height: 100%;
+    display: flex;
+    align-items: stretch;
+}

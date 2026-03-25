@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(git rm:*)",
-      "Bash(find /c/BadaDev/cali -name *orderDetail* -o -name *order*detail*)"
+      "Bash(find /c/BadaDev/cali -name *orderDetail* -o -name *order*detail*)",
+      "Bash(powershell -Command \":*)"
     ]
   }
 }

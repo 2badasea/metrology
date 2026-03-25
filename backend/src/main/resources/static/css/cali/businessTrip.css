@@ -1,0 +1,89 @@
+/* ============================================================
+   출장일정 - 캘린더 메인 페이지
+   경로: static/css/cali/businessTrip.css
+   ============================================================ */
+
+/* 전체 래퍼 */
+#calendarWrap {
+    padding: 16px;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+
+/* FullCalendar 기본 높이 */
+#calendar {
+    min-height: 600px;
+}
+
+/* 캘린더 헤더 커스텀 버튼 — 리스트보기(초록), 일정등록(파란) */
+.fc .fc-listViewBtn-button {
+    background-color: #28a745 !important;
+    border-color: #1e7e34 !important;
+}
+.fc .fc-listViewBtn-button:hover,
+.fc .fc-listViewBtn-button:focus {
+    background-color: #218838 !important;
+    border-color: #1e7e34 !important;
+}
+
+.fc .fc-registerBtn-button {
+    background-color: #007bff !important;
+    border-color: #0062cc !important;
+}
+.fc .fc-registerBtn-button:hover,
+.fc .fc-registerBtn-button:focus {
+    background-color: #0069d9 !important;
+    border-color: #0062cc !important;
+}
+
+/* ────── 이벤트 커스텀 스타일 ────── */
+
+/* 이벤트 전체 박스 */
+.fc-event-custom {
+    padding: 2px 4px;
+    font-size: .78rem;
+    line-height: 1.4;
+    overflow: hidden;
+}
+
+/* 유형 라인 (첫 번째 행) */
+.fc-event-type {
+    font-size: .72rem;
+    color: #e0e0e0;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 제목 라인 (두 번째 행) */
+.fc-event-title-custom {
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 출장자 라인 (세 번째 행) */
+.fc-event-travelers {
+    font-size: .72rem;
+    color: #f0f0f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 이벤트 배경색 — 회색 계열 */
+.fc-event,
+.fc-event-main {
+    background-color: #6c757d !important;
+    border-color: #5a6268 !important;
+    color: #fff !important;
+}
+
+/* 더보기 링크 */
+.fc-daygrid-more-link {
+    font-size: .78rem;
+    color: #495057;
+}

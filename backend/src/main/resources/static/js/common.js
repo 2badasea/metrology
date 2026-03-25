@@ -997,6 +997,24 @@ function cloneObject(obj) {
  * @param {object} options 설정(columns, data 필수)
  * @returns Grid object
  */
+/**
+ * LocalDateTime 문자열을 <input type="datetime-local"> 값 형식으로 변환
+ *
+ * 서버에서 LocalDateTime이 "2025-03-25T09:00:00" 형태로 직렬화된 경우,
+ * datetime-local input은 "YYYY-MM-DDTHH:MM" 형식(초 이하 제거)을 요구하므로 잘라냄.
+ *
+ * @param {string|any} val - 서버에서 받은 날짜시간 값
+ * @returns {string} "YYYY-MM-DDTHH:MM" 형식 문자열, 값이 없으면 빈 문자열
+ *
+ * @example
+ * toDatetimeLocal("2025-03-25T09:30:00")  // → "2025-03-25T09:30"
+ * toDatetimeLocal(null)                    // → ""
+ */
+function toDatetimeLocal(val) {
+	if (!val) return '';
+	return String(val).substring(0, 16);
+}
+
 function gGrid(selector, options) {
 	let response;
 	if (options.response != undefined) {
@@ -1028,9 +1046,21 @@ function gGrid(selector, options) {
 		},
 		options,
 	);
-	// pageOptions: false 전달 시 페이지네이션 완전 비활성화 (기본값 주입 제거)
-	if (options.pageOptions === false) {
+	// pageOptions 처리:
+	//   - false 전달: 페이지네이션 완전 비활성화 (기존 동작 유지)
+	//   - 명시적으로 설정했으나 perPage가 유효한 양의 정수가 아닌 경우도 비활성화
+	//     (예: pageOptions: {} 또는 pageOptions: { perPage: undefined })
+	//   - pageOptions 미전달(undefined): 기본값 perPage:20 그대로 유지 (기존 동작)
+	const origPageOpts = options.pageOptions;
+	if (origPageOpts === false) {
+		// 명시적 false → 완전 제거
 		delete settings.pageOptions;
+	} else if (origPageOpts !== undefined) {
+		// 명시적으로 pageOptions를 설정했지만 perPage가 유효하지 않은 경우 제거
+		const perPage = settings.pageOptions?.perPage;
+		if (!perPage || typeof perPage !== 'number' || !Number.isFinite(perPage) || perPage <= 0) {
+			delete settings.pageOptions;
+		}
 	}
 	Grid.setLanguage('ko', {
 		display: {

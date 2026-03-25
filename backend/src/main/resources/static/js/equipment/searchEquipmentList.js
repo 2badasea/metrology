@@ -43,7 +43,7 @@ $(function () {
 						grid_param.isUse = $('form.searchForm', $modal).find('.isUse').val() ?? '';
 						grid_param.isDispose = $('form.searchForm', $modal).find('.isDispose').val() ?? '';
 						grid_param.searchType = $('form.searchForm .searchType', $modal).val() ?? ''; // 검색타입 (전체는 ''로 넘김)
-						grid_param.keyword = $('form.searchForm', $modal).find('input[name=keyword]').val().trim(); // 검색키워드
+						grid_param.keyword = ($('form.searchForm', $modal).find('input[name=keyword]').val() ?? '').trim(); // 검색키워드
 						grid_param.exceptIds = exceptIds ?? []; // 검색제외 id
 						return $.param(grid_param);
 					},

@@ -1,0 +1,285 @@
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<div layout:fragment="content">
+    <div class="d-flex flex-wrap">
+
+        <!-- ====================================================
+             좌측: 표준장비 + 출장차량 그리드 (col-6)
+        ==================================================== -->
+        <div class="col-6 pl-0 pr-1">
+
+            <!-- ── 표준장비 리스트 ── -->
+            <div class="card mb-2">
+                <div class="card-header py-1 d-flex align-items-center justify-content-between">
+                    <span class="font-weight-bold" style="font-size:.9rem;">
+                        표준장비 리스트 <span class="equipCnt text-muted"></span>
+                    </span>
+                    <button type="button" class="btn btn-secondary btn-sm btnSearchEquip">조회</button>
+                </div>
+                <div class="card-body p-1">
+                    <div class="equipageList"></div>
+                </div>
+            </div>
+
+            <!-- ── 출장차량 리스트 ── -->
+            <div class="card">
+                <div class="card-header py-1 d-flex align-items-center justify-content-between">
+                    <span class="font-weight-bold" style="font-size:.9rem;">출장차량</span>
+                    <button type="button" class="btn btn-secondary btn-sm btnSearchCar">조회</button>
+                </div>
+                <div class="card-body p-1">
+                    <div class="carList"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ====================================================
+             우측: 출장일정 정보 폼 (col-6)
+        ==================================================== -->
+        <div class="col-6 pr-0 pl-1">
+            <form class="btripModifyForm">
+                <!-- 숨김 필드 -->
+                <input type="hidden" name="btripId"       th:value="${btripId}" />
+                <input type="hidden" name="custAgentId"   value="" />
+                <input type="hidden" name="reportAgentId" value="" />
+
+                <table class="table table-bordered text-center mb-0" style="font-size:.88rem;">
+                    <colgroup>
+                        <col width="110px" />
+                        <col />
+                        <col width="90px" />
+                        <col />
+                    </colgroup>
+                    <tbody>
+
+                        <!-- 일정제목 (한 줄 전체) -->
+                        <tr>
+                            <th class="required">일정제목</th>
+                            <td colspan="3">
+                                <input type="text" class="form-control form-control-sm" name="title"
+                                    placeholder="출장 제목 입력" />
+                            </td>
+                        </tr>
+
+                        <!-- 출장시작일시 / 일정유형 -->
+                        <tr>
+                            <th class="required">출장시작일시</th>
+                            <td>
+                                <input type="datetime-local" class="form-control form-control-sm" name="startDatetime" />
+                            </td>
+                            <th>일정유형</th>
+                            <td>
+                                <select class="form-control form-control-sm" name="type">
+                                    <option value="">없음</option>
+                                    <!-- 추후 유형 코드 정의 후 옵션 추가 예정 -->
+                                </select>
+                            </td>
+                        </tr>
+
+                        <!-- 출장종료일시 / 최종수정자 -->
+                        <tr>
+                            <th class="required">출장종료일시</th>
+                            <td>
+                                <input type="datetime-local" class="form-control form-control-sm" name="endDatetime" />
+                            </td>
+                            <th>최종수정자</th>
+                            <td>
+                                <input type="text" class="form-control form-control-sm updateMemberNameDisplay"
+                                    readonly placeholder="-" />
+                            </td>
+                        </tr>
+
+                        <!-- ────── 신청업체 ────── -->
+                        <tr>
+                            <th>신청업체</th>
+                            <td colspan="3" style="padding:0;">
+                                <div class="input-group">
+                                    <!-- readonly: 직접 입력 불가, 클릭 또는 '조회' 버튼으로만 업체 선택 -->
+                                    <input type="text" class="form-control agentReadonlyInput" name="custAgent"
+                                        placeholder="클릭하여 업체 검색" readonly
+                                        data-search-type="cust" style="cursor:pointer;" />
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-secondary btnSearchCustAgent">조회</button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 신청업체 주소 -->
+                        <tr>
+                            <th>신청업체 주소</th>
+                            <td colspan="3" style="padding:0;">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="custAgentAddr" />
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-secondary btnSearchAddr"
+                                            data-addr-target="custAgentAddr">검색</button>
+                                    </div>
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-info viewRoadMap"
+                                            data-target="custAgentAddr" data-title="신청업체">
+                                            <i class="bi bi-pin-map"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 신청업체 담당자 / 연락처 -->
+                        <tr>
+                            <th>담당자</th>
+                            <td>
+                                <input type="text" class="form-control form-control-sm" name="custManager" />
+                            </td>
+                            <th>연락처</th>
+                            <td>
+                                <input type="text" class="form-control form-control-sm tel" name="custManagerTel" />
+                            </td>
+                        </tr>
+
+                        <!-- 신청업체 담당자 이메일 -->
+                        <tr>
+                            <th>이메일</th>
+                            <td colspan="3">
+                                <input type="text" class="form-control form-control-sm" name="custManagerEmail" />
+                            </td>
+                        </tr>
+
+                        <!-- ────── 성적서발행처 ────── -->
+                        <tr>
+                            <th>성적서발행처</th>
+                            <td colspan="3" style="padding:0;">
+                                <div class="input-group">
+                                    <input type="text" class="form-control agentReadonlyInput" name="reportAgent"
+                                        placeholder="클릭하여 업체 검색" readonly
+                                        data-search-type="report" style="cursor:pointer;" />
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-secondary btnSearchReportAgent">조회</button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 성적서발행처 주소 -->
+                        <tr>
+                            <th>발행처 주소</th>
+                            <td colspan="3" style="padding:0;">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="reportAgentAddr" />
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-secondary btnSearchAddr"
+                                            data-addr-target="reportAgentAddr">검색</button>
+                                    </div>
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-info viewRoadMap"
+                                            data-target="reportAgentAddr" data-title="성적서발행처">
+                                            <i class="bi bi-pin-map"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 성적서발행처 담당자 / 연락처 -->
+                        <tr>
+                            <th>담당자</th>
+                            <td>
+                                <input type="text" class="form-control form-control-sm" name="reportManager" />
+                            </td>
+                            <th>연락처</th>
+                            <td>
+                                <input type="text" class="form-control form-control-sm tel" name="reportManagerTel" />
+                            </td>
+                        </tr>
+
+                        <!-- ────── 소재지 ────── -->
+                        <tr>
+                            <th>소재지 주소</th>
+                            <td colspan="3" style="padding:0;">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="siteAddr" />
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-secondary btnSearchAddr"
+                                            data-addr-target="siteAddr">검색</button>
+                                    </div>
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-info viewRoadMap"
+                                            data-target="siteAddr" data-title="소재지">
+                                            <i class="bi bi-pin-map"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 소재지 담당자 / 연락처 -->
+                        <tr>
+                            <th>소재지 담당자</th>
+                            <td>
+                                <input type="text" class="form-control form-control-sm" name="siteManager" />
+                            </td>
+                            <th>연락처</th>
+                            <td>
+                                <input type="text" class="form-control form-control-sm tel" name="siteManagerTel" />
+                            </td>
+                        </tr>
+
+                        <!-- 소재지 담당자 이메일 -->
+                        <tr>
+                            <th>소재지 이메일</th>
+                            <td colspan="3">
+                                <input type="text" class="form-control form-control-sm" name="siteManagerEmail" />
+                            </td>
+                        </tr>
+
+                        <!-- ────── 교정실무자 (selectpicker 다중선택) ────── -->
+                        <tr>
+                            <th>교정실무자</th>
+                            <td colspan="3">
+                                <select class="form-control selectpicker travelerSelect"
+                                    name="travelerIds"
+                                    multiple
+                                    data-live-search="true"
+                                    data-selected-text-format="count > 2"
+                                    data-count-selected-text="{0}명 선택"
+                                    title="실무자를 선택하세요."
+                                    style="width:100%;">
+                                </select>
+                            </td>
+                        </tr>
+
+                        <!-- ────── 첨부파일 ────── -->
+                        <tr>
+                            <th>첨부파일</th>
+                            <td colspan="3">
+                                <div class="d-flex align-items-center" style="gap:6px;">
+                                    <!-- 기존 파일 조회 버튼: 파일 존재 시 btn-primary, 없으면 btn-secondary -->
+                                    <button type="button" class="btn btn-secondary btn-sm searchFile" value="0">
+                                        <i class="bi bi-folder2-open"></i> 첨부파일
+                                    </button>
+                                    <!-- 새 파일 선택 (input type="file" 기본 UI) -->
+                                    <input type="file" class="uploadFiles" multiple />
+                                    <small class="text-muted">최대 5개</small>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- ────── 비고 ────── -->
+                        <tr>
+                            <th>비고</th>
+                            <td colspan="3">
+                                <textarea class="form-control form-control-sm" name="remark"
+                                    rows="3" placeholder="비고를 입력하세요."></textarea>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </div><!-- /.d-flex -->
+</div>
+
+</html>

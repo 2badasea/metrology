@@ -85,4 +85,21 @@ public class CaliController {
 	public String selfReportMultiUpdate() {
 		return "cali/selfReportMultiUpdate";
 	}
+
+	// 출장일정 페이지 이동
+	@GetMapping(value = "/businessTrip")
+	public String businessTrip(Model model) {
+		model.addAttribute("title", "출장일정");
+		return "cali/businessTrip";
+	}
+
+	// 출장일정 등록/수정 모달 (gModal 호출)
+	@PostMapping(value = "/businessTripModify")
+	public String businessTripModify(Model model, @RequestParam(required = false) Long id) {
+		// id가 있으면 수정 모달, 없으면 등록 모달
+		boolean isModify = (id != null && id > 0);
+		model.addAttribute("isModify", isModify);
+		model.addAttribute("btripId", id);
+		return "cali/businessTripModify";
+	}
 }
