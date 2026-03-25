@@ -102,4 +102,12 @@ public class CaliController {
 		model.addAttribute("btripId", id);
 		return "cali/businessTripModify";
 	}
+
+	// 출장일정 리스트 페이지 이동 (캘린더 '리스트보기' 버튼 또는 직접 URL 진입)
+	// 메뉴테이블 미등록 — 캘린더 페이지(/cali/businessTrip)에서만 진입 유도
+	@GetMapping(value = "/businessTripList")
+	public String businessTripList(Model model) {
+		model.addAttribute("title", "출장일정 리스트");
+		return "cali/businessTripList";
+	}
 }

@@ -1,0 +1,11 @@
+/* ================================================================
+   출장일정 리스트 페이지 전용 스타일
+   templates/cali/businessTripList.html
+================================================================ */
+
+/* 그리드 내 버튼(파일, 접수) — TUI Grid 셀 내부 버튼 공통 */
+#tripListGrid .tui-grid-cell .btn {
+    font-size: .8rem;
+    padding: 0 6px;
+    line-height: 26px;
+}

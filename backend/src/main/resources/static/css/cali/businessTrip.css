@@ -87,3 +87,8 @@
     font-size: .78rem;
     color: #495057;
 }
+
+/* 날짜 셀 — 포인터 커서 (클릭/더블클릭 가능 영역임을 시각적으로 표시) */
+.fc-daygrid-day {
+    cursor: pointer;
+}

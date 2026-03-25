@@ -84,6 +84,11 @@ $(function () {
                 show_close_button: true,
                 show_confirm_button: true,
                 confirm_button_text: '저장',
+                // 삭제 버튼: mr-auto로 저장/닫기 버튼의 왼쪽에 배치
+                // 클릭 핸들러는 businessTripModify.js 모듈 레벨 $modal_root.on('click', '.modal-btn-delete-btrip', ...)에서 처리
+                custom_btn_html_arr: [
+                    '<button type="button" class="btn btn-danger btn-sm modal-btn-delete-btrip mr-auto">삭제</button>',
+                ],
             }
         );
         calendar.refetchEvents();
@@ -113,11 +118,11 @@ $(function () {
                     openRegisterModal(null);
                 }
             },
-            // 리스트보기 버튼 (미구현 — 버튼만 표시)
+            // 리스트보기 버튼 — 출장일정 리스트 페이지로 이동
             listViewBtn: {
                 text: '리스트보기',
                 click: function () {
-                    gToast('구현 준비중입니다.', 'info');
+                    window.location.href = '/cali/businessTripList';
                 }
             }
         },
@@ -128,9 +133,11 @@ $(function () {
         // 이벤트 소스: 캘린더 뷰 변경/이동 시마다 API 호출
         events: async function (fetchInfo, successCallback, failureCallback) {
             try {
+                // FullCalendar startStr/endStr에는 '+09:00' 같은 timezone offset이 포함되어
+                // Spring LocalDateTime이 파싱 실패하므로 앞 19자리(yyyy-MM-ddTHH:mm:ss)만 사용
                 const params = new URLSearchParams({
-                    rangeStart: fetchInfo.startStr,
-                    rangeEnd:   fetchInfo.endStr
+                    rangeStart: fetchInfo.startStr.substring(0, 19),
+                    rangeEnd:   fetchInfo.endStr.substring(0, 19)
                 });
                 const res = await fetch(`/api/admin/businessTrip/calendar?${params}`);
                 if (!res.ok) throw res;

@@ -132,6 +132,15 @@ $(function () {
 			// updateMemberName은 name 속성 없는 display 전용 input → 별도 세팅
 			$('input.updateMemberNameDisplay', $form).val(d.updateMemberName ?? '');
 
+			// 첨부파일 건수 반영: 파일이 있으면 버튼 파란색(btn-primary)으로 전환
+			const fileCnt = d.fileCnt ?? 0;
+			if (fileCnt > 0) {
+				$('.searchFile', $modal)
+					.val(fileCnt)
+					.removeClass('btn-secondary')
+					.addClass('btn-primary');
+			}
+
 			// 출장자 selectpicker 복원
 			const selectedIds = d.travelerIds
 				? d.travelerIds.split(',').map(s => s.trim()).filter(Boolean)
@@ -318,18 +327,132 @@ $(function () {
 	};
 
 	// ──────────────────────────────────────────
+	// $modal.checkAndFilterConflicts — 표준장비 중복 체크 + 그리드 제거
+	// - startDatetime / endDatetime 중 하나라도 없으면 스킵 (일시 필수)
+	// - 중복 있으면 gMessage 안내 후 equipGrid에서 해당 항목 제거
+	// - 저장 직전 호출 시 중복 있으면 false 반환 (저장 취소)
+	// @param {boolean} isSaving — true이면 저장 직전 체크 (중복 시 저장 취소)
+	// @return {boolean} 계속 진행 여부 (false = 중복으로 인해 저장 취소)
+	// ──────────────────────────────────────────
+	$modal.checkAndFilterConflicts = async function (isSaving = false) {
+		const startDatetime = $('input[name=startDatetime]', $form).val();
+		const endDatetime   = $('input[name=endDatetime]',   $form).val();
+
+		// 일시 미설정 시 스킵 (일시는 저장 필수값이므로 confirm_modal에서 별도 검증)
+		if (!startDatetime || !endDatetime) return true;
+
+		const equipData    = $modal.equipGrid.getData();
+		const equipmentIds = equipData.map(row => row.equipmentId).filter(Boolean);
+
+		// 체크할 장비 없으면 스킵
+		if (equipmentIds.length === 0) return true;
+
+		gLoadingMessage('일정 중복 여부를 확인합니다...');
+
+		try {
+			const res = await fetch('/api/admin/businessTrip/checkConflict', {
+				method:  'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body:    JSON.stringify({
+					btripId:       isModify ? Number(btripId) : null,
+					startDatetime,
+					endDatetime,
+					equipmentIds,
+				}),
+			});
+			if (!res.ok) throw res;
+			const json = await res.json();
+			const data = json.data;
+
+			Swal.close(); // 로딩 닫기
+
+			if (!data.hasConflict) return true;
+
+			// ── 중복 항목 안내 메시지 구성 ────────────────
+			const conflictLines = data.conflictEquipments
+				.map(e => `• [${e.manageNo || '-'}] ${e.name} → ${e.conflictInfo}`)
+				.join('<br>');
+
+			const prefix = isSaving
+				? '저장 직전 중복이 확인되어 저장이 취소되었습니다.<br>다음 표준장비가 동일 시간대의 다른 출장일정에 이미 등록되어 있어 그리드에서 제거됩니다:'
+				: '다음 표준장비가 동일 시간대의 다른 출장일정에 이미 등록되어 있어 그리드에서 제거됩니다:';
+
+			await gMessage(
+				'중복 표준장비 제거',
+				`${prefix}<br><br>${conflictLines}`,
+				'warning'
+			);
+
+			// ── 그리드에서 중복 항목 제거 ────────────────
+			const conflictIds = new Set(data.conflictEquipments.map(e => e.equipmentId));
+			const remaining   = $modal.equipGrid.getData().filter(row => !conflictIds.has(row.equipmentId));
+			$modal.equipGrid.resetData(remaining);
+			$modal.updateEquipCnt();
+
+			// 저장 직전 중복 발견 시 저장 취소 (false 반환)
+			return !isSaving;
+
+		} catch (e) {
+			Swal.close();
+			console.error('중복 체크 실패', e);
+			gApiErrorHandler(e);
+			return false;
+		}
+	};
+
+		// ──────────────────────────────────────────
+	// 출장일정 삭제 버튼 핸들러 (모달 루트에 위임)
+	// - 수정 모달 호출 시 custom_btn_html_arr로 주입된 .modal-btn-delete-btrip 버튼 처리
+	// - gMessage confirm → DELETE API → 모달 닫기
+	// ──────────────────────────────────────────
+	$modal_root.on('click', '.modal-btn-delete-btrip', async function () {
+		if (!btripId || btripId === 'null' || btripId === '') {
+			gToast('삭제할 출장일정 정보를 확인할 수 없습니다.', 'error');
+			return;
+		}
+
+		const confirmResult = await gMessage(
+			'출장일정을 삭제하시겠습니까?',
+			'삭제된 출장일정은 복구할 수 없습니다.',
+			'warning',
+			'confirm'
+		);
+		if (confirmResult.isConfirmed !== true) return;
+
+		gLoadingMessage('삭제 중입니다...');
+		try {
+			const res = await fetch('/api/admin/businessTrip', {
+				method:  'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body:    JSON.stringify({ ids: [Number(btripId)] }),
+			});
+			if (!res.ok) throw res;
+
+			await gMessage('출장일정 삭제 완료', '출장일정이 삭제되었습니다.', 'success');
+			$modal_root.modal('hide');
+		} catch (e) {
+			Swal.close();
+			console.error('출장일정 삭제 실패', e);
+			gApiErrorHandler(e);
+		}
+	});
+
+	// ──────────────────────────────────────────
 	// 이벤트 핸들러 (모달 루트에 위임, init_modal 이전에 바인딩)
 	// ──────────────────────────────────────────
 	$modal
-		// 출장일시 유효성 검사
-		.on('change', 'input[name=startDatetime]', function () {
+		// 출장일시 유효성 검사 + 중복 체크
+		// 유효한 일시 범위가 확정되면 checkAndFilterConflicts 자동 호출
+		.on('change', 'input[name=startDatetime]', async function () {
 			if ($('input[name=endDatetime]', $form).val()) {
-				if (!validateDateRange()) $(this).val('');
+				if (!validateDateRange()) { $(this).val(''); return; }
+				await $modal.checkAndFilterConflicts();
 			}
 		})
-		.on('change', 'input[name=endDatetime]', function () {
+		.on('change', 'input[name=endDatetime]', async function () {
 			if ($('input[name=startDatetime]', $form).val()) {
-				if (!validateDateRange()) $(this).val('');
+				if (!validateDateRange()) { $(this).val(''); return; }
+				await $modal.checkAndFilterConflicts();
 			}
 		})
 		// 표준장비 조회 버튼
@@ -364,6 +487,8 @@ $(function () {
 					});
 				});
 				$modal.updateEquipCnt();
+				// 장비 선택 후 일시 범위와 중복 여부 체크
+				await $modal.checkAndFilterConflicts();
 			}
 		})
 		// 출장차량 조회 버튼 (미구현)
@@ -457,6 +582,10 @@ $(function () {
 		);
 		if (confirmResult.isConfirmed !== true) return false;
 
+		// ── 저장 직전 최종 중복 체크 (사용자가 일시/장비를 설정하고 시간이 지난 사이 중복 발생 가능) ──
+		const conflictOk = await $modal.checkAndFilterConflicts(true);
+		if (!conflictOk) return false;
+
 		// ── 요청 데이터 구성 ────────────────────
 		// 빈 문자열은 null로 전송 (백엔드 @Valid 통과 + DB nullable 처리)
 		const v = (name) => $(`input[name=${name}]`, $form).val().trim() || null;
@@ -505,6 +634,7 @@ $(function () {
 		}
 
 		// ── API 요청 ────────────────────────────
+		gLoadingMessage('저장 중입니다...');
 		try {
 			const url    = isModify
 				? `/api/admin/businessTrip/${btripId}`
@@ -518,8 +648,10 @@ $(function () {
 				isModify ? '출장일정이 수정되었습니다.' : '출장일정이 등록되었습니다.',
 				'success'
 			);
-			return true; // true 반환 → 모달 닫힘
+			$modal_root.modal('hide'); // 성공 시 모달 닫기
+			return true;
 		} catch (e) {
+			Swal.close(); // 에러 시 로딩 닫기
 			console.error('출장일정 저장 실패', e);
 			gApiErrorHandler(e);
 			return false;
