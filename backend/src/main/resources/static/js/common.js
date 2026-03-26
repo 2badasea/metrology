@@ -257,7 +257,8 @@ $(function () {
 	.on('click', '.updateNotice', function (e) {
 		e.preventDefault();
 
-		// gModal을 띄워 업데이트 사항 공지를 보여준다.
+		// 개발팀 문의 - 구현 준비중
+		gToast('구현 준비중입니다.');
 	});
 
 /**
