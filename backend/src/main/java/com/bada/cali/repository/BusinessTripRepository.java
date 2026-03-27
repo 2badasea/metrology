@@ -114,9 +114,9 @@ public interface BusinessTripRepository extends JpaRepository<BusinessTrip, Long
                            (:searchType = 'reportAgentAddr'   AND b.report_agent_addr LIKE :keywordLike)
                        )
                       )
-                  AND (:dateStart IS NULL OR b.start_datetime >= :dateStart)
+                  AND (:dateStart IS NULL OR b.end_datetime   >= :dateStart)
                   AND (:dateEnd   IS NULL OR b.start_datetime <= :dateEnd)
-                ORDER BY b.start_datetime DESC
+                ORDER BY b.end_datetime DESC
                 LIMIT :limit OFFSET :offset
             """, nativeQuery = true)
     List<BusinessTripListRow> findList(
@@ -146,7 +146,7 @@ public interface BusinessTripRepository extends JpaRepository<BusinessTrip, Long
                            (:searchType = 'reportAgentAddr'   AND b.report_agent_addr LIKE :keywordLike)
                        )
                       )
-                  AND (:dateStart IS NULL OR b.start_datetime >= :dateStart)
+                  AND (:dateStart IS NULL OR b.end_datetime   >= :dateStart)
                   AND (:dateEnd   IS NULL OR b.start_datetime <= :dateEnd)
             """, nativeQuery = true)
     long countList(

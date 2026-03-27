@@ -54,10 +54,25 @@ $(function () {
 
     // ──────────────────────────────────────────
     // init_modal — 페이지/모달 공통 초기화 훅
-    // (리스트 페이지는 별도 초기화 작업 없음)
     // ──────────────────────────────────────────
     $modal.init_modal = async (param) => {
         $modal.param = param;
+
+        // breadcrumb 세팅 (menu 테이블 미등록 페이지이므로 직접 표시)
+        $('.topbar-inner .customBreadcrumb').text('교정관리 - 출장일정 리스트 보기');
+
+        // 날짜 필터 기본값: 이달 1일 ~ 이달 말일
+        const now        = new Date();
+        const yyyy       = now.getFullYear();
+        const mm         = String(now.getMonth() + 1).padStart(2, '0');
+        const lastDay    = new Date(yyyy, now.getMonth() + 1, 0).getDate();
+        const dateStart  = `${yyyy}-${mm}-01`;
+        const dateEnd    = `${yyyy}-${mm}-${String(lastDay).padStart(2, '0')}`;
+        $('#dateStart', $modal).val(dateStart);
+        $('#dateEnd',   $modal).val(dateEnd);
+
+        // 초기 데이터 조회 (1페이지)
+        $modal.grid.getPagination().movePageTo(1);
     };
 
     // ──────────────────────────────────────────
@@ -168,6 +183,8 @@ $(function () {
         ],
         scrollX: true,
         scrollY: false,
+        minBodyHeight: 600,
+        bodyHeight: 600,
         pageOptions: {
             useClient: false,   // 서버 페이징
             perPage: 25,
@@ -275,12 +292,16 @@ $(function () {
             }
             $modal.grid.getPagination().movePageTo(1);
         })
-        // 초기화 버튼
+        // 초기화 버튼 — 날짜 기본값도 이달 범위로 복원
         .on('click', '#btnReset', function () {
+            const now     = new Date();
+            const yyyy    = now.getFullYear();
+            const mm      = String(now.getMonth() + 1).padStart(2, '0');
+            const lastDay = new Date(yyyy, now.getMonth() + 1, 0).getDate();
             $('#searchType', $modal).val('title');
             $('#keyword',    $modal).val('');
-            $('#dateStart',  $modal).val('');
-            $('#dateEnd',    $modal).val('');
+            $('#dateStart',  $modal).val(`${yyyy}-${mm}-01`);
+            $('#dateEnd',    $modal).val(`${yyyy}-${mm}-${String(lastDay).padStart(2, '0')}`);
             $modal.grid.getPagination().movePageTo(1);
         })
         // 키워드 입력창 Enter → 검색
@@ -331,6 +352,12 @@ $(function () {
         // 캘린더보기 버튼
         .on('click', '#btnCalendar', function () {
             window.location.href = '/cali/businessTrip';
+        })
+        // 행수 select — perPage 변경 후 1페이지로 이동
+        .on('change', '#perPageSelect', function () {
+            const perPage = parseInt($(this).val(), 10) || 25;
+            $modal.grid.getPagination().setPerPage(perPage);
+            $modal.grid.getPagination().movePageTo(1);
         });
 
     // ── 표준 모달 초기화 footer (common.js 규약) ────────────────────

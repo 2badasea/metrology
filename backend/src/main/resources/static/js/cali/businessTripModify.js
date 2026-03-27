@@ -242,13 +242,13 @@ $(function () {
 		$modal.equipGrid = gGrid('.equipageList', {
 			columns: [
 				{ name: 'equipmentId', hidden: true },
-				{ header: '관리번호',   name: 'manageNo',     width: 90 },
-				{ header: '기기명',     name: 'name'                    }, // 자동 채움
-				{ header: '제작회사',   name: 'makeAgent',    width: 90 },
-				{ header: '형식',       name: 'modelName',    width: 80 },
-				{ header: '기기번호',   name: 'serialNo',     width: 90 },
-				{ header: '차기교정일', name: 'nextCaliDate', width: 90 },
-				{ header: '교정기관',   name: 'caliAgent',    width: 90 },
+				{ header: '관리번호',   name: 'manageNo',     width: 90,  align: 'center' },
+				{ header: '기기명',     name: 'name',                     align: 'center' }, // 자동 채움
+				{ header: '제작회사',   name: 'makeAgent',    width: 90,  align: 'center' },
+				{ header: '형식',       name: 'modelName',    width: 80,  align: 'center' },
+				{ header: '기기번호',   name: 'serialNo',     width: 90,  align: 'center' },
+				{ header: '차기교정일', name: 'nextCaliDate', width: 90,  align: 'center' },
+				{ header: '교정기관',   name: 'caliAgent',    width: 90,  align: 'center' },
 				{
 					header:    '-',
 					name:      'deleteBtn',
@@ -296,9 +296,9 @@ $(function () {
 		// ── 출장차량 그리드 ────────────────────────────
 		$modal.carGrid = gGrid('.carList', {
 			columns: [
-				{ header: '차명',     name: 'carName' }, // 자동 채움
-				{ header: '차량번호', name: 'carNum'  },
-				{ header: '년식',     name: 'carYear' },
+				{ header: '차명',     name: 'carName', align: 'center' }, // 자동 채움
+				{ header: '차량번호', name: 'carNum',  align: 'center' },
+				{ header: '년식',     name: 'carYear', align: 'center' },
 				{
 					header:    '-',
 					name:      'deleteBtn',

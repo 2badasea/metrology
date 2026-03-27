@@ -6,55 +6,59 @@
     <div layout:fragment="content">
         <div class="wrapper">
 
-            <!-- ── 검색 필터 영역 ──────────────────────────────────── -->
+            <!-- ── 툴바 + 검색 필터 통합 영역 ──────────────────────── -->
             <div class="card mb-2">
                 <div class="card-body py-2">
-                    <div class="form-row align-items-end">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap" style="gap:6px;">
 
-                        <!-- 검색 유형 select -->
-                        <div class="col-auto">
-                            <select id="searchType" class="form-control form-control-sm" style="width:140px;">
+                        <!-- 좌측: 액션 버튼 (캘린더보기 / 삭제 / 등록 순) -->
+                        <div class="d-flex align-items-center" style="gap:4px;">
+                            <button type="button" id="btnCalendar"  class="btn btn-success btn-sm">캘린더보기</button>
+                            <button type="button" id="btnDelete"    class="btn btn-danger btn-sm">삭제</button>
+                            <button type="button" id="btnRegister"  class="btn btn-primary btn-sm">등록</button>
+                        </div>
+
+                        <!-- 우측: 검색 필터 -->
+                        <div class="d-flex align-items-center flex-wrap" style="gap:6px;">
+
+                            <!-- 출발일자 필터 -->
+                            <div class="d-flex align-items-center" style="gap:4px;">
+                                <span class="text-muted" style="font-size:.85rem;white-space:nowrap;">출발일자</span>
+                                <input type="date" id="dateStart" class="form-control form-control-sm" style="width:130px;" />
+                            </div>
+
+                            <!-- 도착일자 필터 -->
+                            <div class="d-flex align-items-center" style="gap:4px;">
+                                <span class="text-muted" style="font-size:.85rem;white-space:nowrap;">도착일자</span>
+                                <input type="date" id="dateEnd" class="form-control form-control-sm" style="width:130px;" />
+                            </div>
+
+                            <!-- 검색 유형 + 키워드 -->
+                            <select id="searchType" class="form-control form-control-sm" style="width:130px;">
                                 <option value="title">일정제목</option>
                                 <option value="custAgent">신청업체</option>
                                 <option value="custAgentAddr">신청업체주소</option>
                                 <option value="reportAgent">성적서발행처</option>
                                 <option value="reportAgentAddr">성적서발행처주소</option>
                             </select>
-                        </div>
-
-                        <!-- 키워드 입력 -->
-                        <div class="col-auto">
                             <input type="text" id="keyword" class="form-control form-control-sm"
-                                placeholder="검색어 입력" style="width:200px;" />
-                        </div>
+                                placeholder="검색어 입력" style="width:160px;" />
 
-                        <!-- 날짜 범위 필터 (출장시작일시 기준) -->
-                        <div class="col-auto d-flex align-items-center" style="gap:4px;">
-                            <input type="date" id="dateStart" class="form-control form-control-sm" style="width:140px;" />
-                            <span class="text-muted">~</span>
-                            <input type="date" id="dateEnd" class="form-control form-control-sm" style="width:140px;" />
-                        </div>
+                            <!-- 행수 선택 -->
+                            <select id="perPageSelect" class="form-control form-control-sm" style="width:80px;">
+                                <option value="25" selected>25개</option>
+                                <option value="50">50개</option>
+                                <option value="100">100개</option>
+                            </select>
 
-                        <!-- 검색 / 초기화 버튼 -->
-                        <div class="col-auto">
+                            <!-- 검색 / 초기화 -->
                             <button type="button" id="btnSearch" class="btn btn-primary btn-sm">
                                 <i class="bi bi-search"></i> 검색
                             </button>
                             <button type="button" id="btnReset" class="btn btn-secondary btn-sm">초기화</button>
+
                         </div>
-
                     </div>
-                </div>
-            </div>
-
-            <!-- ── 툴바: 등록/삭제(좌) + 캘린더보기(우) ─────── -->
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <div class="d-flex" style="gap:4px;">
-                    <button type="button" id="btnRegister" class="btn btn-primary btn-sm">등록</button>
-                    <button type="button" id="btnDelete"   class="btn btn-danger btn-sm">삭제</button>
-                </div>
-                <div>
-                    <button type="button" id="btnCalendar" class="btn btn-success btn-sm">캘린더보기</button>
                 </div>
             </div>
 

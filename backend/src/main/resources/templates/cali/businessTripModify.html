@@ -11,24 +11,32 @@
 
             <!-- ── 표준장비 리스트 ── -->
             <div class="card mb-2">
-                <div class="card-header py-1 d-flex align-items-center justify-content-between">
+                <div class="card-header py-1">
                     <span class="font-weight-bold" style="font-size:.9rem;">
                         표준장비 리스트 <span class="equipCnt text-muted"></span>
                     </span>
-                    <button type="button" class="btn btn-secondary btn-sm btnSearchEquip">조회</button>
                 </div>
                 <div class="card-body p-1">
+                    <!-- 조회 버튼: 그리드 헤더 위 우측 끝 — 삭제 열(-) 상단에 평행 배치 -->
+                    <div class="d-flex justify-content-end" style="margin-bottom:2px;">
+                        <button type="button" class="btn btn-secondary btn-sm btnSearchEquip"
+                                style="padding:1px 10px;font-size:.8rem;">조회</button>
+                    </div>
                     <div class="equipageList"></div>
                 </div>
             </div>
 
             <!-- ── 출장차량 리스트 ── -->
             <div class="card">
-                <div class="card-header py-1 d-flex align-items-center justify-content-between">
+                <div class="card-header py-1">
                     <span class="font-weight-bold" style="font-size:.9rem;">출장차량</span>
-                    <button type="button" class="btn btn-secondary btn-sm btnSearchCar">조회</button>
                 </div>
                 <div class="card-body p-1">
+                    <!-- 조회 버튼: 그리드 헤더 위 우측 끝 — 삭제 열(-) 상단에 평행 배치 -->
+                    <div class="d-flex justify-content-end" style="margin-bottom:2px;">
+                        <button type="button" class="btn btn-secondary btn-sm btnSearchCar"
+                                style="padding:1px 10px;font-size:.8rem;">조회</button>
+                    </div>
                     <div class="carList"></div>
                 </div>
             </div>
@@ -72,8 +80,12 @@
                             <th>일정유형</th>
                             <td>
                                 <select class="form-control form-control-sm" name="type">
-                                    <option value="">없음</option>
-                                    <!-- 추후 유형 코드 정의 후 옵션 추가 예정 -->
+                                    <option value="">유형없음</option>
+                                    <option value="SITE_CALI">현장교정</option>
+                                    <option value="SALE">영업</option>
+                                    <option value="EDU">교육</option>
+                                    <option value="ETC">기타</option>
+                                    <option value="BTRIP">출장</option>
                                 </select>
                             </td>
                         </tr>

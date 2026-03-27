@@ -12,6 +12,22 @@ $(function () {
     const $calendarEl = document.getElementById('calendar');
 
     // ──────────────────────────────────────────
+    // 출장유형별 캘린더 이벤트 배경색 매핑
+    // 유형 추가/변경 시 이 객체만 수정
+    // ──────────────────────────────────────────
+    const TRIP_TYPE_COLORS = {
+        'SITE_CALI': { bg: '#6c757d', border: '#5a6268', text: '#ffffff' }, // 현장교정 — 회색
+        'SALE':      { bg: '#28a745', border: '#218838', text: '#ffffff' }, // 영업 — 초록색
+        'EDU':       { bg: '#007bff', border: '#0069d9', text: '#ffffff' }, // 교육 — 파란색
+        'ETC':       { bg: '#d6d8db', border: '#c1c3c7', text: '#495057' }, // 기타 — 연한회색
+        'BTRIP':     { bg: '#ffc107', border: '#e0a800', text: '#212529' }, // 출장 — 노란색
+    };
+    /** 유형 코드 → 색상 반환. 유형없음(null/'')이면 null 반환 → FullCalendar 기본색 사용 */
+    function getTripTypeColor(type) {
+        return type ? (TRIP_TYPE_COLORS[type] ?? null) : null;
+    }
+
+    // ──────────────────────────────────────────
     // 출장자 이름 캐시 (member id → name)
     // 모달에서 select 옵션을 로드한 후 공유
     // ──────────────────────────────────────────
@@ -144,17 +160,24 @@ $(function () {
                 const json = await res.json();
 
                 // FullCalendar 이벤트 형식으로 변환
-                const events = (json.data || []).map(item => ({
-                    id:             item.id,
-                    title:          item.title,
-                    start:          item.startDatetime,
-                    end:            item.endDatetime,
-                    extendedProps: {
-                        type:        item.type,
-                        travelerIds: item.travelerIds,
-                        custAgent:   item.custAgent
-                    }
-                }));
+                // 유형별 배경색 적용 (TRIP_TYPE_COLORS 매핑 참조)
+                const events = (json.data || []).map(item => {
+                    const color = getTripTypeColor(item.type);
+                    return {
+                        id:              item.id,
+                        title:           item.title,
+                        start:           item.startDatetime,
+                        end:             item.endDatetime,
+                        backgroundColor: color ? color.bg     : '',
+                        borderColor:     color ? color.border : '',
+                        textColor:       color ? color.text   : '',
+                        extendedProps: {
+                            type:        item.type,
+                            travelerIds: item.travelerIds,
+                            custAgent:   item.custAgent
+                        }
+                    };
+                });
                 successCallback(events);
             } catch (e) {
                 console.error('출장일정 조회 실패', e);
@@ -165,7 +188,14 @@ $(function () {
         // 이벤트 커스텀 렌더링 (유형 / 제목 / 출장자 3행)
         eventContent: function (arg) {
             const props = arg.event.extendedProps;
-            const typeText    = props.type || '일정';
+            const TYPE_LABELS = {
+                'SITE_CALI': '현장교정',
+                'SALE':      '영업',
+                'EDU':       '교육',
+                'ETC':       '기타',
+                'BTRIP':     '출장',
+            };
+            const typeText    = props.type ? (TYPE_LABELS[props.type] ?? props.type) : '유형없음';
             const titleText   = arg.event.title || '';
             const travelNames = resolveTravelerNames(props.travelerIds);
 
@@ -193,7 +223,13 @@ $(function () {
         }
     });
 
-    calendar.render();
+    // ──────────────────────────────────────────
+    // 직원 목록 캐시 로드 완료 후 캘린더 렌더링
+    // 먼저 로드해야 이벤트 표시 시 #id 대신 이름이 바로 표시됨
+    // ──────────────────────────────────────────
+    loadMemberCache().then(() => {
+        calendar.render();
+    });
 
     // ──────────────────────────────────────────
     // 날짜 영역 더블클릭 → 등록 모달
@@ -206,10 +242,5 @@ $(function () {
         const dateStr = $(this).data('date');   // yyyy-MM-dd 형식
         openRegisterModal(dateStr);
     });
-
-    // ──────────────────────────────────────────
-    // 초기 직원 목록 캐시 로드
-    // ──────────────────────────────────────────
-    loadMemberCache();
 
 });
