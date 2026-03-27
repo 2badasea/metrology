@@ -1,0 +1,221 @@
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<div layout:fragment="content">
+
+    <!-- ================================================================
+         전체 레이아웃: 좌측 탭 네비 + 우측 컨텐츠
+    ================================================================ -->
+    <div class="work-modal-container">
+
+        <!-- ── 좌측 탭 네비게이션 ── -->
+        <nav class="work-tab-nav">
+            <button type="button" class="work-tab-btn" data-tab="notice">
+                <i class="bi bi-megaphone"></i> 공지사항
+                <!-- 미확인 공지 뱃지 (추후 API 연동 시 노출) -->
+                <span class="notice-badge badge badge-danger d-none"></span>
+            </button>
+            <button type="button" class="work-tab-btn active" data-tab="inquiry">
+                <i class="bi bi-chat-left-text"></i> 문의
+            </button>
+        </nav>
+
+        <!-- ── 우측 컨텐츠 영역 ── -->
+        <div class="work-tab-body">
+
+            <!-- ────────────────────────────────────────────────────
+                 공지사항 탭 컨텐츠
+            ──────────────────────────────────────────────────── -->
+            <div class="work-tab-pane d-none" data-pane="notice">
+                <div class="notice-list-wrap">
+                    <table class="table table-sm table-hover notice-list-table mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th style="width:50px;">번호</th>
+                                <th>제목</th>
+                                <th style="width:90px;">등록일</th>
+                                <th style="width:60px;">확인</th>
+                            </tr>
+                        </thead>
+                        <tbody class="noticeListBody">
+                            <tr class="notice-list-empty">
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    등록된 공지사항이 없습니다.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div><!-- /.work-tab-pane[notice] -->
+
+
+            <!-- ────────────────────────────────────────────────────
+                 문의 탭 컨텐츠
+            ──────────────────────────────────────────────────── -->
+            <div class="work-tab-pane" data-pane="inquiry">
+
+                <!-- ── 패널 1: 문의 목록 ── -->
+                <div class="work-panel panel-list">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted" style="font-size:.85rem;">
+                            문의 내역을 확인하고 새로운 문의를 등록할 수 있습니다.
+                        </span>
+                        <button type="button" class="btn btn-primary btn-sm btnGoWrite">
+                            <i class="bi bi-pencil-square"></i> 새 문의 작성
+                        </button>
+                    </div>
+                    <div class="work-list-wrap">
+                        <table class="table table-sm table-hover work-list-table mb-0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th style="width:50px;">번호</th>
+                                    <th style="width:80px;">유형</th>
+                                    <th>제목</th>
+                                    <th style="width:70px;">중요도</th>
+                                    <th style="width:80px;">상태</th>
+                                    <th style="width:90px;">등록일</th>
+                                </tr>
+                            </thead>
+                            <tbody class="workListBody">
+                                <tr class="work-list-empty">
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        등록된 문의가 없습니다.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div><!-- /.panel-list -->
+
+                <!-- ── 패널 2: 새 문의 작성 ── -->
+                <div class="work-panel panel-write d-none">
+                    <div class="panel-nav mb-3">
+                        <button type="button" class="btn btn-outline-secondary btn-sm btnBack">
+                            <i class="bi bi-arrow-left"></i> 목록으로
+                        </button>
+                    </div>
+                    <form class="workWriteForm">
+                        <table class="table table-bordered text-center mb-0" style="font-size:.88rem;">
+                            <colgroup>
+                                <col style="width:90px;" />
+                                <col />
+                                <col style="width:90px;" />
+                                <col />
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th class="required">유형</th>
+                                    <td>
+                                        <select class="form-control form-control-sm" name="category">
+                                            <option value="">선택</option>
+                                            <option value="BUG">버그</option>
+                                            <option value="ERROR">오류</option>
+                                            <option value="NEW_FEATURE">기능 요청</option>
+                                            <option value="INQUIRY">문의</option>
+                                        </select>
+                                    </td>
+                                    <th class="required">중요도</th>
+                                    <td>
+                                        <select class="form-control form-control-sm" name="priorityByAgent">
+                                            <option value="NORMAL">일반</option>
+                                            <option value="EMERGENCY">긴급</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="required">제목</th>
+                                    <td colspan="3">
+                                        <input type="text" class="form-control form-control-sm" name="title"
+                                            placeholder="문의 제목을 입력하세요." maxlength="200" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>작성자</th>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm writerNameDisplay"
+                                            readonly tabindex="-1" />
+                                    </td>
+                                    <th>연락처</th>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm writerTelDisplay"
+                                            readonly tabindex="-1" placeholder="-" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="required">내용</th>
+                                    <td colspan="3" style="padding:8px;">
+                                        <div class="workEditorEl"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>첨부파일</th>
+                                    <td colspan="3">
+                                        <div class="d-flex align-items-center" style="gap:8px;">
+                                            <label class="btn btn-outline-secondary btn-sm mb-0">
+                                                <i class="bi bi-paperclip"></i> 파일 선택
+                                                <input type="file" class="attachInput d-none" multiple accept="*/*" />
+                                            </label>
+                                            <small class="text-muted">최대 10개 / 파일당 20MB</small>
+                                        </div>
+                                        <ul class="attach-file-list list-unstyled mb-0 mt-1"></ul>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>
+                </div><!-- /.panel-write -->
+
+                <!-- ── 패널 3: 문의 상세 + 댓글 ── -->
+                <div class="work-panel panel-detail d-none">
+                    <div class="panel-nav mb-3">
+                        <button type="button" class="btn btn-outline-secondary btn-sm btnBack">
+                            <i class="bi bi-arrow-left"></i> 목록으로
+                        </button>
+                    </div>
+                    <div class="card mb-3 work-origin-card">
+                        <div class="card-header py-2 d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center" style="gap:6px;">
+                                <span class="badge work-category-badge"></span>
+                                <span class="badge work-priority-badge"></span>
+                                <strong class="work-title-display" style="font-size:.92rem;"></strong>
+                            </div>
+                            <div class="d-flex align-items-center text-muted" style="gap:10px;font-size:.8rem;">
+                                <span class="badge work-status-badge"></span>
+                                <span class="work-date-display"></span>
+                                <span class="work-writer-display"></span>
+                            </div>
+                        </div>
+                        <div class="card-body py-2">
+                            <div class="workViewerEl"></div>
+                        </div>
+                        <div class="card-footer py-1 work-attach-footer d-none">
+                            <small class="text-muted"><i class="bi bi-paperclip"></i> 첨부파일</small>
+                            <ul class="detail-attach-list list-unstyled mb-0 mt-1"></ul>
+                        </div>
+                    </div>
+                    <div class="work-comments mb-3"></div>
+                    <div class="comment-write-area">
+                        <div class="d-flex align-items-center mb-1" style="gap:6px;">
+                            <i class="bi bi-chat-left-text text-primary"></i>
+                            <span style="font-size:.85rem;font-weight:600;">댓글 작성</span>
+                        </div>
+                        <textarea class="form-control commentInput" rows="3"
+                            placeholder="추가 문의 내용을 입력하세요." maxlength="2000"></textarea>
+                        <div class="text-right mt-1">
+                            <button type="button" class="btn btn-primary btn-sm btnAddComment">
+                                <i class="bi bi-send"></i> 댓글 등록
+                            </button>
+                        </div>
+                    </div>
+                </div><!-- /.panel-detail -->
+
+            </div><!-- /.work-tab-pane[inquiry] -->
+
+        </div><!-- /.work-tab-body -->
+    </div><!-- /.work-modal-container -->
+
+    <input type="hidden" id="initWorkId" th:value="${workId}" />
+
+</div>
+
+</html>

@@ -254,11 +254,18 @@ $(function () {
 			return false;
 		}
 	})
-	.on('click', '.updateNotice', function (e) {
+	.on('click', '.updateNotice', async function (e) {
 		e.preventDefault();
 
-		// 개발팀 문의 - 구현 준비중
-		gToast('구현 준비중입니다.');
+		// 개발팀 문의 모달 호출
+		await gModal('/dev/workModify', {}, {
+			title:                  '개발팀 문의',
+			size:                   'xxl',
+			show_close_button:      true,
+			close_button_text:      '닫기',
+			show_confirm_button:    true,
+			confirm_button_text:    '등록',
+		});
 	});
 
 /**

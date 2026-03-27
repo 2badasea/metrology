@@ -1,0 +1,177 @@
+/* css/dev/workModify.css */
+
+/* ── 전체 레이아웃: 좌측 탭 + 우측 컨텐츠 ───────────────────── */
+.work-modal-container {
+    display: flex;
+    min-height: 480px;
+}
+
+/* ── 좌측 탭 네비게이션 ─────────────────────────────────────── */
+.work-tab-nav {
+    display: flex;
+    flex-direction: column;
+    width: 110px;
+    min-width: 110px;
+    border-right: 1px solid #dee2e6;
+    background: #f8f9fa;
+    padding-top: 4px;
+}
+
+.work-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
+    padding: 12px 14px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    font-size: .85rem;
+    color: #495057;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background .15s, color .15s;
+    position: relative;
+    white-space: nowrap;
+}
+
+.work-tab-btn:hover {
+    background: #e9ecef;
+    color: #212529;
+}
+
+.work-tab-btn.active {
+    background: #fff;
+    color: #2c5fe6;
+    font-weight: 600;
+    border-left-color: #2c5fe6;
+}
+
+/* 미확인 공지 뱃지 */
+.notice-badge {
+    font-size: .7rem;
+    padding: 2px 5px;
+    border-radius: 10px;
+    margin-left: auto;
+}
+
+/* ── 우측 컨텐츠 영역 ───────────────────────────────────────── */
+.work-tab-body {
+    flex: 1;
+    padding: 14px 16px;
+    overflow-y: auto;
+    min-width: 0; /* flex child 텍스트 overflow 방지 */
+}
+
+/* ── 공지/문의 목록 공통 ────────────────────────────────────── */
+.work-list-wrap,
+.notice-list-wrap {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.work-list-table,
+.notice-list-table {
+    font-size: .85rem;
+    margin-bottom: 0;
+}
+
+.work-list-table thead th,
+.notice-list-table thead th {
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    z-index: 1;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.work-list-table tbody tr:not(.work-list-empty),
+.notice-list-table tbody tr:not(.notice-list-empty) {
+    cursor: pointer;
+}
+
+.work-list-table tbody tr:not(.work-list-empty):hover,
+.notice-list-table tbody tr:not(.notice-list-empty):hover {
+    background-color: #f0f4ff;
+}
+
+/* ── 패널 네비게이션 ────────────────────────────────────────── */
+.panel-nav {
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 8px;
+}
+
+/* ── 작성 폼 ────────────────────────────────────────────────── */
+.workWriteForm table th {
+    background: #f8f9fa;
+    vertical-align: middle;
+    font-size: .85rem;
+}
+
+.workWriteForm table td {
+    vertical-align: middle;
+}
+
+.workEditorEl .toastui-editor-defaultUI {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+/* ── 첨부파일 목록 ──────────────────────────────────────────── */
+.attach-file-list li {
+    padding: 2px 0;
+    border-bottom: 1px dashed #e9ecef;
+}
+
+.attach-file-list li:last-child {
+    border-bottom: none;
+}
+
+/* ── 상세 패널 ──────────────────────────────────────────────── */
+.work-origin-card .card-header {
+    background: #f8f9fa;
+    font-size: .88rem;
+}
+
+.workViewerEl .toastui-editor-contents {
+    padding: 4px 0;
+    font-size: .88rem;
+}
+
+/* ── 댓글 ───────────────────────────────────────────────────── */
+.comment-item {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: .85rem;
+}
+
+.comment-agent {
+    background: #f8f9fa;
+    border-left: 3px solid #6c757d;
+}
+
+.comment-dev {
+    background: #eef3ff;
+    border-left: 3px solid #4263eb;
+}
+
+.comment-meta {
+    margin-bottom: 4px;
+}
+
+.comment-body {
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+.comment-write-area {
+    border-top: 1px solid #e9ecef;
+    padding-top: 12px;
+}
+
+.commentInput {
+    font-size: .88rem;
+    resize: vertical;
+}
