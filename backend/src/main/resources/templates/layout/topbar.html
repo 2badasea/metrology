@@ -24,10 +24,13 @@
                     </a>
                 </li>
 
-                <!-- 알림: 아이콘만 (이벤트 미구현) -->
+                <!-- 알림: 미읽음 뱃지 포함, common.js에서 페이지 로드 시 카운트 세팅 -->
                 <li>
-                    <a href="#" class="action action-icon" title="알림" aria-label="알림">
+                    <a href="#" class="action action-icon action-alarm" title="알림" aria-label="알림" style="position:relative;">
                         <i class="bi bi-bell"></i>
+                        <!-- 미읽음 알림 카운트 뱃지 (0이면 숨김) -->
+                        <span class="alarm-badge badge badge-danger d-none"
+                              style="position:absolute;top:2px;right:2px;font-size:.65rem;padding:2px 4px;border-radius:8px;"></span>
                     </a>
                 </li>
 

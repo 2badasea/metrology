@@ -1,6 +1,6 @@
 -- =============================================================================
 -- CALI DB 전체 스키마 (Single Source of Truth)
--- 최신 버전: v_260325
+-- 최신 버전: v_260328
 -- 업데이트 규칙:
 --   - 테이블 추가/변경 시 이 파일을 직접 최신 상태로 유지한다.
 --   - 변경 내역은 docs/db/versions/ 에 델타(변경분만) 파일로 별도 기록한다.
@@ -645,3 +645,23 @@ CREATE TABLE IF NOT EXISTS `car` (
   KEY `idx_car_visible` (`is_visible`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
   COMMENT='출장차량 관리';
+
+-- -----------------------------------------------------------------------------
+-- alarm: 사용자 알림
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `alarm` (
+  `id`              bigint        NOT NULL AUTO_INCREMENT             COMMENT '알림 고유번호',
+  `member_id`       bigint        NOT NULL                            COMMENT '수신자 member.id',
+  `alarm_type`      varchar(30)   NOT NULL                            COMMENT '알림 유형 (WORK_COMMENT/WORK_NOTICE/REPORT_REJECT/REPORT_SUBMIT/REPORT_REUPLOAD/BOARD_NOTICE)',
+  `ref_type`        varchar(30)   DEFAULT NULL                        COMMENT '참조 대상 종류 (WORK/REPORT/BOARD_NOTICE)',
+  `ref_id`          bigint        DEFAULT NULL                        COMMENT '참조 대상 ID (ref_type에 따라 다른 테이블의 PK)',
+  `content`         varchar(500)  NOT NULL                            COMMENT '알림 내용 (제목 겸 본문 스냅샷)',
+  `sender_name`     varchar(50)   DEFAULT NULL                        COMMENT '발신자명 스냅샷 (NULL이면 시스템 발신)',
+  `is_read`         char(1)       NOT NULL DEFAULT 'n'                COMMENT '읽음 여부 (y: 읽음, n: 미읽음)',
+  `read_datetime`   datetime      DEFAULT NULL                        COMMENT '읽은 일시',
+  `create_datetime` datetime      NOT NULL DEFAULT (now())            COMMENT '알림 생성일시',
+
+  PRIMARY KEY (`id`),
+  KEY `idx_alarm_member_read` (`member_id`, `is_read`, `create_datetime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+  COMMENT='사용자 알림';

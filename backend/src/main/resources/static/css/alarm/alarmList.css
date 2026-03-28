@@ -1,0 +1,20 @@
+/* css/alarm/alarmList.css */
+
+/* ── 전체 컨테이너 ─────────────────────────────────────────────── */
+.alarm-modal-container {
+    min-height: 300px;
+    padding: 4px 2px;
+}
+
+/* ── 헤더 바 ────────────────────────────────────────────────────── */
+.alarm-modal-header {
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 10px;
+}
+
+/* ── 미읽음 행 강조: Toast UI Grid 행 전체에 배경색 ─────────────── */
+/* TuiGrid는 rowClassRule 옵션으로도 제어 가능하나
+   formatter/renderer에서 인라인 스타일로 처리하므로 최소 CSS만 둠 */
+.alarm-retention-notice {
+    letter-spacing: -0.01em;
+}

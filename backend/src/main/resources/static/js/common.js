@@ -31,6 +31,12 @@ $(function () {
 	$('input.comma').each(function (idx, item) {
 		$(item).val(comma($(item).val()));
 	});
+
+	// 페이지 로드 시 미읽음 알림 카운트 조회 → 벨 뱃지 업데이트
+	// .action-alarm 이 있을 때(로그인 상태)만 실행
+	if ($('.action-alarm').length > 0) {
+		fetchAlarmCount();
+	}
 })
 	// 0이상의 정수만 입력 가능
 	.on('input', 'input.number_integer', function () {
@@ -265,6 +271,18 @@ $(function () {
 			close_button_text:      '닫기',
 			show_confirm_button:    true,
 			confirm_button_text:    '등록',
+		});
+	})
+	.on('click', '.action-alarm', async function (e) {
+		e.preventDefault();
+
+		// 알림 목록 모달 호출
+		await gModal('/alarm/list', {}, {
+			title:               '알림',
+			size:                'md',
+			show_close_button:   true,
+			close_button_text:   '닫기',
+			show_confirm_button: false,
 		});
 	});
 
@@ -1722,3 +1740,37 @@ function reportStatusLabel(status) {
 	};
 	return map[status] ?? status ?? '';
 }
+
+// ── 알림 뱃지 관련 전역 함수 ─────────────────────────────────────────
+
+/**
+ * 미읽음 알림 카운트를 조회해 벨 뱃지를 업데이트
+ * - 페이지 로드 시 1회 호출 (폴링 없음)
+ * - 알림 모달에서 읽음 처리 후 window.updateAlarmBadge()로 동기화 가능
+ */
+async function fetchAlarmCount() {
+	try {
+		const res  = await fetch('/api/alarms/count');
+		if (!res.ok) return;
+		const json = await res.json();
+		if (json && json.code === 1) {
+			updateAlarmBadge(json.data.unreadCount);
+		}
+	} catch (e) { /* 무시 */ }
+}
+
+/**
+ * 벨 아이콘 미읽음 뱃지 숫자를 갱신
+ * @param {number} count 미읽음 수 (0이면 뱃지 숨김)
+ */
+function updateAlarmBadge(count) {
+	const $badge = $('.action-alarm .alarm-badge');
+	if (count > 0) {
+		$badge.text(count > 99 ? '99+' : count).removeClass('d-none');
+	} else {
+		$badge.addClass('d-none');
+	}
+}
+
+// 알림 모달 내부에서 읽음 처리 후 뱃지 동기화할 수 있도록 전역 노출
+window.updateAlarmBadge = updateAlarmBadge;

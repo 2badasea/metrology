@@ -1,0 +1,46 @@
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/single_layout}"
+    xmlns:th="http://www.thymeleaf.org">
+
+<div layout:fragment="content">
+
+    <!-- ================================================================
+         알림 목록 모달
+         - CSS/JS: config.html이 viewName(alarm/alarmList) 기준으로 자동 로드
+         - 그리드: Toast UI Grid (gGrid)
+         - 페이지당 20건, 서버 페이징
+    ================================================================ -->
+    <div class="alarm-modal-container">
+
+        <!-- ── 헤더 바: 필터 + 전체읽음 ── -->
+        <div class="d-flex align-items-center justify-content-between mb-2 alarm-modal-header">
+            <div class="d-flex align-items-center" style="gap:8px;">
+                <select class="form-control form-control-sm alarmTypeFilter" style="width:130px;">
+                    <option value="">전체 유형</option>
+                    <option value="WORK_COMMENT">개발팀 댓글</option>
+                    <option value="WORK_NOTICE">개발팀 공지</option>
+                    <option value="REPORT_REJECT">성적서 반려</option>
+                    <option value="REPORT_SUBMIT">성적서 상신</option>
+                    <option value="REPORT_REUPLOAD">성적서 재업로드</option>
+                    <option value="BOARD_NOTICE">사내 공지</option>
+                </select>
+                <span class="badge badge-primary alarmUnreadBadge d-none"></span>
+            </div>
+            <button type="button" class="btn btn-outline-secondary btn-sm btnReadAll">
+                <i class="bi bi-check2-all"></i> 전체 읽음
+            </button>
+        </div>
+
+        <!-- ── Toast UI Grid ── -->
+        <div class="alarmGrid"></div>
+
+        <!-- ── 알림 보존 안내 ── -->
+        <div class="alarm-retention-notice text-muted text-right" style="font-size:.75rem; margin-top:6px;">
+            <i class="bi bi-info-circle"></i>
+            읽은 알림 30일 · 미읽음 알림 90일 경과 후 자동 삭제됩니다.
+        </div>
+
+    </div><!-- /.alarm-modal-container -->
+
+</div>
+
+</html>

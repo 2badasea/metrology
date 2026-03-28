@@ -466,3 +466,23 @@ class AuthCheckboxRenderer {
     this.el.checked = props.value === true;
   }
 }
+
+// 알림 읽음 여부 렌더러 (alarm/alarmList 그리드 전용)
+// isRead 값이 'n'이면 주황 점 + "미읽음", 'y'이면 회색 점 + "읽음" 표시
+class IsReadRenderer {
+	constructor(props) {
+		this.el = document.createElement('span');
+		this.render(props);
+	}
+
+	render(props) {
+		const isUnread = props.value === 'n';
+		this.el.innerHTML = isUnread
+			? '<span style="color:#f0ad4e;font-size:.7rem;">●</span> 미읽음'
+			: '<span style="color:#adb5bd;font-size:.7rem;">●</span> 읽음';
+	}
+
+	getElement() { return this.el; }
+	mounted() {}
+	beforeDestroy() {}
+}
