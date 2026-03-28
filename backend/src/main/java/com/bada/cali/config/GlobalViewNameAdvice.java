@@ -84,6 +84,7 @@ public class GlobalViewNameAdvice {
 			model.addAttribute("gLoginAuth", isAdmin ? "admin" : "user");
 			model.addAttribute("gName", gUser.getName());
 			model.addAttribute("gId", gUser.getId());
+			model.addAttribute("gHp", gUser.getHp());
 		}
 
 

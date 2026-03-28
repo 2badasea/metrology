@@ -15,7 +15,8 @@
       "Bash(JAVA_HOME=\"/c/Users/gnjqt/.jdks/corretto-17.0.18\" ./gradlew compileJava)",
       "Bash(mkdir -p c:/BadaDev/cali/backend/src/main/resources/static/vendor/tui-editor)",
       "Bash(curl -L -o \"c:/BadaDev/cali/backend/src/main/resources/static/vendor/tui-editor/toastui-editor-all.min.js\" \"https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js\")",
-      "Bash(curl -L -o \"c:/BadaDev/cali/backend/src/main/resources/static/vendor/tui-editor/toastui-editor.min.css\" \"https://uicdn.toast.com/editor/latest/toastui-editor.min.css\")"
+      "Bash(curl -L -o \"c:/BadaDev/cali/backend/src/main/resources/static/vendor/tui-editor/toastui-editor.min.css\" \"https://uicdn.toast.com/editor/latest/toastui-editor.min.css\")",
+      "Bash(xargs ls:*)"
     ]
   }
 }

@@ -3,7 +3,7 @@
 /* ── 전체 레이아웃: 좌측 탭 + 우측 컨텐츠 ───────────────────── */
 .work-modal-container {
     display: flex;
-    min-height: 480px;
+    min-height: 620px;
 }
 
 /* ── 좌측 탭 네비게이션 ─────────────────────────────────────── */
@@ -107,11 +107,59 @@
 .workWriteForm table th {
     background: #f8f9fa;
     vertical-align: middle;
+    text-align: center;   /* th만 중앙정렬 */
     font-size: .85rem;
 }
 
 .workWriteForm table td {
     vertical-align: middle;
+    text-align: left;     /* td는 좌정렬 */
+}
+
+/* ── 상세 패널: 좌우 분할 레이아웃 ─────────────────────────── */
+.work-detail-layout {
+    display: flex;
+    gap: 14px;
+    min-height: 0;
+    flex: 1;
+}
+
+/* 좌측: 본문 60% */
+.work-detail-left {
+    flex: 0 0 60%;
+    min-width: 0;
+    overflow-y: auto;
+    max-height: 540px;
+}
+
+/* 우측: 댓글 40% */
+.work-detail-right {
+    flex: 0 0 calc(40% - 14px);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #dee2e6;
+    padding-left: 14px;
+}
+
+/* 댓글 영역 헤더 */
+.work-comment-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .85rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* 댓글 목록: 남은 공간 채우고 스크롤 */
+.work-comments {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 380px;
+    margin-bottom: 8px;
 }
 
 .workEditorEl .toastui-editor-defaultUI {

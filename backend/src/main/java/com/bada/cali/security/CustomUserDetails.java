@@ -23,17 +23,19 @@ public class CustomUserDetails implements UserDetails, Serializable {
 	private final String username;	// 로그인id
 	private final String password;
 	private final String name;
+	private final String hp;                        // 휴대폰번호 (개발팀 문의 작성 시 연락처 자동 세팅용)
 	private final Collection<? extends GrantedAuthority> authorities;
 	private final Set<Long> readableMenuIds;        // 사용자별 접근이 가능한 메뉴id
 	private final LocalDateTime lastPwdUpdated;     // 마지막 비밀번호 변경일시 (로그인 성공 처리에서 만료 경고용)
 
-	public CustomUserDetails(Long id, String username, String password, String name,
+	public CustomUserDetails(Long id, String username, String password, String name, String hp,
 							 Collection<? extends GrantedAuthority> authorities,
 							 Set<Long> readableMenuIds, LocalDateTime lastPwdUpdated) {
 		this.id = id;
 		this.username = username;
 		this.password = password;
 		this.name = name;
+		this.hp = hp;
 		this.authorities = authorities;
 		this.readableMenuIds = readableMenuIds;
 		this.lastPwdUpdated = lastPwdUpdated;

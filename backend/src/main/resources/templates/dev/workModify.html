@@ -95,7 +95,7 @@
                         </button>
                     </div>
                     <form class="workWriteForm">
-                        <table class="table table-bordered text-center mb-0" style="font-size:.88rem;">
+                        <table class="table table-bordered mb-0" style="font-size:.88rem;">
                             <colgroup>
                                 <col style="width:90px;" />
                                 <col />
@@ -167,46 +167,61 @@
 
                 <!-- ── 패널 3: 문의 상세 + 댓글 ── -->
                 <div class="work-panel panel-detail d-none">
-                    <div class="panel-nav mb-3">
+                    <div class="panel-nav mb-2">
                         <button type="button" class="btn btn-outline-secondary btn-sm btnBack">
                             <i class="bi bi-arrow-left"></i> 목록으로
                         </button>
                     </div>
-                    <div class="card mb-3 work-origin-card">
-                        <div class="card-header py-2 d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center" style="gap:6px;">
-                                <span class="badge work-category-badge"></span>
-                                <span class="badge work-priority-badge"></span>
-                                <strong class="work-title-display" style="font-size:.92rem;"></strong>
+
+                    <!-- 좌우 분할: 좌측 본문 60% / 우측 댓글 40% -->
+                    <div class="work-detail-layout">
+
+                        <!-- ── 좌측: 본문 영역 ── -->
+                        <div class="work-detail-left">
+                            <div class="card work-origin-card">
+                                <div class="card-header py-2 d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center" style="gap:6px;">
+                                        <span class="badge work-category-badge"></span>
+                                        <span class="badge work-priority-badge"></span>
+                                        <strong class="work-title-display" style="font-size:.92rem;"></strong>
+                                    </div>
+                                    <div class="d-flex align-items-center text-muted" style="gap:10px;font-size:.8rem;">
+                                        <span class="badge work-status-badge"></span>
+                                        <span class="work-date-display"></span>
+                                        <span class="work-writer-display"></span>
+                                    </div>
+                                </div>
+                                <div class="card-body py-2">
+                                    <div class="workViewerEl"></div>
+                                </div>
+                                <div class="card-footer py-1 work-attach-footer d-none">
+                                    <small class="text-muted"><i class="bi bi-paperclip"></i> 첨부파일</small>
+                                    <ul class="detail-attach-list list-unstyled mb-0 mt-1"></ul>
+                                </div>
                             </div>
-                            <div class="d-flex align-items-center text-muted" style="gap:10px;font-size:.8rem;">
-                                <span class="badge work-status-badge"></span>
-                                <span class="work-date-display"></span>
-                                <span class="work-writer-display"></span>
+                        </div><!-- /.work-detail-left -->
+
+                        <!-- ── 우측: 댓글 영역 ── -->
+                        <div class="work-detail-right">
+                            <div class="work-comment-header">
+                                <i class="bi bi-chat-left-text text-primary"></i>
+                                <span>댓글</span>
                             </div>
-                        </div>
-                        <div class="card-body py-2">
-                            <div class="workViewerEl"></div>
-                        </div>
-                        <div class="card-footer py-1 work-attach-footer d-none">
-                            <small class="text-muted"><i class="bi bi-paperclip"></i> 첨부파일</small>
-                            <ul class="detail-attach-list list-unstyled mb-0 mt-1"></ul>
-                        </div>
-                    </div>
-                    <div class="work-comments mb-3"></div>
-                    <div class="comment-write-area">
-                        <div class="d-flex align-items-center mb-1" style="gap:6px;">
-                            <i class="bi bi-chat-left-text text-primary"></i>
-                            <span style="font-size:.85rem;font-weight:600;">댓글 작성</span>
-                        </div>
-                        <textarea class="form-control commentInput" rows="3"
-                            placeholder="추가 문의 내용을 입력하세요." maxlength="2000"></textarea>
-                        <div class="text-right mt-1">
-                            <button type="button" class="btn btn-primary btn-sm btnAddComment">
-                                <i class="bi bi-send"></i> 댓글 등록
-                            </button>
-                        </div>
-                    </div>
+                            <!-- 댓글 목록 (스크롤) -->
+                            <div class="work-comments"></div>
+                            <!-- 댓글 작성 -->
+                            <div class="comment-write-area">
+                                <textarea class="form-control commentInput" rows="3"
+                                    placeholder="추가 문의 내용을 입력하세요." maxlength="2000"></textarea>
+                                <div class="text-right mt-1">
+                                    <button type="button" class="btn btn-primary btn-sm btnAddComment">
+                                        <i class="bi bi-send"></i> 댓글 등록
+                                    </button>
+                                </div>
+                            </div>
+                        </div><!-- /.work-detail-right -->
+
+                    </div><!-- /.work-detail-layout -->
                 </div><!-- /.panel-detail -->
 
             </div><!-- /.work-tab-pane[inquiry] -->

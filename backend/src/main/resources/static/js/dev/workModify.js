@@ -108,15 +108,16 @@ $(function () {
 
 	// ── 작성 패널 초기화 ───────────────────────────────────────────────
 	$modal.initWritePanel = async function () {
-		// 작성자 세팅 (부모 페이지 G_USER 전역변수 활용)
-		if (typeof G_USER !== 'undefined') {
-			$('.writerNameDisplay', $modal).val(G_USER.name || '');
-		}
-
-		// 폼 초기화
+		// 폼 초기화 (먼저 리셋 후 값 세팅)
 		$('form.workWriteForm', $modal)[0]?.reset();
 		attachFiles = [];
 		$('.attach-file-list', $modal).empty();
+
+		// 작성자/연락처 세팅 (부모 페이지 G_USER 전역변수 활용, reset() 이후에 세팅)
+		if (typeof G_USER !== 'undefined') {
+			$('.writerNameDisplay', $modal).val(G_USER.name || '');
+			$('.writerTelDisplay',  $modal).val(G_USER.hp   || '');
+		}
 
 		// Toast UI Editor 초기화 (1회만 생성, 이후 재사용)
 		if (!editor) {
@@ -361,4 +362,12 @@ $(function () {
 	$modal.confirm_modal = async function () {
 		return await $modal.submitWork();
 	};
+
+	// ── 표준 패턴: modal-data 등록 + init_modal 자동 호출 ────────────
+	$modal.data('modal-data', $modal);
+	$modal.addClass('modal-view-applied');
+	if ($modal.hasClass('modal-body')) {
+		const p = $modal.data('param') || {};
+		$modal.init_modal(p);
+	}
 });
