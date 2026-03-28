@@ -37,4 +37,16 @@ public class AlarmDTO {
             @Schema(description = "참조 대상 종류 (WORK/REPORT/BOARD_NOTICE)") String refType,
             @Schema(description = "참조 대상 ID") Long refId
     ) {}
+
+    // 대시보드 → cali webhook 수신 DTO
+    // 대시보드가 댓글/공지 등록 후 POST /api/callback/alarm 으로 전송하는 페이로드
+    @Schema(description = "대시보드 알림 webhook 수신 페이로드")
+    public record DashboardCallbackReq(
+            @Schema(description = "수신자 member.id") Long memberId,
+            @Schema(description = "알림 유형 (WORK_COMMENT / WORK_NOTICE)") AlarmType alarmType,
+            @Schema(description = "참조 대상 종류 (항상 WORK)") String refType,
+            @Schema(description = "참조 대상 ID (work.id)") Long refId,
+            @Schema(description = "알림 내용 (제목 겸 본문 스냅샷)") String content,
+            @Schema(description = "발신자명 (개발팀 등)") String senderName
+    ) {}
 }

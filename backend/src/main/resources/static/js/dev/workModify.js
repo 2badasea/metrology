@@ -16,7 +16,11 @@ $(function () {
 	let editor      = null;       // Toast UI Editor 인스턴스 (작성 패널)
 	let viewer      = null;       // Toast UI Viewer 인스턴스 (상세 패널)
 	let attachFiles = [];         // 작성 패널에서 선택된 첨부파일 목록
-	let activeTab   = 'inquiry';  // 현재 활성 탭 ('notice' | 'inquiry')
+	let activeTab        = 'inquiry';  // 현재 활성 탭 ('notice' | 'inquiry')
+	let currentWorkId    = null;       // 현재 상세 보기 중인 문의 ID
+	let workGrid         = null;       // 문의 목록 Toast UI Grid 인스턴스
+	let noticeGrid       = null;       // 공지사항 목록 Toast UI Grid 인스턴스
+	let pendingNoticeData = null;      // 공지 탭 최초 활성화 전까지 데이터 임시 보관
 
 	const MAX_FILES     = 10;
 	const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
@@ -79,6 +83,12 @@ $(function () {
 
 		// 등록 버튼: 문의 탭의 작성 패널에서만 노출
 		$modal_root.find('.modal-btn-confirm').hide();
+
+		// 공지사항 탭 최초 활성화 시 그리드 초기화
+		// (d-none 상태에서는 그리드가 크기를 측정할 수 없으므로 탭 전환 후 지연 실행)
+		if (tabName === 'notice' && !noticeGrid) {
+			setTimeout(() => { $modal.initNoticeGrid(); }, 50);
+		}
 	};
 
 	// ── 문의 탭 내 패널 전환 ──────────────────────────────────────────
@@ -96,14 +106,127 @@ $(function () {
 		}
 	};
 
-	// ── 문의 목록 렌더링 (추후 API 연동) ─────────────────────────────
-	$modal.loadWorkList = function () {
-		$('.work-list-empty', $modal).show();
+	// ── 문의 목록 API 조회 및 Toast Grid 렌더링 ─────────────────────
+	$modal.loadWorkList = async function () {
+		try {
+			const res   = await fetch('/api/dev/works');
+			if (!res.ok) throw res;
+			const json  = await res.json();
+			const works = json.code === 1 ? (json.data ?? []) : [];
+
+			// 그리드용 데이터 변환 (한글 레이블 파생 필드 추가)
+			const gridData = works.map((w, idx) => ({
+				...w,
+				seq:      idx + 1,
+				catLabel: CATEGORY_LABEL[w.category]        ?? w.category        ?? '',
+				priLabel: PRIORITY_LABEL[w.priorityByAgent] ?? w.priorityByAgent ?? '',
+				stLabel:  STATUS_LABEL[w.workStatus]        ?? w.workStatus       ?? '',
+				dateStr:  w.createdAt ? w.createdAt.substring(0, 10) : '',
+			}));
+
+			if (!workGrid) {
+				// 최초 초기화
+				workGrid = gGrid($('.workListGrid', $modal)[0], {
+					columns: [
+						{ header: '번호',   name: 'seq',      width: 50,  align: 'center' },
+						{ header: '유형',   name: 'catLabel', width: 80,  align: 'center' },
+						{ header: '제목',   name: 'title',    minWidth: 150 },
+						{ header: '중요도', name: 'priLabel', width: 70,  align: 'center' },
+						{ header: '상태',   name: 'stLabel',  width: 80,  align: 'center' },
+						{ header: '등록일', name: 'dateStr',  width: 90,  align: 'center' },
+					],
+					bodyHeight:      300,
+					pageOptions:     false,
+					showConfigButton: false,
+					data: gridData,
+				});
+
+				// 행 클릭 → 상세 API 조회
+				workGrid.on('click', async ({ rowKey }) => {
+					const row = workGrid.getRow(rowKey);
+					if (!row || !row.id) return;
+					try {
+						const detailRes  = await fetch(`/api/dev/works/${row.id}`);
+						if (!detailRes.ok) throw detailRes;
+						const detailJson = await detailRes.json();
+						if (detailJson.code !== 1) {
+							gToast(detailJson.message ?? '상세 조회에 실패했습니다.', 'error');
+							return;
+						}
+						currentWorkId = row.id;
+						await $modal.renderDetail(detailJson.data);
+						$modal.showPanel('detail');
+						// WORK 타입 알림 읽음 처리 (fire-and-forget)
+						fetch(`/api/alarms/readByRef?refType=WORK&refId=${row.id}`, { method: 'PATCH' }).catch(() => {});
+					} catch (e) {
+						gApiErrorHandler(e, { defaultMessage: '문의 상세를 불러오는 중 오류가 발생했습니다.' });
+					}
+				});
+			} else {
+				// 이후 호출 시 데이터만 교체
+				workGrid.resetData(gridData);
+			}
+		} catch (e) {
+			gApiErrorHandler(e, { defaultMessage: '문의 목록을 불러오는 중 오류가 발생했습니다.' });
+		}
 	};
 
-	// ── 공지 목록 렌더링 (추후 API 연동) ─────────────────────────────
-	$modal.loadNoticeList = function () {
-		$('.notice-list-empty', $modal).show();
+	// ── 공지사항 API 조회 및 Toast Grid 렌더링 ──────────────────────
+	$modal.loadNoticeList = async function () {
+		try {
+			const res     = await fetch('/api/dev/notices');
+			if (!res.ok) throw res;
+			const json    = await res.json();
+			const notices = json.code === 1 ? (json.data ?? []) : [];
+
+			// 미확인 카운트 계산 + 그리드용 데이터 변환
+			let unreadCount = 0;
+			const gridData  = notices.map((n, idx) => {
+				if (!n.isChecked) unreadCount++;
+				return {
+					...n,
+					seq:          idx + 1,
+					dateStr:      n.createdAt ? n.createdAt.substring(0, 10) : '',
+					checkedLabel: n.isChecked ? '확인' : '미확인',
+				};
+			});
+
+			// 미확인 공지 뱃지 업데이트
+			const $badge = $('.notice-badge', $modal);
+			if (unreadCount > 0) {
+				$badge.text(unreadCount).removeClass('d-none');
+			} else {
+				$badge.addClass('d-none');
+			}
+
+			// 공지 탭이 아직 한 번도 활성화되지 않은 경우 데이터만 보관
+			// (d-none 상태에서는 그리드 크기 측정 불가 → initNoticeGrid 시 사용)
+			if (!noticeGrid) {
+				pendingNoticeData = gridData;
+				return;
+			}
+			noticeGrid.resetData(gridData);
+		} catch (e) {
+			gApiErrorHandler(e, { defaultMessage: '공지사항 목록을 불러오는 중 오류가 발생했습니다.' });
+		}
+	};
+
+	// ── 공지사항 그리드 초기화 (탭 최초 활성화 시 1회 실행) ──────────
+	$modal.initNoticeGrid = function () {
+		if (noticeGrid) return;
+		noticeGrid = gGrid($('.noticeListGrid', $modal)[0], {
+			columns: [
+				{ header: '번호',   name: 'seq',          width: 50,  align: 'center' },
+				{ header: '제목',   name: 'title',         minWidth: 200 },
+				{ header: '등록일', name: 'dateStr',       width: 90,  align: 'center' },
+				{ header: '확인',   name: 'checkedLabel',  width: 60,  align: 'center' },
+			],
+			bodyHeight:      300,
+			pageOptions:     false,
+			showConfigButton: false,
+			data: pendingNoticeData ?? [],
+		});
+		pendingNoticeData = null;
 	};
 
 	// ── 작성 패널 초기화 ───────────────────────────────────────────────
@@ -213,7 +336,7 @@ $(function () {
 		});
 	};
 
-	// ── 문의 등록 처리 (추후 API 연동) ────────────────────────────────
+	// ── 문의 등록 처리 ────────────────────────────────────────────────
 	$modal.submitWork = async function () {
 		const $form    = $('form.workWriteForm', $modal);
 		const category = $('select[name=category]', $form).val();
@@ -227,34 +350,59 @@ $(function () {
 		const confirmed = await gMessage('문의를 등록하시겠습니까?', '', 'question', 'confirm');
 		if (!confirmed.isConfirmed) return false;
 
-		// TODO: dashboard API 연동 후 아래 주석 해제
-		// const formData = new FormData();
-		// formData.append('category',        category);
-		// formData.append('priorityByAgent', $('select[name=priorityByAgent]', $form).val());
-		// formData.append('title',           title);
-		// formData.append('content',         content);
-		// attachFiles.forEach(f => formData.append('files', f));
-		// const res = await fetch('/api/dev/works', { method: 'POST', body: formData });
-		// if (!res.ok) throw res;
-
-		gToast('등록 기능은 dashboard API 연동 후 활성화됩니다.', 'info');
-		return false;
+		try {
+			const formData = new FormData();
+			formData.append('category',        category);
+			formData.append('priorityByAgent', $('select[name=priorityByAgent]', $form).val());
+			formData.append('title',           title);
+			formData.append('content',         content);
+			attachFiles.forEach(f => formData.append('files', f));
+			// Content-Type 헤더 지정 금지 — 브라우저가 boundary를 포함한 multipart/form-data 자동 설정
+			const res  = await fetch('/api/dev/works', { method: 'POST', body: formData });
+			if (!res.ok) throw res;
+			const json = await res.json();
+			if (json.code !== 1) {
+				gToast(json.message ?? '등록에 실패했습니다.', 'error');
+				return false;
+			}
+			gToast('문의가 등록되었습니다.', 'success');
+			$modal.showPanel('list');
+			await $modal.loadWorkList();
+			return true;
+		} catch (e) {
+			gApiErrorHandler(e, { defaultMessage: '문의 등록 중 오류가 발생했습니다.' });
+			return false;
+		}
 	};
 
-	// ── 댓글 등록 처리 (추후 API 연동) ────────────────────────────────
+	// ── 댓글 등록 처리 ────────────────────────────────────────────────
 	$modal.submitComment = async function () {
 		const content = $('.commentInput', $modal).val().trim();
 		if (!content) { gToast('댓글 내용을 입력하세요.', 'warning'); return; }
 
-		// TODO: dashboard API 연동 후 아래 주석 해제
-		// const res = await fetch(`/api/dev/works/${currentWorkId}/comments`, {
-		//     method: 'POST',
-		//     headers: { 'Content-Type': 'application/json' },
-		//     body: JSON.stringify({ content }),
-		// });
-		// if (!res.ok) throw res;
-
-		gToast('댓글 등록 기능은 dashboard API 연동 후 활성화됩니다.', 'info');
+		try {
+			const res  = await fetch(`/api/dev/works/${currentWorkId}/comments`, {
+				method:  'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body:    JSON.stringify({ content }),
+			});
+			if (!res.ok) throw res;
+			const json = await res.json();
+			if (json.code !== 1) {
+				gToast(json.message ?? '댓글 등록에 실패했습니다.', 'error');
+				return;
+			}
+			// 댓글 입력창 초기화 후 상세 재조회하여 댓글 목록 갱신
+			$('.commentInput', $modal).val('');
+			const detailRes  = await fetch(`/api/dev/works/${currentWorkId}`);
+			if (!detailRes.ok) throw detailRes;
+			const detailJson = await detailRes.json();
+			if (detailJson.code === 1) {
+				$modal.renderComments(detailJson.data.comments ?? []);
+			}
+		} catch (e) {
+			gApiErrorHandler(e, { defaultMessage: '댓글 등록 중 오류가 발생했습니다.' });
+		}
 	};
 
 	// ── 첨부파일 선택 ────────────────────────────────────────────────
@@ -322,39 +470,33 @@ $(function () {
 		await $modal.submitComment();
 	});
 
-	// 문의 목록 행 클릭 → 상세 (더미 데이터, API 연동 전 UI 확인용)
-	$modal.on('click', '.work-list-table tbody tr:not(.work-list-empty)', async function () {
-		const dummyData = {
-			id: 1, category: 'BUG', title: '[UI 확인용] 샘플 문의 제목입니다.',
-			content:         '## 문의 내용\n\n이 부분에 문의 본문이 표시됩니다.\n\n- 항목 1\n- 항목 2',
-			priorityByAgent: 'NORMAL', workStatus: 'READY',
-			createMemberName: G_USER?.name ?? '작성자',
-			createdAt:        new Date().toISOString(),
-			attachments:      [],
-			comments: [
-				{ authorType: 'AGENT', authorName: G_USER?.name ?? '사용자',
-				  content: '추가로 확인 부탁드립니다.', createdAt: new Date().toISOString() },
-				{ authorType: 'DEV',   authorName: '개발팀',
-				  content: '확인하였습니다. 처리 예정입니다.', createdAt: new Date().toISOString() },
-			],
-		};
-		await $modal.renderDetail(dummyData);
-		$modal.showPanel('detail');
-	});
+	// 문의 목록 행 클릭은 workGrid.on('click', ...) 에서 처리 (loadWorkList 내부)
 
 	// ── init_modal ────────────────────────────────────────────────────
 	$modal.init_modal = async function (param) {
 		$modal.param = param;
 
-		// 기본 진입: 문의 탭, 목록 패널
+		// 문의 목록 + 공지사항 병렬 로드
+		// (공지사항은 d-none 탭이므로 데이터만 보관 → 탭 전환 시 그리드 초기화)
 		$modal.loadWorkList();
+		$modal.loadNoticeList();
 		$modal.showPanel('list');
 
-		// workId로 직접 진입 시 상세 패널로 이동
+		// workId로 직접 진입 시 → API 조회 후 상세 패널로 이동
 		const initWorkId = $('#initWorkId', $modal).val();
 		if (initWorkId && initWorkId !== 'null') {
-			// TODO: API 조회 후 renderDetail 호출
-			$modal.showPanel('detail');
+			try {
+				const res  = await fetch(`/api/dev/works/${initWorkId}`);
+				if (!res.ok) throw res;
+				const json = await res.json();
+				if (json.code === 1) {
+					currentWorkId = Number(initWorkId);
+					await $modal.renderDetail(json.data);
+					$modal.showPanel('detail');
+				}
+			} catch (e) {
+				gApiErrorHandler(e, { defaultMessage: '문의 상세를 불러오는 중 오류가 발생했습니다.' });
+			}
 		}
 	};
 
